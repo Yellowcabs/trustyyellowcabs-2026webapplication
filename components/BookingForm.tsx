@@ -70,7 +70,7 @@ export const BookingForm: React.FC = () => {
     drop: '',
     date: '',
     time: '',
-    vehicleType: VehicleType.SEDAN,
+    vehicleType: VehicleType.MINI,
     distance: '',
     estimatedFare: '',
   });
@@ -107,32 +107,40 @@ export const BookingForm: React.FC = () => {
   useEffect(() => {
     if (!googleLoaded || step !== 1) return;
 
-    const initAutocomplete = () => {
-      const options = {
-        componentRestrictions: { country: 'in' },
-        fields: ['formatted_address', 'geometry'],
-      };
+   const initAutocomplete = () => {
+ const COIMBATORE_BOUNDS = new google.maps.LatLngBounds(
+  new google.maps.LatLng(10.60, 76.65), // SW corner (Pollachi)
+  new google.maps.LatLng(11.35, 77.10)  // NE corner (Mettupalayam)
+);
 
-      if (pickupRef.current && !pickupAutocomplete.current) {
-        pickupAutocomplete.current = new google.maps.places.Autocomplete(pickupRef.current, options);
-        pickupAutocomplete.current.addListener('place_changed', () => {
-          const place = pickupAutocomplete.current.getPlace();
-          if (place.formatted_address) {
-            setFormData(prev => ({ ...prev, pickup: place.formatted_address }));
-          }
-        });
-      }
+const options = {
+  bounds: COIMBATORE_BOUNDS,
+  strictBounds: false,  // Prefer Coimbatore but allow anywhere
+  componentRestrictions: { country: 'in' }, // India
+  fields: ['formatted_address', 'geometry'],
+};
 
-      if (dropRef.current && !dropAutocomplete.current) {
-        dropAutocomplete.current = new google.maps.places.Autocomplete(dropRef.current, options);
-        dropAutocomplete.current.addListener('place_changed', () => {
-          const place = dropAutocomplete.current.getPlace();
-          if (place.formatted_address) {
-            setFormData(prev => ({ ...prev, drop: place.formatted_address }));
-          }
-        });
+  if (pickupRef.current && !pickupAutocomplete.current) {
+    pickupAutocomplete.current = new google.maps.places.Autocomplete(pickupRef.current, options);
+    pickupAutocomplete.current.addListener('place_changed', () => {
+      const place = pickupAutocomplete.current.getPlace();
+      if (place.formatted_address) {
+        setFormData(prev => ({ ...prev, pickup: place.formatted_address }));
       }
-    };
+    });
+  }
+
+  if (dropRef.current && !dropAutocomplete.current) {
+    dropAutocomplete.current = new google.maps.places.Autocomplete(dropRef.current, options);
+    dropAutocomplete.current.addListener('place_changed', () => {
+      const place = dropAutocomplete.current.getPlace();
+      if (place.formatted_address) {
+        setFormData(prev => ({ ...prev, drop: place.formatted_address }));
+      }
+    });
+  }
+};
+
 
     setTimeout(initAutocomplete, 200);
   }, [googleLoaded, step]);
@@ -141,7 +149,7 @@ export const BookingForm: React.FC = () => {
     if (!googleLoaded || !mapRef.current) return;
 
     const map = new google.maps.Map(mapRef.current, {
-      center: { lat: 11.0168, lng: 76.9558 }, // Coimbatore
+      center: { lat: 10.900, lng: 76.9558 }, // Coimbatore
       zoom: 12,
       disableDefaultUI: true,
  styles: [
@@ -183,57 +191,62 @@ export const BookingForm: React.FC = () => {
     );
   }, [googleLoaded]);
 
-  const calculateFare = useCallback((origin: string, destination: string, vehicle: VehicleType) => {
-    if (NO_FARE_VEHICLES.includes(vehicle)) {
-      setFormData(prev => ({ ...prev, distance: '', estimatedFare: 'Manual Quote' }));
-      return;
-    }
+const calculateFare = useCallback((origin: string, destination: string, vehicle: VehicleType) => {
+  if (NO_FARE_VEHICLES.includes(vehicle)) {
+    setFormData(prev => ({ ...prev, distance: '', estimatedFare: 'Manual Quote' }));
+    return;
+  }
 
-    if (!origin || !destination || !(window as any).google?.maps) return;
-    
-    setLoadingFare(true);
-    const service = new google.maps.DistanceMatrixService();
-    service.getDistanceMatrix(
-      {
-        origins: [origin],
-        destinations: [destination],
-        travelMode: google.maps.TravelMode.DRIVING,
-        unitSystem: google.maps.UnitSystem.METRIC,
-      },
-      (response: any, status: string) => {
-        setLoadingFare(false);
-        if (status === 'OK' && response?.rows[0]?.elements[0]?.status === 'OK') {
-          const distanceText = response.rows[0].elements[0].distance.text;
-          const distanceValue = response.rows[0].elements[0].distance.value / 1000;
-          
-          let calculatedFare = 0;
-          let currentBaseFare = STANDARD_BASE_FARE;
+  if (!origin || !destination || !(window as any).google?.maps) return;
 
-          if (vehicle === VehicleType.SUV || vehicle === VehicleType.SUV_PLUS || vehicle === VehicleType.INNOVA) {
-            currentBaseFare = PREMIUM_BASE_FARE;
-            const perKmRate = PRICING[vehicle];
-            calculatedFare = Math.round(distanceValue * perKmRate) + currentBaseFare;
-          } else if (vehicle === VehicleType.MINI || vehicle === VehicleType.SEDAN) {
-            if (distanceValue <= 5) calculatedFare = 200;
-            else if (distanceValue <= 7) calculatedFare = 250;
-            else {
-              const perKmRate = PRICING[vehicle];
-              calculatedFare = Math.round(distanceValue * perKmRate) + STANDARD_BASE_FARE;
-            }
-          } else {
-            const perKmRate = PRICING[vehicle];
-            calculatedFare = Math.round(distanceValue * perKmRate) + STANDARD_BASE_FARE;
-          }
-          
-          setFormData(prev => ({
-            ...prev,
-            distance: distanceText,
-            estimatedFare: `₹${calculatedFare}`
-          }));
-        }
+  setLoadingFare(true);
+  const service = new google.maps.DistanceMatrixService();
+
+  service.getDistanceMatrix(
+    {
+      origins: [origin],
+      destinations: [destination],
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.METRIC,
+    },
+    (response: any, status: string) => {
+      setLoadingFare(false);
+
+      if (status === 'OK' && response?.rows[0]?.elements[0]?.status === 'OK') {
+        const distanceText = response.rows[0].elements[0].distance.text;
+        const distanceValue = response.rows[0].elements[0].distance.value / 1000;
+
+        // 👉 Base fare by vehicle type
+       const isPremiumSUV = [VehicleType.SUV, VehicleType.SUV_PLUS, VehicleType.INNOVA].includes(vehicle);
+
+// 🚫 If SUV and distance ≤ 5 km → no auto fare
+if (isPremiumSUV && distanceValue <= 5) {
+  setFormData(prev => ({
+    ...prev,
+    distance: distanceText,
+    estimatedFare: 'On-Call Quote'
+  }));
+  return;
+}
+
+// ✅ Normal fare calculation
+const baseFare = isPremiumSUV ? PREMIUM_BASE_FARE : STANDARD_BASE_FARE;
+const perKmRate = PRICING[vehicle];
+
+// 👉 Always: (km × rate) + base fare
+const calculatedFare = Math.round(distanceValue * perKmRate) + baseFare;
+
+setFormData(prev => ({
+  ...prev,
+  distance: distanceText,
+  estimatedFare: `₹${calculatedFare}`
+}));
+
       }
-    );
-  }, []);
+    }
+  );
+}, []);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
