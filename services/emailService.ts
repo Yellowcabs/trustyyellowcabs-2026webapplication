@@ -41,20 +41,25 @@ Please contact the customer if needed.`
   const tgLink = `https://t.me/share/url?url=&text=${tgMessage}`;
 
   // WhatsApp message
-  const waMessage = encodeURIComponent(
-`🚖 New Booking Request
+ const waMessage = encodeURIComponent(
+`👋 Hi / வணக்கம்!
 
-Customer: ${details.name}
-Phone: ${details.phone}
+🚖 *Trusty Yellow Cabs* — Your Ride Partner
 
-Pickup: ${details.pickup}
-Drop: ${details.drop}
+📍 Need a taxi anytime?
+Just open:
+👉 https://trustyyellowcabs.in
 
-Vehicle: ${details.vehicleType}
-Fare: ${details.estimatedFare || 'Manual Quote'}
-Distance: ${details.distance || 'N/A'}
-Schedule (IST): ${scheduleIST}`
-  );
+📲 Easy to book:
+Add this website to your Home Screen.
+Next time — book in just one tap 👍
+
+🛡️ Safe • On-time • Easy Booking
+
+Whenever you need a ride,
+we are just one tap away `
+);
+
   const waLink = `https://wa.me/${details.phone.replace(/\D/g, '')}?text=${waMessage}`;
 
   const emailContent = {
