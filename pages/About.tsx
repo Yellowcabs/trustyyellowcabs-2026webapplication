@@ -45,13 +45,13 @@ export const About: React.FC = () => {
               <div className="h-px w-8 bg-brand-yellow"></div>
               Mission & Vision
             </div>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight leading-tight">Driving the Future of <br/>Transportation in Coimbatore</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight leading-tight">Punctual Taxi Service <br/>coimbatore</h2>
             
             <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-              Founded in 2020, Trustyyellowcabs has grown into one of the most trusted taxi services in Coimbatore. We pride ourselves on delivering premium quality at transparent rates.
+              Trusty Yellow Cabs has been a trusted taxi service in Coimbatore, known for taxi booking, professional drivers, and transparent pricing.
             </p>
             <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-              Our goal has always been simple — safe rides, clean cars, professional drivers, and on-time pickup anywhere in Coimbatore and across Tamil Nadu.
+             We offer safe transportation, well-maintained vehicles, and dependable taxi services throughout Coimbatore and Tamil Nadu.
             </p>
             
             <div className="grid grid-cols-2 gap-4 sm:gap-6 pt-6">
@@ -111,9 +111,9 @@ export const About: React.FC = () => {
 
           <div className="grid md:grid-cols-3 gap-12">
             {[
-              { icon: Shield, title: 'Safety First', desc: 'Verified drivers and GPS tracked vehicles for complete peace of mind during your travel.' },
-              { icon: Clock, title: 'Punctuality', desc: 'No more waiting. We value your time as much as you do, ensuring on-time pickups every single time.' },
-              { icon: Star, title: 'Premium Service', desc: 'Well-maintained, clean cars with air conditioning and professional behavior guaranteed.' },
+              { icon: Shield, title: 'Safety First', desc: 'Verified drivers and GPS-tracked vehicles for complete peace of mind on every outstation taxi and Coimbatore ride.' },
+              { icon: Clock, title: 'Punctuality', desc: 'No more waiting! Skip Red Taxi and book Trusty Yellow Cabs for Coimbatore taxi rides with guaranteed on-time pickups.' },
+              { icon: Star, title: 'Premium Service', desc: 'Ride comfortably in well-maintained cars with AC and reliable, professional drivers.' },
             ].map((value, i) => (
               <div key={i} className="flex flex-col items-center text-center space-y-6">
                 <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center text-brand-yellow">

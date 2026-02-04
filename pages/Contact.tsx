@@ -15,7 +15,7 @@ export const Contact: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">Get in Touch</h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400">We are here to help. Reach out to us 24/7 for bookings and inquiries.</p>
+          <p className="text-lg text-slate-600 dark:text-slate-400">Contact Trusty Yellow Cabs 24/7 for safe and reliable cab service in Coimbatore.</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
@@ -82,7 +82,7 @@ export const Contact: React.FC = () => {
             </div>
             <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Direct WhatsApp Booking</h3>
             <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 leading-relaxed max-w-md mx-auto">
-              Skip the forms and get instant replies! Chat with our 24/7 helpdesk for cabs, rates, and corporate travel needs.
+            Reach us anytime for Coimbatore taxi bookings, outstation trips, and corporate travel.
             </p>
             
             <div className="space-y-4">

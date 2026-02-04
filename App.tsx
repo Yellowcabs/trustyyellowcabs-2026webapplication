@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, HashRouter, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
@@ -39,7 +39,7 @@ const App: React.FC = () => {
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
   return (
-    <HashRouter>
+    <>
       <ScrollToTop />
       <div className={`min-h-screen flex flex-col transition-colors duration-300 ${darkMode ? 'dark bg-slate-900' : 'bg-white'}`}>
         <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
@@ -57,7 +57,7 @@ const App: React.FC = () => {
         <FloatingCallButton />
         <MobileTabBar />
       </div>
-    </HashRouter>
+    </>
   );
 };
 

@@ -10,7 +10,7 @@ export const Fleet: React.FC = () => {
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Our Fleet</h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
-            Choose from our diverse range of modern, well-maintained vehicles. From economical sedans to luxury coaches.
+           Book your Coimbatore taxi or outstation taxi from our wide range of vehicles, from budget sedans to premium coaches.
           </p>
         </div>
 

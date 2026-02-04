@@ -79,7 +79,7 @@ export const Home: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start">
                 <div className="flex items-center gap-2.5 text-slate-900 dark:text-white">
                   <CheckCircle className="text-brand-yellow" size={18} />
-                  <span className="text-xs font-bold">Flat Rates</span>
+                  <span className="text-xs font-bold">No Hidden Charges</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-slate-900 dark:text-white">
                   <CheckCircle className="text-brand-yellow" size={18} />

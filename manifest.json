@@ -1,7 +1,7 @@
 {
   "name": "Trustyyellowcabs",
   "short_name": "Trustyyellowcabs",
-  "description": "Premium and Reliable Taxi Service in Coimbatore. Airport transfers, outstation, and city rides.",
+  "description": "Taxi Coimbatore. Airport transfers, outstation, and city Cabs.",
   "lang": "en-US",
   "start_url": "/",
   "scope": ".",
@@ -23,14 +23,14 @@
       "purpose": "any"
     }
   ],
-  "categories": ["travel", "transportation"],
+  "categories": ["travel", "transportation", "business"],
   "screenshots": [
     {
       "src": "/images/1080x1920.jpg",
       "sizes": "1080x1920",
       "type": "image/jpeg",
       "form_factor": "narrow",
-      "label": "Home Screen - Book Your Ride"
+      "label": "Book Taxi in Coimbatore"
     }
   ]
 }

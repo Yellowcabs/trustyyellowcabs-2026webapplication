@@ -73,7 +73,7 @@ export const SERVICES_DATA: Service[] = [
   {
     id: '1',
     title: 'Airport Transfers',
-    description: 'Fast and punctual pickup and drop-off to all major airports in Coimbatore.',
+    description: 'Coimbatore - Need a taxi in Coimbatore? Count on us for reliable transportation! We offer convenient airport pickup and drop-off services.',
     icon: 'plane',
     image: '/images/Airport Transfers.jpg',
     
@@ -86,7 +86,7 @@ export const SERVICES_DATA: Service[] = [
   {
     id: '2',
     title: 'Hourly Rental',
-    description: 'Hourly Taxi Rides in Coimbatore — Flexible & Reliable',
+    description: 'Hourly Taxi Rides in Coimbatore Flexible & Reliable Taxi Service | Cab & Taxi Booking Near Me',
     icon: 'clock',
      image: '/images/Hourly Rental.jpg',
     features: [
@@ -98,7 +98,7 @@ export const SERVICES_DATA: Service[] = [
   {
     id: '3',
     title: 'Outstation Trips',
-    description: 'Book Trustyyellowcabs for Reliable Long-Distance Rides, Perfect for Leisure or Work Travel. We offer the same convenience and comfort that you find in services like Red Taxi.',
+    description: 'No more waiting for Red Taxi! Book Trusty Yellow Cabs for reliable outstation taxi rides in Coimbatore. Perfect for leisure or work travel, our outstation cabs provide safe, comfortable, and timely long-distance trips—better than Red Taxi Coimbatore.',
     icon: 'map-pin',
     image: '/images/OutstationTrips.jpg',
     features: [
@@ -110,7 +110,7 @@ export const SERVICES_DATA: Service[] = [
   {
     id: '4',
     title: 'Corporate Travel',
-    description: 'Managed travel solutions for businesses with billing & reporting.',
+    description: 'Managed travel solutions for businesses in Coimbatore  Corporate taxi services with billing, reporting, and reliable outstation cabs. Book your Coimbatore taxi or outstation taxi today.',
     icon: 'briefcase',
      image: '/images/Corporate Travel.jpg',
     features: [
