@@ -8,7 +8,7 @@ declare const google: any;
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const PRICING: Record<VehicleType, number> = {
-  [VehicleType.MINI]: 25,
+  [VehicleType.MINI]: 24,
   [VehicleType.SEDAN]: 27,
   [VehicleType.SUV]: 40,
   [VehicleType.SUV_PLUS]: 45,
@@ -250,20 +250,26 @@ setFormData(prev => ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const success = await sendBookingEmail(formData);
-      if (success) setSubmitted(true);
-      else alert("Booking failed. Please try again.");
-    } catch (err) {
-      console.error(err);
-      alert("Error sending booking. Check console.");
-    } finally {
-      setLoading(false);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const success = await sendBookingEmail(formData);
+    if (success) {
+      setSubmitted(true);
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      alert("Booking failed. Please try again.");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Error sending booking. Check console.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
  const handleWhatsAppConfirm = () => {
   const message = `*NEW BOOKING CONFIRMATION*%0A*Name:* ${formData.name}%0A*Phone:* ${formData.phone}%0A*Pickup:* ${formData.pickup}%0A*Drop:* ${formData.drop}%0A*Fare:* ${formData.estimatedFare}`;
