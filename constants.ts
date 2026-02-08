@@ -69,6 +69,8 @@ export const FLEET_DATA: Vehicle[] = [
   },
 ];
 
+
+
 export const SERVICES_DATA: Service[] = [
   {
     id: '1',

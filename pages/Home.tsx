@@ -66,15 +66,20 @@ export const Home: React.FC = () => {
                 <span className="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">Trustyyellowcabs</span>
               </div>
 
-              <div className="space-y-6">
-                <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.1] tracking-tight">
-                  Fast rides, <br />
-                  <span className="text-brand-yellow">Better service.</span>
-                </h1>
-                <p className="text-lg text-slate-500 dark:text-slate-400 max-w-lg leading-relaxed font-medium">
-                  Reliable taxi service in Coimbatore. Safe, clean, and always on time.
-                </p>
-              </div>
+            <div className="space-y-4 md:space-y-6">
+  <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl 
+                 font-extrabold text-slate-900 dark:text-white 
+                 leading-tight md:leading-[1.1] tracking-tight">
+    Nearby Taxi Booking<br />
+    <span className="text-brand-yellow">Coimbatore</span>
+  </h1>
+
+  <p className="text-base sm:text-lg md:text-xl 
+                text-slate-500 dark:text-slate-400 
+                max-w-md md:max-w-lg leading-relaxed font-medium">
+    Reliable Cab service in Coimbatore. Safe, clean, and always on time.
+  </p>
+</div>
 
               <div className="flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start">
                 <div className="flex items-center gap-2.5 text-slate-900 dark:text-white">
@@ -99,7 +104,7 @@ export const Home: React.FC = () => {
       <section className="py-24 bg-slate-50 dark:bg-slate-900/40">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 space-y-4">
-            <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">Services</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">Our Services</h2>
             <div className="w-12 h-1 bg-brand-yellow mx-auto rounded-full"></div>
           </div>
 
@@ -124,7 +129,7 @@ export const Home: React.FC = () => {
       <section className="py-24 bg-white dark:bg-slate-950 overflow-hidden relative border-t border-slate-50 dark:border-slate-900">
         <div className="container mx-auto px-4 mb-16 relative z-10 text-center">
           <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">Feedback</h2>
-          <p className="mt-4 text-slate-400 font-bold tracking-widest uppercase text-[10px]">Trusted Community</p>
+          <p className="mt-4 text-slate-400 font-bold tracking-widest uppercase text-[10px]">A Trusted Taxi Network in Kovai</p>
         </div>
 
         <div className="container mx-auto px-4 h-[550px] overflow-hidden relative">

@@ -1,9 +1,10 @@
-import React from 'react';
-import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Phone, MapPin, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 export const Contact: React.FC = () => {
+  const [showTerms, setShowTerms] = useState(false);
+
   const handleWhatsAppClick = () => {
-    // General inquiry message for WhatsApp
     const text = `Hi Trustyyellowcabs, I have an inquiry about your taxi services in Coimbatore.`;
     const phoneNumber = '918870088020';
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`;
@@ -11,11 +12,16 @@ export const Contact: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 py-20">
+    <div className="min-h-screen bg-white dark:bg-slate-950 py-14 md:py-20">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">Get in Touch</h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400">Contact Trusty Yellow Cabs 24/7 for safe and reliable cab service in Coimbatore.</p>
+        {/* Heading */}
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6">
+            Get in Touch
+          </h1>
+          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400">
+            Trusty Yellow Cabs for 24/7 safe and reliable taxi services in Coimbatore, Tamil Nadu.
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
@@ -51,7 +57,7 @@ export const Contact: React.FC = () => {
                       <p className="font-semibold text-slate-900 dark:text-white text-lg">Address</p>
                       <p className="text-slate-600 dark:text-slate-400">
                         Trustyyellowcabs Taxi services<br />
-                        Coimbatore, Tamil Nadu, 641007
+                        Sundapalayam, Coimbatore, Tamil Nadu 641007
                       </p>
                     </div>
                   </div>
@@ -82,7 +88,7 @@ export const Contact: React.FC = () => {
             </div>
             <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Direct WhatsApp Booking</h3>
             <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 leading-relaxed max-w-md mx-auto">
-            Reach us anytime for Coimbatore taxi bookings, outstation trips, and corporate travel.
+              Reach us anytime for Coimbatore taxi bookings, outstation trips, and corporate travel.
             </p>
             
             <div className="space-y-4">
@@ -101,6 +107,34 @@ export const Contact: React.FC = () => {
                 <Phone size={24} />
                 Call Directly
               </a>
+            </div>
+
+            {/* Terms and Conditions */}
+            <div className="mt-10 text-left">
+              <button
+                onClick={() => setShowTerms(!showTerms)}
+                className="flex items-center justify-between w-full text-slate-900 dark:text-white font-semibold text-lg bg-slate-100 dark:bg-slate-800 p-4 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+              >
+                <span>Terms and Conditions</span>
+                {showTerms ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              </button>
+              {showTerms && (
+                <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm leading-relaxed space-y-2">
+                     <p>1. All taxi bookings are subject to availability.</p>
+    <p>2. Customers must provide accurate pickup and drop location details.</p>
+    <p>3. Payments can be made in cash or via approved digital payment methods.</p>
+    <p>4. Trustyyellowcabs is not responsible for delays due to traffic, weather, or unforeseen circumstances.</p>
+    <p>5. Cancellation policies apply; cancellation fees are applicable. Please refer to our cancellation terms when booking.</p>
+    <p>6. By using our services, you agree to follow all applicable local regulations.</p>
+    <p>7. One day is equal to one calendar day (from midnight to midnight).</p>
+    <p>8. Parking, toll, and interstate permit charges are extra.</p>
+    <p>9. Driver allowance will be extra if the driver drives between 10:00 PM to 6:00 AM.</p>
+    <p>10. Total km and time calculation is from office to office.</p>
+    <p>11. AC will not work in hill areas (upwards) and stopped/parked vehicles.</p>
+    <p>12. If km usage exceeds standard limits, tariff shifts automatically to Day/KM Basis.</p>
+     <p>13. Bookings made via online ads (e.g., Google Ads) may appear when searching for other brands. Trustyyellowcabs is only responsible for bookings actually made with us. Customers cannot claim services from other brands using our ad links.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

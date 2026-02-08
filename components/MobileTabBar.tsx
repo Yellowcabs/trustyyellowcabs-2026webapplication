@@ -36,21 +36,20 @@ export const MobileTabBar: React.FC = () => {
           const active = isActive(item.path) && !item.isAction && !item.isExternal;
 
           // Primary CTA Style (Book)
-          if (item.isPrimary) {
+               if (item.isPrimary) {
             return (
               <button
-                key={item.label}
-                onClick={item.action}
-                className="flex-1 flex flex-col items-center justify-center bg-brand-yellow text-slate-950 transition-all active:scale-95 active:bg-yellow-500 group"
-              >
-                <Icon size={20} strokeWidth={3} className="group-active:scale-110 transition-transform" />
-                <span className="text-[9px] font-black mt-1 uppercase tracking-tighter">
-                  {item.label}
-                </span>
-              </button>
+    key={item.label}
+    onClick={item.action}
+    className="flex-1 flex flex-col items-center justify-center text-slate-950 dark:text-white transition-all active:scale-95 group"
+  >
+    <Icon size={20} strokeWidth={3} className="group-active:scale-110 transition-transform" />
+    <span className="text-[9px] font-black mt-1 uppercase tracking-tighter">
+      {item.label}
+    </span>
+  </button>
             );
           }
-
           // Urgent Action Style (Call)
           if (item.isHotline) {
             return (

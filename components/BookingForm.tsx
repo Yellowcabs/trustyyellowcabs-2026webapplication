@@ -359,22 +359,33 @@ if (submitted) {
             <InputWrapper icon={Clock} label="Time (Optional)">
               <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full pl-11 pr-2 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-[10px] font-bold outline-none dark:text-white" />
             </InputWrapper>
-          </div>
+ </div>
 <button 
   type="button" 
   onClick={handleNextStep} 
-  className="w-full bg-gradient-to-r from-slate-900 to-gray-700 dark:from-white dark:to-slate-300 
-             text-white dark:text-slate-950 font-extrabold py-3 px-4 rounded-2xl 
-             flex items-center justify-center gap-3 shadow-xl text-base uppercase tracking-wide 
-             active:scale-95 transform transition-all duration-200"
+  className="
+    w-full
+    bg-[#FDB813]
+    hover:bg-[#ffcc33]
+    text-slate-950
+    font-extrabold
+    py-3 px-4
+    rounded-2xl
+    flex items-center justify-center gap-3
+    text-base uppercase tracking-wide
+
+    shadow-[0_8px_25px_rgba(253,184,19,0.45)]
+    hover:shadow-[0_12px_35px_rgba(253,184,19,0.65)]
+
+    active:scale-95
+    active:bg-[#e5a90f]
+
+    transform transition-all duration-200
+  "
 >
-  Continue <ArrowRight size={28} />
+ Check Price<ArrowRight size={28} />
 </button>
-
-
-
-
-        </div>
+ </div>
 
         {/* Step 2 */}
         <div className={`${step === 2 ? 'space-y-4' : 'hidden'} animate-fade-in`}>

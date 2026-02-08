@@ -11,12 +11,19 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0">
           
           <Link to="/" className="flex items-center gap-1 group">
-             <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white group-hover:text-yellow-500 transition-colors">
-               Trusty
-             </span>
-             <span className="text-xl font-extrabold tracking-tight text-yellow-500 transition-colors">
-               YellowCabs
-             </span>
+         <span className="block text-lg sm:text-xl md:text-2xl lg:text-3xl 
+               font-extrabold tracking-tight 
+               text-slate-900 dark:text-white 
+               group-hover:text-yellow-500 transition-colors">
+  24/7 Taxi Service –
+</span>
+
+<span className="block text-lg sm:text-xl md:text-2xl lg:text-3xl 
+               font-extrabold tracking-tight 
+               text-yellow-500 transition-colors">
+  Booking Coimbatore
+</span>
+
           </Link>
 
           <nav className="flex flex-wrap justify-center gap-6">
