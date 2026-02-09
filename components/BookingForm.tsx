@@ -383,7 +383,7 @@ if (submitted) {
     transform transition-all duration-200
   "
 >
- Check Price<ArrowRight size={28} />
+ Continue Booking<ArrowRight size={28} />
 </button>
  </div>
 
