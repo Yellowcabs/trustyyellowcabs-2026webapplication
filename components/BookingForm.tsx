@@ -95,6 +95,60 @@ export const BookingForm: React.FC = () => {
     document.head.appendChild(script);
   }, []);
 
+  // 🔥 Google Autocomplete Light Theme Injection
+useEffect(() => {
+  const style = document.createElement("style");
+style.innerHTML = `
+  .pac-container {
+    background-color: #ffffff !important;
+    border-radius: 16px !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    padding: 6px 0 !important;
+    z-index: 9999 !important;
+    max-height: 400px !important; /* allow scrolling for long lists */
+    overflow-y: auto !important;
+  }
+
+  .pac-item {
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    flex-direction: column !important;
+    white-space: normal !important; /* allow full address wrap */
+  }
+
+  .pac-item .pac-item-query {
+    font-weight: 900 !important;
+    color: #d49a12 !important; /* red highlight */
+  }
+
+  .pac-item .pac-item-subtitle {
+    font-weight: 400 !important;
+    font-size: 12px !important;
+    color: #6b7280 !important;
+  }
+
+  .pac-item:hover {
+    background-color: #f3f4f6 !important;
+  }
+
+  /* Subtle "Powered by Google" */
+  .pac-logo:after {
+    opacity: 0.6 !important;
+  }
+`;
+  document.head.appendChild(style);
+
+  return () => {
+    document.head.removeChild(style);
+  };
+}, []);
+
+
   useEffect(() => {
     if (!googleLoaded || !mapRef.current || mapInstance.current) return;
 
@@ -252,6 +306,15 @@ setFormData(prev => ({
 
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
+  // 📌 Phone validation
+  const phone = formData.phone.trim();
+  const phoneRegex = /^[6-9]\d{9}$/;
+
+  if (!phoneRegex.test(phone)) {
+    alert("Please enter a valid 10-digit Indian phone number.");
+    return;
+  }
+
   setLoading(true);
   try {
     const success = await sendBookingEmail(formData);
@@ -346,12 +409,64 @@ if (submitted) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Step 1 */}
         <div className={`${step === 1 ? 'space-y-4' : 'hidden'} animate-fade-in`}>
-          <InputWrapper icon={MapPin} label="Pickup">
-            <input ref={pickupRef} type="text" required placeholder="Enter Pickup Location" defaultValue={formData.pickup} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-brand-yellow rounded-xl text-xs font-bold outline-none dark:text-white" />
-          </InputWrapper>
-          <InputWrapper icon={MapPin} label="Destination">
-            <input ref={dropRef} type="text" required placeholder="Enter Destination" defaultValue={formData.drop} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-brand-yellow rounded-xl text-xs font-bold outline-none dark:text-white" />
-          </InputWrapper>
+         <InputWrapper icon={MapPin} label="Pickup">
+  <div className="relative w-full">
+  <input
+    ref={pickupRef}
+    type="text"
+    required
+    placeholder="Enter Pickup Location"
+    defaultValue={formData.pickup}
+    className="w-full pl-11 pr-10 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-brand-yellow rounded-xl text-xs font-bold outline-none dark:text-white"
+  />
+  
+  {formData.pickup && (
+    <button
+      type="button"
+      onClick={() => {
+        if (pickupRef.current) pickupRef.current.value = '';
+        setFormData(prev => ({ ...prev, pickup: '' }));
+      }}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500"
+    >
+      ✕
+    </button>
+  )}
+</div>
+
+</InputWrapper>
+
+         <InputWrapper icon={MapPin} label="Destination">
+ <div className="relative w-full">
+  <input
+    ref={dropRef}
+    type="text"
+    required
+    placeholder="Enter Destination"
+    defaultValue={formData.drop}
+    className="w-full pl-11 pr-10 py-3.5 bg-slate-50 dark:bg-slate-950 
+               border border-transparent dark:border-slate-800 
+               focus:border-brand-yellow rounded-xl 
+               text-xs font-bold outline-none dark:text-white"
+  />
+
+  {formData.drop && (
+    <button
+      type="button"
+      onClick={() => {
+        if (dropRef.current) dropRef.current.value = '';
+        setFormData(prev => ({ ...prev, drop: '' }));
+      }}
+      className="absolute right-3 top-1/2 -translate-y-1/2 
+                 text-slate-400 hover:text-red-500"
+    >
+      ✕
+    </button>
+  )}
+</div>
+
+</InputWrapper>
+
           <div className="grid grid-cols-2 gap-4">
             <InputWrapper icon={Calendar} label="Date (Optional)">
               <input type="date" name="date" min={indiaToday} value={formData.date} onChange={handleChange} className="w-full pl-11 pr-2 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-[10px] font-bold outline-none dark:text-white" />
@@ -428,12 +543,36 @@ if (submitted) {
           </InputWrapper>
 
           <div className="grid grid-cols-1 gap-3">
-            <InputWrapper icon={User}>
-              <input type="text" name="name" required placeholder="Your Name" value              ={formData.name} onChange={handleChange} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-brand-yellow rounded-xl text-xs font-bold outline-none dark:text-white" />
-            </InputWrapper>
-            <InputWrapper icon={Phone}>
-              <input type="tel" name="phone" required placeholder="Phone Number" value={formData.phone} onChange={handleChange} className="w-full pl-11 pr-4 py-4 border-2 border-brand-yellow rounded-xl text-base font-black outline-none dark:bg-slate-950 dark:text-white" />
-            </InputWrapper>
+           <InputWrapper icon={User}>
+  <input
+    type="text"
+    name="name"
+    placeholder="Your Name (optional)"
+    value={formData.name}
+    onChange={handleChange}
+    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-xs font-bold outline-none dark:text-white"
+  />
+  <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 ml-1">
+    Name is optional — we will contact you by phone
+  </p>
+</InputWrapper>
+
+           <InputWrapper icon={Phone}>
+  <input
+    type="tel"
+    name="phone"
+    required
+    placeholder="Phone Number"
+    value={formData.phone}
+    onChange={(e) => {
+      const cleaned = e.target.value.replace(/\D/g, ""); // remove non digits
+      setFormData(prev => ({ ...prev, phone: cleaned.slice(0, 10) }));
+    }}
+    className="w-full pl-11 pr-4 py-4 border-2 border-brand-yellow rounded-xl text-base font-black outline-none dark:bg-slate-950 dark:text-white"
+    maxLength={10}
+  />
+</InputWrapper>
+
           </div>
 
           <div className="flex gap-3 pt-2">
