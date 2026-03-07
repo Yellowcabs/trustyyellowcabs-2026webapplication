@@ -87,6 +87,16 @@ export const BookingForm: React.FC = () => {
       setGoogleLoaded(true);
       return;
     }
+
+    // Check if script is already being loaded
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
+    if (existingScript) {
+      existingScript.addEventListener('load', () => setGoogleLoaded(true));
+      // If it's already loaded but google.maps is not yet ready (rare race condition)
+      if ((window as any).google?.maps) setGoogleLoaded(true);
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
     script.async = true;
@@ -345,7 +355,7 @@ if (submitted) {
       <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6 relative">
         <CheckCircle2 size={40} />
       </div>
-      <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">Booking Sent!</h2>
+      <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">Book Now</h2>
       <p className="text-[11px] text-slate-500 font-bold mb-8 uppercase tracking-widest leading-relaxed">Driver details will arrive via phone call.</p>
 
       {/* WhatsApp Confirm Button */}
@@ -387,7 +397,7 @@ if (submitted) {
   }} 
   className="w-full text-[10px] font-bold text-slate-900 dark:text-white uppercase border border-slate-300 dark:border-slate-700 rounded-2xl py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
 >
-  Book Another Ride
+  Book Now
 </button>
     </div>
   );
@@ -398,7 +408,7 @@ if (submitted) {
     <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-sm mx-auto transition-all duration-500 overflow-hidden">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-          {step === 1 ? 'Trip Details' : 'Confirm Booking'}
+          Book Now
         </h3>
         <div className="flex gap-2">
           <div className={`h-1 w-6 rounded-full transition-all ${step === 1 ? 'bg-brand-yellow' : 'bg-slate-200 dark:bg-slate-700'}`} />
@@ -498,7 +508,7 @@ if (submitted) {
     transform transition-all duration-200
   "
 >
- Continue Booking<ArrowRight size={28} />
+  Book Now<ArrowRight size={28} />
 </button>
  </div>
 
@@ -588,7 +598,7 @@ if (submitted) {
   <ArrowLeft size={20} />
 </button>
             <button type="submit" disabled={loading} className="flex-1 bg-brand-yellow text-slate-950 font-black py-4.5 rounded-2xl shadow-xl shadow-brand-yellow/20 uppercase tracking-widest text-[10px] active:scale-95 transition-all">
-              {loading ? 'Processing...' : 'Confirm Booking'}
+              {loading ? 'Processing...' : 'Book Now'}
             </button>
             
           </div>

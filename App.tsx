@@ -11,6 +11,8 @@ import { BillRequest } from './pages/BillRequest';
 import { FloatingCallButton } from './components/FloatingCallButton';
 import { MobileTabBar } from './components/MobileTabBar';
 import KovaiTaxiPage from './pages/KovaiTaxiPage';
+import { LocationPage } from './pages/LocationPage';
+import { Locations } from './pages/Locations';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -52,8 +54,12 @@ const App: React.FC = () => {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/bill-request" element={<BillRequest />} />
+            <Route path="/locations" element={<Locations />} />
               {/* SEO Landing Page */}
-  <Route path="/coimbatore-cab-booking" element={<KovaiTaxiPage />} />
+            <Route path="/coimbatore-cab-booking" element={<KovaiTaxiPage />} />
+            
+            {/* Dynamic Location Pages */}
+            <Route path="/:slug" element={<LocationPage />} />
 
           </Routes>
         </main>
