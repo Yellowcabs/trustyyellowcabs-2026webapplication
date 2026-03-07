@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { BookingForm } from '../components/BookingForm';
 
 interface Service {
@@ -8,17 +9,6 @@ interface Service {
 }
 
 const KovaiTaxiPage: React.FC = () => {
-  useEffect(() => {
-    document.title = 'Kovai Taxi Service | 24/7 Taxi Booking in Coimbatore';
-    const meta = document.querySelector("meta[name='description']");
-    if (meta) {
-      meta.setAttribute(
-        'content',
-        'Book a reliable taxi in Kovai (Coimbatore) with clean cars, professional drivers, and on-time pickup. City, airport & outstation rides available 24/7.'
-      );
-    }
-  }, []);
-
   const services: Service[] = [
     { title: 'City Rides', desc: 'Quick and comfortable travel across Coimbatore.' },
     { title: 'Airport Transfers', desc: 'On-time pickup & drop to Coimbatore International Airport.' },
@@ -89,6 +79,11 @@ const KovaiTaxiPage: React.FC = () => {
 
   return (
     <main className="bg-white dark:bg-slate-950 text-slate-900 dark:text-white">
+      <Helmet>
+        <title>Kovai Taxi Service | 24/7 Taxi Booking in Coimbatore</title>
+        <meta name="description" content="Book a reliable taxi in Kovai (Coimbatore) with clean cars, professional drivers, and on-time pickup. City, airport & outstation rides available 24/7." />
+        <link rel="canonical" href="https://www.trustyyellowcabs.in/coimbatore-cab-booking" />
+      </Helmet>
 
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center bg-slate-50 dark:bg-slate-900/40 overflow-hidden py-12 md:py-16 lg:py-24">
@@ -182,7 +177,7 @@ const KovaiTaxiPage: React.FC = () => {
             to="/"
             className="inline-block mt-6 px-8 py-4 rounded-2xl md:rounded-3xl bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 text-black font-semibold shadow-lg hover:scale-105 transform transition-all duration-300"
           >
-            Book a Nearby Taxi
+            Book Now
           </Link>
         </div>
 

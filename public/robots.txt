@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://trustyyellowcabs.in/sitemap.xml
+Sitemap: https://www.trustyyellowcabs.in/sitemap.xml

@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { BookingForm } from '../components/BookingForm';
 import { SERVICES_DATA, TESTIMONIALS_DATA } from '../constants';
 import { ArrowRight, Star, MapPin, CheckCircle } from 'lucide-react';
@@ -51,6 +52,11 @@ export const Home: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full overflow-hidden bg-white dark:bg-slate-950 transition-colors">
+      <Helmet>
+        <title>Trusty Yellow Cabs | Best Taxi Service in Coimbatore</title>
+        <meta name="description" content="Book a reliable taxi in Coimbatore with Trusty Yellow Cabs. Safe, clean, and affordable city rides, airport transfers, and outstation trips available 24/7." />
+        <link rel="canonical" href="https://www.trustyyellowcabs.in/" />
+      </Helmet>
       {/* Hero Section */}
       <section className="relative min-h-[85vh] flex items-center bg-white dark:bg-slate-950 overflow-hidden py-16 lg:py-0">
         <div className="absolute inset-0 z-0">
@@ -154,7 +160,7 @@ export const Home: React.FC = () => {
              onClick={scrollToBooking}
              className="px-12 py-5 bg-brand-yellow text-slate-900 font-bold rounded-lg transition-all shadow-lg hover:scale-105 active:scale-95 uppercase tracking-widest text-xs"
            >
-             Book Your Trip
+             Book Now
            </button>
         </div>
       </section>

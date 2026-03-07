@@ -67,7 +67,7 @@ export const LocationPage: React.FC = () => {
       <Helmet>
         <title>{locationData.title}</title>
         <meta name="description" content={locationData.description} />
-        <link rel="canonical" href={`https://trustyyellowcabs.com/${locationData.slug}`} />
+        <link rel="canonical" href={`https://www.trustyyellowcabs.in/${locationData.slug}`} />
       </Helmet>
 
       {/* Hero Section */}
