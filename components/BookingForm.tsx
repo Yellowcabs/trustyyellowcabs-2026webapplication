@@ -576,9 +576,17 @@ if (submitted) {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={() => setStep(1)} className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl border border-slate-100 dark:border-slate-700 active:scale-95 transition-all">
-              <ArrowLeft size={20} />
-            </button>
+           <button
+  type="button"
+  onClick={() => {
+    setStep(1); // Go back to step 1
+    // Scroll the window to top smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }}
+  className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl border border-slate-100 dark:border-slate-700 active:scale-95 transition-all"
+>
+  <ArrowLeft size={20} />
+</button>
             <button type="submit" disabled={loading} className="flex-1 bg-brand-yellow text-slate-950 font-black py-4.5 rounded-2xl shadow-xl shadow-brand-yellow/20 uppercase tracking-widest text-[10px] active:scale-95 transition-all">
               {loading ? 'Processing...' : 'Confirm Booking'}
             </button>
