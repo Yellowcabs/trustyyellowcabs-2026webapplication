@@ -243,7 +243,7 @@ style.innerHTML = `
 
 
   useEffect(() => {
-    if (!googleLoaded || !mapRef.current || mapInstance.current) return;
+   if (!googleLoaded || !mapRef.current) return;
 
     try {
       mapInstance.current = new google.maps.Map(mapRef.current, {
