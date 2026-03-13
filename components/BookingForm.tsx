@@ -163,6 +163,14 @@ export const BookingForm: React.FC = () => {
       setGoogleLoaded(true);
       return;
     }
+
+    // Check if script already exists
+    const existingScript = document.querySelector(`script[src*="maps.googleapis.com/maps/api/js"]`);
+    if (existingScript) {
+      existingScript.addEventListener('load', () => setGoogleLoaded(true));
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
     script.async = true;
@@ -242,8 +250,59 @@ style.innerHTML = `
 }, []);
 
 
+  // Initialize Autocomplete (Always active for inputs)
   useEffect(() => {
-    if (!googleLoaded || !mapRef.current || mapInstance.current) return;
+    if (!googleLoaded) return;
+    if (pickupAutocomplete.current && dropAutocomplete.current) return;
+
+    try {
+      const COIMBATORE_BOUNDS = new google.maps.LatLngBounds(
+        new google.maps.LatLng(10.60, 76.65),
+        new google.maps.LatLng(11.35, 77.10)
+      );
+
+      const options = {
+        bounds: COIMBATORE_BOUNDS,
+        strictBounds: false,
+        componentRestrictions: { country: 'in' },
+        fields: ['formatted_address', 'geometry'],
+      };
+
+    if (pickupRef.current && !pickupAutocomplete.current) {
+  pickupAutocomplete.current = new google.maps.places.Autocomplete(pickupRef.current, options);
+  pickupAutocomplete.current.addListener('place_changed', () => {
+    const place = pickupAutocomplete.current.getPlace();
+    if (place.formatted_address) {
+      setFormData(prev => ({ ...prev, pickup: place.formatted_address }));
+      // ✅ remove pickupRef.current.value = ...
+    }
+  });
+}
+
+if (dropRef.current && !dropAutocomplete.current) {
+  dropAutocomplete.current = new google.maps.places.Autocomplete(dropRef.current, options);
+  dropAutocomplete.current.addListener('place_changed', () => {
+    const place = dropAutocomplete.current.getPlace();
+    if (place.formatted_address) {
+      setFormData(prev => ({ ...prev, drop: place.formatted_address }));
+      // ✅ remove dropRef.current.value = ...
+    }
+  });
+}
+    } catch (e) {
+      console.error("Autocomplete Initialization Error:", e);
+    }
+  }, [googleLoaded]);
+
+  // Initialize Map (Only when visible)
+  useEffect(() => {
+    if (!googleLoaded || !mapRef.current) {
+      // Reset instances if container is gone
+      mapInstance.current = null;
+      directionsRenderer.current = null;
+      return;
+    }
+    if (mapInstance.current) return;
 
     try {
       mapInstance.current = new google.maps.Map(mapRef.current, {
@@ -259,38 +318,15 @@ style.innerHTML = `
         polylineOptions: { strokeColor: "#FDB813", strokeWeight: 6, strokeOpacity: 0.95 },
         suppressMarkers: false
       });
-
-      const COIMBATORE_BOUNDS = new google.maps.LatLngBounds(
-        new google.maps.LatLng(10.60, 76.65),
-        new google.maps.LatLng(11.35, 77.10)
-      );
-
-      const options = {
-        bounds: COIMBATORE_BOUNDS,
-        strictBounds: false,
-        componentRestrictions: { country: 'in' },
-        fields: ['formatted_address', 'geometry'],
-      };
-
-      if (pickupRef.current) {
-        pickupAutocomplete.current = new google.maps.places.Autocomplete(pickupRef.current, options);
-        pickupAutocomplete.current.addListener('place_changed', () => {
-          const place = pickupAutocomplete.current.getPlace();
-          if (place.formatted_address) setFormData(prev => ({ ...prev, pickup: place.formatted_address }));
-        });
-      }
-      if (dropRef.current) {
-        dropAutocomplete.current = new google.maps.places.Autocomplete(dropRef.current, options);
-        dropAutocomplete.current.addListener('place_changed', () => {
-          const place = dropAutocomplete.current.getPlace();
-          if (place.formatted_address) setFormData(prev => ({ ...prev, drop: place.formatted_address }));
-        });
-      }
-
     } catch (e) {
       console.error("Map Initialization Error:", e);
     }
-  }, [googleLoaded]);
+
+    return () => {
+      mapInstance.current = null;
+      directionsRenderer.current = null;
+    };
+  }, [googleLoaded, !!(formData.pickup && formData.drop)]);
 
   const updateMapRoute = useCallback((origin: string, destination: string) => {
     if (!googleLoaded || !origin || !destination || !directionsRenderer.current) return;
@@ -541,17 +577,20 @@ if (submitted) {
       <form onSubmit={handleSubmit} className="space-y-3.5">
         {/* Step 1 */}
         <div className={`${step === 1 ? 'space-y-3.5' : 'hidden'} animate-fade-in`}>
-          {/* Map - Only Visible in Step 1 */}
-          <div className="relative h-48 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-inner">
-            <div ref={mapRef} className="w-full h-full" />
-            {mapError && (
-              <div className="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center p-4 text-center">
-                <AlertTriangle size={20} className="text-brand-yellow mb-1" />
-                <p className="text-[9px] text-white font-bold uppercase">{mapError}</p>
-              </div>
-            )}
-          </div>
+          {/* Map - Only Visible in Step 1 when both locations are entered */}
+          {formData.pickup && formData.drop && (
+            <div className="relative h-48 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-inner animate-in fade-in zoom-in duration-500">
+              <div ref={mapRef} className="w-full h-full" />
+              {mapError && (
+                <div className="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center p-4 text-center">
+                  <AlertTriangle size={20} className="text-brand-yellow mb-1" />
+                  <p className="text-[9px] text-white font-bold uppercase">{mapError}</p>
+                </div>
+              )}
+            </div>
+          )}
 
+          
           <div className="grid grid-cols-1 gap-3">
             <InputWrapper icon={MapPin} label="Pickup">
               <div className="relative w-full">
@@ -563,6 +602,7 @@ if (submitted) {
                   defaultValue={formData.pickup}
                   className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-brand-yellow rounded-xl text-xs font-bold outline-none dark:text-white"
                 />
+
                 {formData.pickup && (
                   <button
                     type="button"
@@ -578,6 +618,7 @@ if (submitted) {
               </div>
             </InputWrapper>
 
+           
             <InputWrapper icon={MapPin} label="Destination">
               <div className="relative w-full">
                 <input
@@ -588,6 +629,7 @@ if (submitted) {
                   defaultValue={formData.drop}
                   className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-brand-yellow rounded-xl text-xs font-bold outline-none dark:text-white"
                 />
+
                 {formData.drop && (
                   <button
                     type="button"
