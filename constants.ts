@@ -52,7 +52,7 @@ export const FLEET_DATA: Vehicle[] = [
     capacity: 14,
     luggage: 10,
     pricePerHour: 1800,
-    image: '/images/Force-Urbania-Van.webp',
+    image: '/images/Tempo Traveller.webp',
     features: ['AC Vents for all', 'Pushback Seats', 'Group Travel', 'Ample Luggage'],
     available: true,
   },

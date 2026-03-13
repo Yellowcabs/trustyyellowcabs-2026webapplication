@@ -8,8 +8,8 @@ declare const google: any;
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const PRICING: Record<VehicleType, number> = {
-  [VehicleType.MINI]: 24,
-  [VehicleType.SEDAN]: 27,
+  [VehicleType.MINI]: 23,
+  [VehicleType.SEDAN]: 25,
   [VehicleType.SUV]: 40,
   [VehicleType.SUV_PLUS]: 45,
   [VehicleType.INNOVA]: 50,
@@ -19,14 +19,90 @@ const PRICING: Record<VehicleType, number> = {
   [VehicleType.CUSTOM]: 0,
 };
 
-const STANDARD_BASE_FARE = 80;
-const PREMIUM_BASE_FARE = 150;
-
 const NO_FARE_VEHICLES = [
   VehicleType.LUXURY,
   VehicleType.TEMPO_TRAVELLER,
   VehicleType.TOURIST_BUS,
   VehicleType.CUSTOM
+];
+
+const getFare = (distance: number, vehicle: VehicleType): string => {
+  if (NO_FARE_VEHICLES.includes(vehicle)) return 'Call for Quote';
+  
+  const perKmRate = PRICING[vehicle] || 0;
+  let baseFare = 0;
+
+  if (vehicle === VehicleType.MINI || vehicle === VehicleType.SEDAN) {
+    if (distance <= 39) baseFare = 80;
+    else if (distance <= 65) baseFare = 139;
+    else baseFare = 300;
+  } else if (vehicle === VehicleType.SUV || vehicle === VehicleType.SUV_PLUS) {
+    if (distance <= 5) baseFare = 150;
+    else if (distance <= 7) baseFare = 200;
+    else if (distance <= 65) baseFare = 203;
+    else baseFare = 350;
+  } else if (vehicle === VehicleType.INNOVA) {
+    if (distance <= 5) return 'Call for Quote';
+    else if (distance <= 65) baseFare = 203;
+    else baseFare = 399;
+  } else {
+    baseFare = 80; 
+  }
+
+  const total = Math.round(distance * perKmRate) + baseFare;
+  return `₹${total}`;
+};
+
+const VEHICLE_CONFIG = [
+  { 
+    type: VehicleType.MINI, 
+    label: 'MINI / ANY SEDAN', 
+    image: '/images/car_etios.svg', 
+    capacity: 4,
+    description: 'AFFORDABLE'
+  },
+  { 
+    type: VehicleType.SEDAN, 
+    label: 'Sedan', 
+    image: '/images/sedan.webp', 
+    capacity: 4,
+    description: 'PRIME SEDAN'
+  },
+  { 
+    type: VehicleType.SUV, 
+    label: 'SUV', 
+    image: '/images/car_suv.svg', 
+    capacity: 6,
+    description: '6-7 MEMBERS'
+  },
+  { 
+    type: VehicleType.INNOVA, 
+    label: 'Innova', 
+    image: '/images/car_innova.svg', 
+    capacity: 7,
+    description: 'PREMIUM INNOVA'
+  },
+  { 
+    type: VehicleType.TEMPO_TRAVELLER, 
+    label: 'Traveller', 
+    image: '/images/tempo travaller.webp',
+    capacity: 12,
+    description: 'Group travel(12-18 seats)'
+  },
+  { 
+    type: VehicleType.TOURIST_BUS, 
+    label: 'Tourist Bus', 
+    image: '/images/bus.webp',
+    capacity: 40,
+    description: '(20-55 seats)'
+  },
+  { 
+    type: VehicleType.CUSTOM, 
+    label: 'Custom', 
+    image: '', 
+    capacity: 'Any',
+    description: 'Any types of vehicle available'
+  },
 ];
 
 const InputWrapper = memo(({ children, icon: Icon, label }: { children: React.ReactNode; icon: any; label?: string }) => (
@@ -140,6 +216,23 @@ style.innerHTML = `
   .pac-logo:after {
     opacity: 0.6 !important;
   }
+
+  /* Elegant thin scrollbar */
+  .app-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .app-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .app-scroll::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+  }
+  .dark .app-scroll::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
+  .app-scroll { scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent; }
+  .dark .app-scroll { scrollbar-color: #334155 transparent; }
 `;
   document.head.appendChild(style);
 
@@ -157,11 +250,7 @@ style.innerHTML = `
         center: { lat: 11.0168, lng: 76.9558 },
         zoom: 12,
         disableDefaultUI: true,
-        styles: [
-          { featureType: "landscape", elementType: "all", stylers: [{ color: "#f8fafc" }] },
-          { featureType: "road", elementType: "all", stylers: [{ saturation: -100 }, { lightness: 45 }] },
-          { featureType: "water", elementType: "all", stylers: [{ color: "#bae6fd" }] }
-        ]
+        styles:[{ featureType: "all", elementType: "labels.text.fill", stylers: [{ color: "#333333" }] }]
       });
 
       directionsService.current = new google.maps.DirectionsService();
@@ -182,6 +271,23 @@ style.innerHTML = `
         componentRestrictions: { country: 'in' },
         fields: ['formatted_address', 'geometry'],
       };
+
+      // Geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            mapInstance.current.setCenter(pos);
+            mapInstance.current.setZoom(15);
+          },
+          () => {
+            // Geolocation failed or denied
+          }
+        );
+      }
 
       if (pickupRef.current) {
         pickupAutocomplete.current = new google.maps.places.Autocomplete(pickupRef.current, options);
@@ -219,64 +325,62 @@ style.innerHTML = `
   }, [googleLoaded]);
 
   useEffect(() => {
+    if (step === 1 && mapInstance.current) {
+      // Small timeout to ensure DOM is updated and map container has dimensions
+      const timer = setTimeout(() => {
+        if ((window as any).google?.maps) {
+          google.maps.event.trigger(mapInstance.current, 'resize');
+          if (formData.pickup && formData.drop) {
+            updateMapRoute(formData.pickup, formData.drop);
+          } else {
+            mapInstance.current.setCenter({ lat: 11.0168, lng: 76.9558 });
+            mapInstance.current.setZoom(12);
+          }
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [step, formData.pickup, formData.drop, updateMapRoute]);
+
+  useEffect(() => {
     if (formData.pickup && formData.drop) updateMapRoute(formData.pickup, formData.drop);
   }, [formData.pickup, formData.drop, updateMapRoute]);
 
- const calculateFare = useCallback((origin: string, destination: string, vehicle: VehicleType) => {
-  if (NO_FARE_VEHICLES.includes(vehicle)) {
-    setFormData(prev => ({ ...prev, distance: '', estimatedFare: 'Manual Quote' }));
-    return;
-  }
+  const calculateFare = useCallback((origin: string, destination: string, vehicle: VehicleType) => {
+    if (!origin || !destination || !(window as any).google?.maps) return;
 
-  if (!origin || !destination || !(window as any).google?.maps) return;
+    setLoadingFare(true);
+    const service = new google.maps.DistanceMatrixService();
 
-  setLoadingFare(true);
-  const service = new google.maps.DistanceMatrixService();
+    service.getDistanceMatrix(
+      {
+        origins: [origin],
+        destinations: [destination],
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC,
+      },
+      (response: any, status: string) => {
+        setLoadingFare(false);
 
-  service.getDistanceMatrix(
-    {
-      origins: [origin],
-      destinations: [destination],
-      travelMode: google.maps.TravelMode.DRIVING,
-      unitSystem: google.maps.UnitSystem.METRIC,
-    },
-    (response: any, status: string) => {
-      setLoadingFare(false);
+        if (status === 'OK' && response?.rows[0]?.elements[0]?.status === 'OK') {
+          const distanceText = response.rows[0].elements[0].distance.text;
+          const distanceValue = response.rows[0].elements[0].distance.value / 1000;
 
-      if (status === 'OK' && response?.rows[0]?.elements[0]?.status === 'OK') {
-        const distanceText = response.rows[0].elements[0].distance.text;
-        const distanceValue = response.rows[0].elements[0].distance.value / 1000;
-
-        // 👉 Base fare by vehicle type
-       const isPremiumSUV = [VehicleType.SUV, VehicleType.SUV_PLUS, VehicleType.INNOVA].includes(vehicle);
-
-// 🚫 If SUV and distance ≤ 5 km → no auto fare
-if (isPremiumSUV && distanceValue <= 5) {
-  setFormData(prev => ({
-    ...prev,
-    distance: distanceText,
-    estimatedFare: 'On-Call Quote'
-  }));
-  return;
-}
-
-// ✅ Normal fare calculation
-const baseFare = isPremiumSUV ? PREMIUM_BASE_FARE : STANDARD_BASE_FARE;
-const perKmRate = PRICING[vehicle];
-
-// 👉 Always: (km × rate) + base fare
-const calculatedFare = Math.round(distanceValue * perKmRate) + baseFare;
-
-setFormData(prev => ({
-  ...prev,
-  distance: distanceText,
-  estimatedFare: `₹${calculatedFare}`
-}));
-
+          setFormData(prev => ({
+            ...prev,
+            distance: distanceText,
+            estimatedFare: getFare(distanceValue, vehicle)
+          }));
+        }
       }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (formData.pickup && formData.drop) {
+      calculateFare(formData.pickup, formData.drop, formData.vehicleType);
     }
-  );
-}, []);
+  }, [formData.pickup, formData.drop, formData.vehicleType, calculateFare]);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -284,58 +388,68 @@ setFormData(prev => ({
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     const p = pickupRef.current?.value || formData.pickup;
     const d = dropRef.current?.value || formData.drop;
-    if (p && d) {
-      setFormData(prev => ({ ...prev, pickup: p, drop: d }));
-      calculateFare(p, d, formData.vehicleType);
-      setStep(2);
-      setTimeout(() => {
-        if (mapInstance.current) {
-          google.maps.event.trigger(mapInstance.current, 'resize');
-          if (directionsRenderer.current && directionsRenderer.current.getDirections()) {
-            mapInstance.current.fitBounds(directionsRenderer.current.getDirections().routes[0].bounds);
-          }
-        }
-      }, 50);
-    } else {
+    const phone = formData.phone.trim();
+    const phoneRegex = /^[6-9]\d{9}$/;
+
+    if (!p || !d) {
       alert("Please enter pickup and destination.");
+      return;
+    }
+    if (!phoneRegex.test(phone)) {
+      alert("Please enter a valid 10-digit Indian phone number.");
+      return;
+    }
+
+    const updatedData = { ...formData, pickup: p, drop: d };
+    setFormData(updatedData);
+    calculateFare(p, d, formData.vehicleType);
+    
+    // Send Step 1 data as a lead
+    try {
+      sendBookingEmail({
+        ...updatedData,
+        estimatedFare: 'Step 1 - Lead'
+      });
+    } catch (err) {
+      console.error("Lead email error:", err);
+    }
+
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const phone = formData.phone.trim();
+    const phoneRegex = /^[6-9]\d{9}$/;
+
+    if (!phoneRegex.test(phone)) {
+      alert("Please enter a valid 10-digit Indian phone number.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const success = await sendBookingEmail(formData);
+      if (success) {
+        setSubmitted(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        alert("Booking failed. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error sending booking. Check console.");
+    } finally {
+      setLoading(false);
     }
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  // 📌 Phone validation
-  const phone = formData.phone.trim();
-  const phoneRegex = /^[6-9]\d{9}$/;
-
-  if (!phoneRegex.test(phone)) {
-    alert("Please enter a valid 10-digit Indian phone number.");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const success = await sendBookingEmail(formData);
-    if (success) {
-      setSubmitted(true);
-      // Scroll to top
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      alert("Booking failed. Please try again.");
-    }
-  } catch (err) {
-    console.error(err);
-    alert("Error sending booking. Check console.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-
- const handleWhatsAppConfirm = () => {
-  const message = `*NEW BOOKING CONFIRMATION*%0A*Name:* ${formData.name}%0A*Phone:* ${formData.phone}%0A*Pickup:* ${formData.pickup}%0A*Drop:* ${formData.drop}%0A*Fare:* ${formData.estimatedFare}`;
+  const handleWhatsAppConfirm = () => {
+  const message = `*NEW BOOKING CONFIRMATION*%0A*Phone:* ${formData.phone}%0A*Pickup:* ${formData.pickup}%0A*Drop:* ${formData.drop}%0A*Fare:* ${formData.estimatedFare}`;
   window.open(`https://wa.me/918870088020?text=${message}`, '_blank');
 };
 
@@ -356,8 +470,9 @@ if (submitted) {
         <MessageCircle size={50} /> WhatsApp support
       </button>
 
-      {/* Book Another Ride Button */}
-      <button 
+     {/* Book Another Ride Button */}
+<button 
+  type="button"   // important to prevent accidental form submission
   onClick={() => {
     setSubmitted(false);      // go back to the form
     setStep(1);               // start from step 1
@@ -379,10 +494,18 @@ if (submitted) {
       if (dropRef.current) dropRef.current.value = '';
       
       // Clear directions if any
-      if (directionsRenderer.current) directionsRenderer.current.setDirections({ routes: [] });
+      if (directionsRenderer.current) {
+        directionsRenderer.current.setDirections({ routes: [] });
+      }
 
-      // Trigger useEffect that sets up autocomplete
-      setStep(1); 
+      // Reset map center and zoom
+      if (mapInstance.current) {
+        mapInstance.current.setCenter({ lat: 11.0168, lng: 76.9558 });
+        mapInstance.current.setZoom(12);
+      }
+
+      // ✅ Reload page
+      window.location.reload();
     }, 50);
   }} 
   className="w-full text-[10px] font-bold text-slate-900 dark:text-white uppercase border border-slate-300 dark:border-slate-700 rounded-2xl py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
@@ -395,8 +518,8 @@ if (submitted) {
 
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-sm mx-auto transition-all duration-500 overflow-hidden">
-      <div className="flex justify-between items-center mb-6">
+    <div className="bg-white dark:bg-slate-900 p-5 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-sm mx-auto transition-all duration-500 overflow-hidden">
+      <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
           {step === 1 ? 'Trip Details' : 'Confirm Booking'}
         </h3>
@@ -406,105 +529,11 @@ if (submitted) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3.5">
         {/* Step 1 */}
-        <div className={`${step === 1 ? 'space-y-4' : 'hidden'} animate-fade-in`}>
-         <InputWrapper icon={MapPin} label="Pickup">
-  <div className="relative w-full">
-  <input
-    ref={pickupRef}
-    type="text"
-    required
-    placeholder="Enter Pickup Location"
-    defaultValue={formData.pickup}
-    className="w-full pl-11 pr-10 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-brand-yellow rounded-xl text-xs font-bold outline-none dark:text-white"
-  />
-  
-  {formData.pickup && (
-    <button
-      type="button"
-      onClick={() => {
-        if (pickupRef.current) pickupRef.current.value = '';
-        setFormData(prev => ({ ...prev, pickup: '' }));
-      }}
-      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500"
-    >
-      ✕
-    </button>
-  )}
-</div>
-
-</InputWrapper>
-
-         <InputWrapper icon={MapPin} label="Destination">
- <div className="relative w-full">
-  <input
-    ref={dropRef}
-    type="text"
-    required
-    placeholder="Enter Destination"
-    defaultValue={formData.drop}
-    className="w-full pl-11 pr-10 py-3.5 bg-slate-50 dark:bg-slate-950 
-               border border-transparent dark:border-slate-800 
-               focus:border-brand-yellow rounded-xl 
-               text-xs font-bold outline-none dark:text-white"
-  />
-
-  {formData.drop && (
-    <button
-      type="button"
-      onClick={() => {
-        if (dropRef.current) dropRef.current.value = '';
-        setFormData(prev => ({ ...prev, drop: '' }));
-      }}
-      className="absolute right-3 top-1/2 -translate-y-1/2 
-                 text-slate-400 hover:text-red-500"
-    >
-      ✕
-    </button>
-  )}
-</div>
-
-</InputWrapper>
-
-          <div className="grid grid-cols-2 gap-4">
-            <InputWrapper icon={Calendar} label="Date (Optional)">
-              <input type="date" name="date" min={indiaToday} value={formData.date} onChange={handleChange} className="w-full pl-11 pr-2 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-[10px] font-bold outline-none dark:text-white" />
-            </InputWrapper>
-            <InputWrapper icon={Clock} label="Time (Optional)">
-              <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full pl-11 pr-2 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-[10px] font-bold outline-none dark:text-white" />
-            </InputWrapper>
- </div>
-<button 
-  type="button" 
-  onClick={handleNextStep} 
-  className="
-    w-full
-    bg-[#FDB813]
-    hover:bg-[#ffcc33]
-    text-slate-950
-    font-extrabold
-    py-3 px-4
-    rounded-2xl
-    flex items-center justify-center gap-3
-    text-base uppercase tracking-wide
-
-    shadow-[0_8px_25px_rgba(253,184,19,0.45)]
-    hover:shadow-[0_12px_35px_rgba(253,184,19,0.65)]
-
-    active:scale-95
-    active:bg-[#e5a90f]
-
-    transform transition-all duration-200
-  "
->
- Continue Booking<ArrowRight size={28} />
-</button>
- </div>
-
-        {/* Step 2 */}
-        <div className={`${step === 2 ? 'space-y-4' : 'hidden'} animate-fade-in`}>
-          <div className="relative h-40 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-inner">
+        <div className={`${step === 1 ? 'space-y-3.5' : 'hidden'} animate-fade-in`}>
+          {/* Map - Only Visible in Step 1 */}
+          <div className="relative h-48 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-inner">
             <div ref={mapRef} className="w-full h-full" />
             {mapError && (
               <div className="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center p-4 text-center">
@@ -512,17 +541,103 @@ if (submitted) {
                 <p className="text-[9px] text-white font-bold uppercase">{mapError}</p>
               </div>
             )}
-            {!mapError && (
-              <div className="absolute top-2 left-2 px-2 py-1 bg-slate-900/70 backdrop-blur-md rounded text-[8px] font-black text-white uppercase tracking-tighter flex items-center gap-1.5 z-10">
-                <MapIcon size={10} /> Live Route Map
-              </div>
-            )}
           </div>
 
-          <div className="bg-brand-yellow/5 dark:bg-brand-yellow/10 border border-brand-yellow/20 rounded-2xl p-4 flex justify-between items-center">
+          <div className="grid grid-cols-1 gap-3">
+            <InputWrapper icon={MapPin} label="Pickup">
+              <div className="relative w-full">
+                <input
+                  ref={pickupRef}
+                  type="text"
+                  required
+                  placeholder="Enter Pickup Location"
+                  defaultValue={formData.pickup}
+                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-brand-yellow rounded-xl text-xs font-bold outline-none dark:text-white"
+                />
+                {formData.pickup && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (pickupRef.current) pickupRef.current.value = '';
+                      setFormData(prev => ({ ...prev, pickup: '' }));
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </InputWrapper>
+
+            <InputWrapper icon={MapPin} label="Destination">
+              <div className="relative w-full">
+                <input
+                  ref={dropRef}
+                  type="text"
+                  required
+                  placeholder="Enter Destination"
+                  defaultValue={formData.drop}
+                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-brand-yellow rounded-xl text-xs font-bold outline-none dark:text-white"
+                />
+                {formData.drop && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (dropRef.current) dropRef.current.value = '';
+                      setFormData(prev => ({ ...prev, drop: '' }));
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </InputWrapper>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <InputWrapper icon={Calendar} label="Date (optional)">
+              <input type="date" name="date" min={indiaToday} value={formData.date} onChange={handleChange} className="w-full pl-11 pr-2 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-[10px] font-bold outline-none dark:text-white" />
+            </InputWrapper>
+            <InputWrapper icon={Clock} label="Time (optional)">
+              <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full pl-11 pr-2 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-[10px] font-bold outline-none dark:text-white" />
+            </InputWrapper>
+          </div>
+
+<div className="grid grid-cols-1 gap-3">
+  <InputWrapper icon={Phone} label="Phone Number">
+    <input
+      type="tel"
+      name="phone"
+      required
+      placeholder="10-digit number"
+      value={formData.phone}
+      onChange={(e) => {
+        const cleaned = e.target.value.replace(/\D/g, "");
+        setFormData(prev => ({ ...prev, phone: cleaned.slice(0, 10) }));
+      }}
+      className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-brand-yellow rounded-xl text-xs font-black outline-none dark:text-white
+                 ring-2 ring-brand-yellow ring-opacity-40 transition-all duration-200"
+      maxLength={10}
+    />
+            </InputWrapper>
+          </div>
+
+          <button 
+            type="button" 
+            onClick={handleNextStep} 
+            className="w-full bg-[#FDB813] hover:bg-[#ffcc33] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-brand-yellow/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            Continue <ArrowRight size={18} />
+          </button>
+        </div>
+
+        {/* Step 2 */}
+        <div className={`${step === 2 ? 'space-y-3.5' : 'hidden'} animate-fade-in`}>
+          <div className="bg-brand-yellow/5 dark:bg-brand-yellow/10 border border-brand-yellow/20 rounded-2xl p-3 flex justify-between items-center">
             <div>
               <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Estimated Fare</span>
-              <span className="text-2xl font-black text-slate-900 dark:text-white">
+              <span className="text-xl font-black text-slate-900 dark:text-white">
                 {loadingFare ? '...' : formData.estimatedFare || '₹0'}
               </span>
             </div>
@@ -532,65 +647,97 @@ if (submitted) {
             </div>
           </div>
 
-          <InputWrapper icon={Car} label="Select Vehicle">
-            <select name="vehicleType" value={formData.vehicleType} onChange={(e) => {
-              const v = e.target.value as VehicleType;
-              setFormData(prev => ({ ...prev, vehicleType: v }));
-              calculateFare(formData.pickup, formData.drop, v);
-            }} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-xs font-bold outline-none dark:text-white appearance-none cursor-pointer">
-              {Object.values(VehicleType).map(type => <option key={type} value={type}>{type}</option>)}
-            </select>
-          </InputWrapper>
-
-          <div className="grid grid-cols-1 gap-3">
-           <InputWrapper icon={User}>
-  <input
-    type="text"
-    name="name"
-    placeholder="Your Name (optional)"
-    value={formData.name}
-    onChange={handleChange}
-    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-xs font-bold outline-none dark:text-white"
-  />
-  <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 ml-1">
-    Name is optional — we will contact you by phone
-  </p>
-</InputWrapper>
-
-           <InputWrapper icon={Phone}>
-  <input
-    type="tel"
-    name="phone"
-    required
-    placeholder="Phone Number"
-    value={formData.phone}
-    onChange={(e) => {
-      const cleaned = e.target.value.replace(/\D/g, ""); // remove non digits
-      setFormData(prev => ({ ...prev, phone: cleaned.slice(0, 10) }));
-    }}
-    className="w-full pl-11 pr-4 py-4 border-2 border-brand-yellow rounded-xl text-base font-black outline-none dark:bg-slate-950 dark:text-white"
-    maxLength={10}
-  />
-</InputWrapper>
-
+          <div className="flex justify-between items-center px-1">
+            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Select Vehicle</span>
+            <span className="text-[8px] font-bold text-brand-yellow animate-pulse uppercase tracking-tighter">↓ Scroll for more</span>
           </div>
 
-          <div className="flex gap-3 pt-2">
-           <button
-  type="button"
+          <div className="relative group">
+            <div className="space-y-1.5 max-h-[280px] overflow-y-auto pr-1 app-scroll">
+            {VEHICLE_CONFIG.map((v) => {
+              const distanceVal = parseFloat(formData.distance) || 0;
+              const priceDisplay = distanceVal > 0 ? getFare(distanceVal, v.type) : '---';
+
+              return (
+                <button
+                  key={v.type}
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, vehicleType: v.type }));
+                  }}
+                  className={`
+                    w-full flex items-center gap-3 p-2.5 rounded-2xl border-2 transition-all text-left
+                    ${formData.vehicleType === v.type 
+                      ? 'border-brand-yellow bg-brand-/5 dark:bg-brand-yellow/10' 
+                      : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-950'}
+                  `}
+                >
+      {/* Vehicle Image */}
+                  {v.image ? (
+                    <img
+                      src={v.image}
+                      alt={v.label}
+                      className="w-24 h-24 object-contain rounded-lg"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg">
+                      <Car size={32} className="text-slate-400" />
+                    </div>
+                  )}
+
+  {/* Vehicle Info */}
+  <div className="flex-1 flex flex-col justify-between">
+    {/* Top row: Label & Price */}
+    <div className="flex items-center justify-between">
+      <span className="text-sm font-bold text-slate-900 dark:text-white uppercase">
+        {v.label}
+      </span>
+      <span className="text-sm font-bold text-slate-900 dark:text-white">
+        {priceDisplay}
+      </span>
+    </div>
+
+    {/* Bottom row: Capacity & Description */}
+    <div className="flex items-center gap-3 mt-1">
+      <span className="text-xs text-slate-400 flex items-center gap-1">
+        <User size={10} /> {v.capacity}
+      </span>
+      <span className="text-xs text-slate-400 font-medium truncate">
+        • {v.description}
+      </span>
+    </div>
+  </div>
+</button>
+              );
+            })}
+            </div>
+            {/* Bottom fade to indicate more content */}
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white dark:from-slate-900 to-transparent pointer-events-none opacity-60 rounded-b-2xl" />
+          </div>
+
+        <div className="flex gap-3">
+  <button
+    type="button"
+    onClick={() => {
+      setStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // scroll to top smoothly
+    }}
+    className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl border border-slate-100 dark:border-slate-700 active:scale-95 transition-all"
+  >
+    <ArrowLeft size={20} />
+  </button>
+        <button
+  type="submit"
+  disabled={loading}
+  className="flex-1 bg-brand-yellow text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-brand-yellow/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
   onClick={() => {
-    setStep(1); // Go back to step 1
-    // Scroll the window to top smoothly
+    // Scroll to top when clicked (optional)
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }}
-  className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl border border-slate-100 dark:border-slate-700 active:scale-95 transition-all"
 >
-  <ArrowLeft size={20} />
+  {loading ? 'Processing...' : 'Confirm Booking'}
 </button>
-            <button type="submit" disabled={loading} className="flex-1 bg-brand-yellow text-slate-950 font-black py-4.5 rounded-2xl shadow-xl shadow-brand-yellow/20 uppercase tracking-widest text-[10px] active:scale-95 transition-all">
-              {loading ? 'Processing...' : 'Confirm Booking'}
-            </button>
-            
           </div>
         </div>
       </form>
