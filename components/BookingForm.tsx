@@ -398,10 +398,12 @@ style.innerHTML = `
   const leadSentRef = useRef(false);
   useEffect(() => {
     const handleAbandonment = () => {
-      if (!submitted && !leadSentRef.current && formData.phone && formData.pickup && formData.drop) {
+      // Only send if we have the minimum info and haven't sent yet
+      if (!submitted && !leadSentRef.current && formData.phone && formData.phone.length === 10 && formData.pickup && formData.drop) {
+        const isStep2 = step === 2;
         sendBookingEmail({
           ...formData,
-          estimatedFare: formData.estimatedFare || 'Abandoned Lead'
+          estimatedFare: formData.estimatedFare || (isStep2 ? 'Abandoned at Step 2' : 'Abandoned Lead')
         });
         leadSentRef.current = true;
       }
@@ -413,14 +415,19 @@ style.innerHTML = `
       }
     };
 
+    // iOS Safari reliability: pagehide and blur
     window.addEventListener('pagehide', handleAbandonment);
+    window.addEventListener('beforeunload', handleAbandonment);
+    window.addEventListener('blur', handleAbandonment);
     document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
       window.removeEventListener('pagehide', handleAbandonment);
+      window.removeEventListener('beforeunload', handleAbandonment);
+      window.removeEventListener('blur', handleAbandonment);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [formData, submitted]);
+  }, [formData, submitted, step]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -520,7 +527,7 @@ if (submitted) {
 
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-5 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-sm mx-auto transition-all duration-500 overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 p-5 pb-10 sm:pb-5 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-sm mx-auto transition-all duration-500">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
           {step === 1 ? 'Trip Details' : 'Confirm Booking'}
@@ -655,7 +662,7 @@ if (submitted) {
           </div>
 
           <div className="relative group">
-            <div className="space-y-1.5 max-h-[280px] overflow-y-auto pr-1 app-scroll">
+            <div className="space-y-1.5 max-h-[240px] sm:max-h-[280px] overflow-y-auto pr-1 app-scroll">
             {VEHICLE_CONFIG.map((v) => {
               const distanceVal = parseFloat(formData.distance) || 0;
               const priceDisplay = distanceVal > 0 ? getFare(distanceVal, v.type) : '---';
