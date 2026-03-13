@@ -243,7 +243,7 @@ style.innerHTML = `
 
 
   useEffect(() => {
-   if (!googleLoaded || !mapRef.current) return;
+    if (!googleLoaded || !mapRef.current || mapInstance.current) return;
 
     try {
       mapInstance.current = new google.maps.Map(mapRef.current, {
@@ -271,23 +271,6 @@ style.innerHTML = `
         componentRestrictions: { country: 'in' },
         fields: ['formatted_address', 'geometry'],
       };
-
-      // Geolocation
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const pos = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            };
-            mapInstance.current.setCenter(pos);
-            mapInstance.current.setZoom(15);
-          },
-          () => {
-            // Geolocation failed or denied
-          }
-        );
-      }
 
       if (pickupRef.current) {
         pickupAutocomplete.current = new google.maps.places.Autocomplete(pickupRef.current, options);
@@ -407,19 +390,37 @@ style.innerHTML = `
     setFormData(updatedData);
     calculateFare(p, d, formData.vehicleType);
     
-    // Send Step 1 data as a lead
-    try {
-      sendBookingEmail({
-        ...updatedData,
-        estimatedFare: 'Step 1 - Lead'
-      });
-    } catch (err) {
-      console.error("Lead email error:", err);
-    }
-
     setStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Abandoned Lead Capture Logic
+  const leadSentRef = useRef(false);
+  useEffect(() => {
+    const handleAbandonment = () => {
+      if (!submitted && !leadSentRef.current && formData.phone && formData.pickup && formData.drop) {
+        sendBookingEmail({
+          ...formData,
+          estimatedFare: formData.estimatedFare || 'Abandoned Lead'
+        });
+        leadSentRef.current = true;
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleAbandonment();
+      }
+    };
+
+    window.addEventListener('pagehide', handleAbandonment);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', handleAbandonment);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [formData, submitted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -435,6 +436,7 @@ style.innerHTML = `
     try {
       const success = await sendBookingEmail(formData);
       if (success) {
+        leadSentRef.current = true; // Prevent abandonment lead after success
         setSubmitted(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
@@ -470,7 +472,7 @@ if (submitted) {
         <MessageCircle size={50} /> WhatsApp support
       </button>
 
-     {/* Book Another Ride Button */}
+{/* Book Another Ride Button */}
 <button 
   type="button"   // important to prevent accidental form submission
   onClick={() => {

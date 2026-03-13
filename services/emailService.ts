@@ -142,6 +142,7 @@ const waLink = `https://wa.me/${phoneWithCountryCode}?text=${waMessage}`;
   try {
     const response = await fetch(url, {
       method: 'POST',
+      keepalive: true,
       headers: {
         'accept': 'application/json',
         'api-key': apiKey,
