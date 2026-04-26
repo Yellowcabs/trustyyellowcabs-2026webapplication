@@ -126,6 +126,7 @@
       }
     </script>
     <link rel="manifest" href="/manifest.json">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script type="importmap">
 {
   "imports": {
@@ -158,11 +159,26 @@
 
 
 <style>
+  /* Prevent text selection and modern visual "theft" */
   body {
     background-color: #F8FAFC;
     font-family: 'Plus Jakarta Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
+  
+  /* Allow selection only in inputs */
+  input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+
   /* Ensure main content doesn't get hidden by the tab bar */
   main {
     padding-bottom: 5rem;
@@ -173,6 +189,46 @@
     }
   }
 </style>
+
+<script>
+  // Disable console logs in production/shared preview
+  if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('ais-dev')) {
+    (function () {
+      var noOp = function () {};
+      window.console = {
+        log: noOp,
+        warn: noOp,
+        error: noOp,
+        info: noOp,
+        debug: noOp
+      };
+    })();
+  }
+
+  // Prevent right-click context menu
+  document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  }, false);
+
+  // Prevent common devtools shortcuts
+  document.onkeydown = function (e) {
+    if (e.keyCode == 123) { // F12
+      return false;
+    }
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { // Ctrl+Shift+I
+      return false;
+    }
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { // Ctrl+Shift+C
+      return false;
+    }
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { // Ctrl+Shift+J
+      return false;
+    }
+    if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { // Ctrl+U (View Source)
+      return false;
+    }
+  };
+</script>
   <link rel="stylesheet" href="/index.css">
 </head>
   <body>

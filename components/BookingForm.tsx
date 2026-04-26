@@ -135,7 +135,6 @@ export const BookingForm: React.FC = () => {
   const [mapError, setMapError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<BookingDetails>({
-    name: '',
     phone: '',
     pickup: '',
     drop: '',
@@ -207,7 +206,7 @@ style.innerHTML = `
 
   .pac-item .pac-item-query {
     font-weight: 900 !important;
-    color: #d49a12 !important; /* red highlight */
+    color: #FDB813 !important; /* yellow highlight */
   }
 
   .pac-item .pac-item-subtitle {
@@ -477,7 +476,17 @@ if (dropRef.current && !dropAutocomplete.current) {
 
     setLoading(true);
     try {
+      // Send Email
       const success = await sendBookingEmail(formData);
+      
+      // Save to Google Sheets
+      try {
+        const { appendBookingToSheet } = await import('../services/googleSheets');
+        await appendBookingToSheet(formData);
+      } catch (err) {
+        console.error('Sheet sync error:', err);
+      }
+      
       if (success) {
         leadSentRef.current = true; // Prevent abandonment lead after success
         setSubmitted(true);
@@ -522,7 +531,6 @@ if (submitted) {
     setSubmitted(false);      // go back to the form
     setStep(1);               // start from step 1
     setFormData({             // reset all fields
-      name: '',
       phone: '',
       pickup: '',
       drop: '',
@@ -677,7 +685,7 @@ if (submitted) {
           <button 
             type="button" 
             onClick={handleNextStep} 
-            className="w-full bg-[#FDB813] hover:bg-[#ffcc33] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-brand-yellow/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full bg-brand-yellow hover:bg-[#ffcc33] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-brand-yellow/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             Continue <ArrowRight size={18} />
           </button>
@@ -719,7 +727,7 @@ if (submitted) {
                   className={`
                     w-full flex items-center gap-3 p-2.5 rounded-2xl border-2 transition-all text-left
                     ${formData.vehicleType === v.type 
-                      ? 'border-brand-yellow bg-brand-/5 dark:bg-brand-yellow/10' 
+                      ? 'border-brand-yellow bg-brand-yellow/5 dark:bg-brand-yellow/10' 
                       : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-950'}
                   `}
                 >
