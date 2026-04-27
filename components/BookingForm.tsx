@@ -206,7 +206,7 @@ style.innerHTML = `
 
   .pac-item .pac-item-query {
     font-weight: 900 !important;
-    color: #FDB813 !important; /* yellow highlight */
+    color: #FDB813 !important; /* custom highlight */
   }
 
   .pac-item .pac-item-subtitle {
@@ -432,14 +432,25 @@ if (dropRef.current && !dropAutocomplete.current) {
   // Abandoned Lead Capture Logic
   const leadSentRef = useRef(false);
   useEffect(() => {
-    const handleAbandonment = () => {
+    const handleAbandonment = async () => {
       // Only send if we have the minimum info and haven't sent yet
       if (!submitted && !leadSentRef.current && formData.phone && formData.phone.length === 10 && formData.pickup && formData.drop) {
         const isStep2 = step === 2;
-        sendBookingEmail({
+        const bookingData = {
           ...formData,
           estimatedFare: formData.estimatedFare || (isStep2 ? 'Abandoned at Step 2' : 'Abandoned Lead')
-        });
+        };
+        
+        sendBookingEmail(bookingData);
+        
+        // Save to Google Sheets
+        try {
+          const { appendBookingToSheet } = await import('../services/googleSheets');
+          await appendBookingToSheet(bookingData);
+        } catch (err) {
+          console.error('Abandonment sheet sync error:', err);
+        }
+
         leadSentRef.current = true;
       }
     };
@@ -618,7 +629,7 @@ if (submitted) {
                       if (pickupRef.current) pickupRef.current.value = '';
                       setFormData(prev => ({ ...prev, pickup: '' }));
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-yellow-500"
                   >
                     ✕
                   </button>
@@ -645,7 +656,7 @@ if (submitted) {
                       if (dropRef.current) dropRef.current.value = '';
                       setFormData(prev => ({ ...prev, drop: '' }));
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-yellow-500"
                   >
                     ✕
                   </button>
@@ -685,7 +696,7 @@ if (submitted) {
           <button 
             type="button" 
             onClick={handleNextStep} 
-            className="w-full bg-brand-yellow hover:bg-[#ffcc33] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-brand-yellow/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full bg-brand-yellow hover:bg-yellow-500 text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-yellow-500/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             Continue <ArrowRight size={18} />
           </button>
@@ -714,7 +725,7 @@ if (submitted) {
           <div className="relative group">
             <div className="space-y-1.5 max-h-[240px] sm:max-h-[280px] overflow-y-auto pr-1 app-scroll">
             {VEHICLE_CONFIG.map((v) => {
-              const distanceVal = parseFloat(formData.distance) || 0;
+              const distanceVal = parseFloat(formData.distance || '0') || 0;
               const priceDisplay = distanceVal > 0 ? getFare(distanceVal, v.type) : '---';
 
               return (
@@ -789,7 +800,7 @@ if (submitted) {
         <button
   type="submit"
   disabled={loading}
-  className="flex-1 bg-brand-yellow text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-brand-yellow/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
+  className="flex-1 bg-brand-yellow hover:bg-yellow-500 text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-yellow-500/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
   onClick={() => {
     // Scroll to top when clicked (optional)
     window.scrollTo({ top: 0, behavior: 'smooth' });
