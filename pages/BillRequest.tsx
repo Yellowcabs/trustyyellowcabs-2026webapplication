@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useRef } from 'react';
 import { FileText, User, Phone, MapPin, Calendar, CreditCard, Car, MessageCircle } from 'lucide-react';
 import { BillRequestDetails } from '../types';
+import { appendBookingToSheet } from '../services/googleSheets';
 
 interface InputFieldProps {
   label: string;
@@ -53,6 +54,47 @@ export const BillRequest: React.FC = () => {
     vehicleNumber: '',
   });
 
+  const leadSentRef = useRef(false);
+  const isSubmittingRef = useRef(false);
+  const sessionLeadId = useRef(`bill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    const handleAbandonment = async () => {
+      // Only send if we have basic contact info, not submitted, not submitting, and haven't sent yet
+      if (!submitted && !isSubmittingRef.current && !leadSentRef.current && formData.phone && formData.phone.length === 10 && formData.name) {
+        // Mark as sent immediately
+        leadSentRef.current = true;
+        
+        try {
+          await appendBookingToSheet({
+            ...formData,
+            leadId: sessionLeadId.current,
+            type: 'Bill Request Abandoned'
+          });
+        } catch (err) {
+          console.error('Bill Request Abandonment sheet error:', err);
+        }
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleAbandonment();
+      }
+    };
+
+    window.addEventListener('pagehide', handleAbandonment);
+    window.addEventListener('beforeunload', handleAbandonment);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', handleAbandonment);
+      window.removeEventListener('beforeunload', handleAbandonment);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [formData, submitted]);
+
   useEffect(() => {
     const now = new Date();
     const indiaDate = new Intl.DateTimeFormat('en-CA', {
@@ -70,9 +112,24 @@ export const BillRequest: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleWhatsAppSend = (e: React.FormEvent) => {
+  const handleWhatsAppSend = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    isSubmittingRef.current = true;
+    leadSentRef.current = true;
+
+    // Save to Google Sheets
+    try {
+      await appendBookingToSheet({
+        ...formData,
+        leadId: sessionLeadId.current,
+        type: 'Bill Request Success'
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.error('Bill Request Success sheet error:', err);
+    }
+
     const messageText = `*BILL REQUEST - Trustyyellowcabs*
 --------------------------------
 *Customer:* ${formData.name}
