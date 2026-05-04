@@ -897,9 +897,6 @@ if (dropRef.current && !dropAutocomplete.current) {
     setFormData(updatedData);
     await calculateFare(p, d, formData.vehicleType, formData.tripType);
     
-    // Proactive Lead Capture when moving to Step 2
-    handleAbandonment();
-    
     setStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -913,11 +910,18 @@ if (dropRef.current && !dropAutocomplete.current) {
     const currentStep = stepRef.current;
 
     // Only send if we have basic info, not submitted, not currently submitting, and haven't sent yet
-    if (!currentSubmitted && !isSubmittingRef.current && !leadSentRef.current && currentFormData.phone && currentFormData.phone.length === 10 && currentFormData.pickup && currentFormData.drop) {
+    if (
+      !currentSubmitted && 
+      !isSubmittingRef.current && 
+      !leadSentRef.current && 
+      currentFormData.phone && 
+      currentFormData.phone.length === 10 && 
+      (currentFormData.pickup || currentFormData.drop)
+    ) {
       const bookingData = {
         ...currentFormData,
         isLead: true,
-        estimatedFare: currentFormData.estimatedFare || (currentStep >= 2 ? 'Abandoned at Vehicle Select' : 'Abandoned Lead (Step 1)')
+        estimatedFare: currentFormData.estimatedFare || (currentStep >= 2 ? 'Abandoned at Vehicle/Summary Select' : 'Abandoned Lead (Step 1)')
       };
       
       // ⚠️ Mark as sent synchronously BEFORE async calls to prevent duplicate triggers
