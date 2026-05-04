@@ -957,6 +957,7 @@ if (dropRef.current && !dropAutocomplete.current) {
       window.removeEventListener('pagehide', handleAbandonment);
       window.removeEventListener('beforeunload', handleAbandonment);
       document.removeEventListener('visibilitychange', onVisibilityChange);
+      handleAbandonment();
     };
   }, [handleAbandonment]);
 
