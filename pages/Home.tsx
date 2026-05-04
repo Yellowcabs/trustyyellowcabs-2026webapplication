@@ -99,7 +99,7 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            <div className="relative flex justify-center lg:justify-end order-1 lg:order-2" id="book">
+           <div className="relative flex justify-center lg:justify-end order-1 lg:order-2 -mt-14 lg:mt-0" id="book">
               <BookingForm />
             </div>
           </div>
