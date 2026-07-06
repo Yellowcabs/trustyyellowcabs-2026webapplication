@@ -339,7 +339,7 @@ const InputWrapper = memo(({ children, icon: Icon, label }: { children: React.Re
   <div className="relative group w-full">
     {label && <label className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">{label}</label>}
     <div className="relative">
-      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#FDB813] transition-colors duration-300 pointer-events-none z-10">
+      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#FBC02D] transition-colors duration-300 pointer-events-none z-10">
         <Icon size={16} />
       </div>
       {children}
@@ -364,37 +364,86 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
     }
   }, [googleLoaded]);
 
-  // Handle body scroll lock
+  // Handle body scroll lock and hiding other layout components on mobile
   useEffect(() => {
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('mobile-search-active');
     return () => {
       document.body.style.overflow = 'unset';
+      document.body.classList.remove('mobile-search-active');
     };
   }, []);
 
-  useEffect(() => {
-    if (query.length > 0 && service.current) {
-      const COIMBATORE_CENTER = new (window as any).google.maps.LatLng(11.0168, 76.9558);
-      service.current.getPlacePredictions({ 
-        input: query, 
-        componentRestrictions: { country: 'in' },
-        location: COIMBATORE_CENTER,
-        radius: 50000 
-      }, (results: any) => {
-        if (results) setPredictions(results);
-      });
-    } else {
-      setPredictions([]);
-    }
-  }, [query]);
+useEffect(() => {
+  if (!query || !service.current) {
+    setPredictions([]);
+    return;
+  }
 
+  const serviceInstance = service.current;
+
+  const COIMBATORE_CENTER = new google.maps.LatLng(11.0168, 76.9558);
+
+  // 1. Search with Coimbatore bias
+  serviceInstance.getPlacePredictions(
+    {
+      input: query,
+      componentRestrictions: { country: "in" },
+      location: COIMBATORE_CENTER,
+      radius: 45000,
+    },
+    (cbeResults: any[] = []) => {
+      // 2. Search without location bias
+      serviceInstance.getPlacePredictions(
+        {
+          input: query,
+          componentRestrictions: { country: "in" },
+        },
+        (allResults: any[] = []) => {
+          const map = new Map();
+
+          // Coimbatore results first
+          cbeResults.forEach((item) => {
+            map.set(item.place_id, item);
+          });
+
+          // Then all other results
+          allResults.forEach((item) => {
+            if (!map.has(item.place_id)) {
+              map.set(item.place_id, item);
+            }
+          });
+
+          setPredictions([...map.values()]);
+        }
+      );
+    }
+  );
+}, [query]);
   return (
     <div className="fixed inset-0 bg-white dark:bg-slate-900 z-[9999] flex flex-col animate-in slide-in-from-bottom-5 duration-300 h-screen">
-      <div className="flex flex-col px-4 pb-4 pt-[calc(env(safe-area-inset-top,1rem)+80px)] bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+      <style>{`
+        .mobile-search-active nav {
+          display: none !important;
+        }
+        .mobile-search-active footer {
+          display: none !important;
+        }
+        .mobile-search-active [aria-label="Call for Booking"] {
+          display: none !important;
+        }
+        .mobile-search-active .fixed.bottom-0 {
+          display: none !important;
+        }
+        .mobile-search-active [aria-label="Chat Support"] {
+          display: none !important;
+        }
+      `}</style>
+      <div className="flex flex-col px-4 pb-4 pt-[calc(env(safe-area-inset-top,1rem)+16px)] bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center justify-between mb-4">
           <button 
             onClick={onClose} 
-            className="flex items-center gap-1 text-[#FDB813] hover:bg-slate-50 dark:hover:bg-slate-800 p-2 -ml-2 rounded-xl transition-all"
+            className="flex items-center gap-1 text-[#CA8A04] dark:text-[#FBC02D] hover:bg-slate-50 dark:hover:bg-slate-800 p-2 -ml-2 rounded-xl transition-all"
           >
             <ArrowLeft size={20} />
             <span className="text-[11px] font-black uppercase tracking-widest">Back</span>
@@ -417,9 +466,9 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={type === 'pickup' ? "Enter pickup location..." : "Enter destination..."}
-            className="w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-[#FDB813]/20 rounded-2xl px-12 py-4 text-[13px] font-bold outline-none dark:text-white transition-all shadow-inner"
+            className="w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-[#FBC02D]/30 rounded-2xl px-12 py-4 text-[13px] font-bold outline-none dark:text-white transition-all shadow-inner"
           />
-          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FDB813]" size={18} />
+          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FBC02D]" size={18} />
           {query && (
             <button 
               onClick={() => setQuery('')}
@@ -436,9 +485,9 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
       {false && (
   <button
     onClick={() => onSelect(query)}
-    className="w-full flex items-start gap-4 p-4 bg-[#FDB813]/5 hover:bg-[#FDB813]/10 rounded-2xl transition-colors text-left border-b border-slate-100 dark:border-slate-800"
+    className="w-full flex items-start gap-4 p-4 bg-[#FBC02D]/5 hover:bg-[#FBC02D]/10 rounded-2xl transition-colors text-left border-b border-slate-100 dark:border-slate-800"
   >
-    <div className="bg-[#FDB813]/10 p-2.5 rounded-xl text-[#FDB813]">
+    <div className="bg-[#FBC02D]/10 p-2.5 rounded-xl text-[#CA8A04] dark:text-[#FBC02D]">
       <MapPin size={18} />
     </div>
 
@@ -453,24 +502,25 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
   </button>
 )} 
   
- {predictions.map((p) => (
-  <button 
+{predictions.map((p) => (
+  <button
     key={p.place_id}
     onClick={() => onSelect(p.description)}
-    className="w-full flex items-start gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors text-left group border-b border-slate-50 dark:border-slate-800 last:border-none"
+    className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left border-b border-slate-100 dark:border-slate-800"
   >
-    <div className="bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl text-slate-400 group-hover:bg-[#FDB813]/10 group-hover:text-[#FDB813] transition-all">
-      <MapPin size={18} />
-    </div>
+    <MapPin
+      size={18}
+      className="text-slate-400 mt-1 flex-shrink-0"
+    />
 
-    <div className="flex-1 min-w-0">
-      <p className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight line-clamp-1 mb-0.5">
-        {p.structured_formatting.main_text}
-      </p>
+    <div className="flex-1 overflow-hidden">
+    <div className="text-[14px] font-semibold text-yellow-500 dark:text-yellow-400 leading-5">
+  {p.structured_formatting.main_text}
+</div>
 
-      <p className="text-[11px] text-slate-500 font-medium tracking-tight line-clamp-2 opacity-80 whitespace-normal">
-        {p.structured_formatting.secondary_text}
-      </p>
+     <div className="text-[12px] text-slate-900 dark:text-white mt-1 leading-5 break-words font-medium">
+  {p.structured_formatting.secondary_text || p.description}
+</div>
     </div>
   </button>
 ))}
@@ -596,7 +646,7 @@ style.innerHTML = `
 
   .pac-item .pac-item-query {
     font-weight: 900 !important;
-    color: #FDB813 !important; /* custom highlight */
+    color: #CA8A04 !important; /* custom highlight */
   }
 
   .pac-item .pac-item-subtitle {
@@ -708,7 +758,7 @@ if (dropRef.current && !dropAutocomplete.current) {
       directionsService.current = new google.maps.DirectionsService();
       directionsRenderer.current = new google.maps.DirectionsRenderer({
         map: mapInstance.current,
-        polylineOptions: { strokeColor: "#FDB813", strokeWeight: 6, strokeOpacity: 0.95 },
+        polylineOptions: { strokeColor: "#FBC02D", strokeWeight: 6, strokeOpacity: 0.95 },
         suppressMarkers: false
       });
     } catch (e) {
@@ -806,7 +856,7 @@ if (dropRef.current && !dropAutocomplete.current) {
   }, [formData.pickup, formData.drop, formData.tripType, updateMapRoute]);
 
   const calculateFare = useCallback(async (origin: string, destination: string, vehicle: VehicleType, tripType: TripType) => {
-    const isHill = (await checkIsHillStation(origin)) || (await checkIsHillStation(destination));
+    const isHill = false;
     
     if (tripType === TripType.LOCAL) {
       const pkg = LOCAL_PACKAGES.find(p => p.id === formData.localPackage) || LOCAL_PACKAGES[0];
@@ -1092,9 +1142,9 @@ if (submitted) {
           {step === 1 ? 'Book Your Trip' : step === 2 ? 'Select Vehicle' : 'Trip Summary'}
         </h3>
         <div className="flex gap-2">
-          <div className={`h-1 w-6 rounded-full transition-all ${step === 1 ? 'bg-[#FDB813]' : 'bg-slate-200 dark:bg-slate-700'}`} />
-          <div className={`h-1 w-6 rounded-full transition-all ${step === 2 ? 'bg-[#FDB813]' : 'bg-slate-200 dark:bg-slate-700'}`} />
-          <div className={`h-1 w-6 rounded-full transition-all ${step === 3 ? 'bg-[#FDB813]' : 'bg-slate-200 dark:bg-slate-700'}`} />
+          <div className={`h-1 w-6 rounded-full transition-all ${step === 1 ? 'bg-[#FBC02D]' : 'bg-slate-200 dark:bg-slate-700'}`} />
+          <div className={`h-1 w-6 rounded-full transition-all ${step === 2 ? 'bg-[#FBC02D]' : 'bg-slate-200 dark:bg-slate-700'}`} />
+          <div className={`h-1 w-6 rounded-full transition-all ${step === 3 ? 'bg-[#FBC02D]' : 'bg-slate-200 dark:bg-slate-700'}`} />
         </div>
       </div>
 
@@ -1107,7 +1157,7 @@ if (submitted) {
               <div ref={mapRef} className="w-full h-full" />
               {mapError && (
                 <div className="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center p-4 text-center">
-                  <AlertTriangle size={20} className="text-[#FDB813] mb-1" />
+                  <AlertTriangle size={20} className="text-[#CA8A04] dark:text-[#FBC02D] mb-1" />
                   <p className="text-[9px] text-white font-bold uppercase">{mapError}</p>
                 </div>
               )}
@@ -1127,7 +1177,7 @@ if (submitted) {
                   required
                   placeholder="Enter Pickup Location"
                   defaultValue={formData.pickup}
-                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-[#FDB813] rounded-xl text-xs font-bold outline-none dark:text-white"
+                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-[#FBC02D] rounded-xl text-xs font-bold outline-none dark:text-white"
                 />
 
                 {formData.pickup && (
@@ -1137,7 +1187,7 @@ if (submitted) {
                       if (pickupRef.current) pickupRef.current.value = '';
                       setFormData(prev => ({ ...prev, pickup: '' }));
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#FDB813]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#FBC02D]"
                   >
                     ✕
                   </button>
@@ -1157,7 +1207,7 @@ if (submitted) {
                   required
                   placeholder="Enter Destination"
                   defaultValue={formData.drop}
-                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-[#FDB813] rounded-xl text-xs font-bold outline-none dark:text-white"
+                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-[#FBC02D] rounded-xl text-xs font-bold outline-none dark:text-white"
                 />
 
                 {formData.drop && (
@@ -1167,7 +1217,7 @@ if (submitted) {
                       if (dropRef.current) dropRef.current.value = '';
                       setFormData(prev => ({ ...prev, drop: '' }));
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#FDB813]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#FBC02D]"
                   >
                     ✕
                   </button>
@@ -1220,8 +1270,8 @@ if (submitted) {
         const cleaned = e.target.value.replace(/\D/g, "");
         setFormData(prev => ({ ...prev, phone: cleaned.slice(0, 10) }));
       }}
-      className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-[#FDB813] rounded-xl text-xs font-black outline-none dark:text-white
-                 ring-2 ring-[#FDB813] ring-opacity-40 transition-all duration-200"
+      className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-[#FBC02D] rounded-xl text-xs font-black outline-none dark:text-white
+                 ring-2 ring-[#FBC02D] ring-opacity-40 transition-all duration-200"
       maxLength={10}
     />
             </InputWrapper>
@@ -1230,7 +1280,7 @@ if (submitted) {
       <button 
             type="button" 
             onClick={handleNextStep} 
-            className="w-full bg-[#FDB813] hover:bg-[#E2A411] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FDB813]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full bg-[#FBC02D] hover:bg-[#F5B041] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FBC02D]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             Continue <ArrowRight size={18} />
           </button>
@@ -1245,7 +1295,7 @@ if (submitted) {
                 setStep(1);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex items-center gap-1.5 text-[#FDB813] hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 -ml-1 rounded-lg transition-all"
+              className="flex items-center gap-1.5 text-[#CA8A04] dark:text-[#FBC02D] hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 -ml-1 rounded-lg transition-all"
             >
               <ArrowLeft size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
@@ -1277,7 +1327,7 @@ if (submitted) {
                   className={`
                     w-full flex items-center gap-3 p-2.5 rounded-2xl border-2 transition-all text-left
                     ${formData.vehicleType === v.type 
-                      ? 'border-[#FDB813] bg-[#FDB813]/5 dark:bg-[#FDB813]/10' 
+                      ? 'border-[#FBC02D] bg-[#FBC02D]/5 dark:bg-[#FBC02D]/10' 
                       : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-950'}
                   `}
                 >
@@ -1336,7 +1386,7 @@ if (submitted) {
         <button
   type="button"
   disabled={loading}
-  className="flex-1 bg-[#FDB813] hover:bg-[#E2A411] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FDB813]/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
+  className="flex-1 bg-[#FBC02D] hover:bg-[#F5B041] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FBC02D]/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
   onClick={() => {
     if (!formData.vehicleType) {
       alert("Please select a vehicle.");
@@ -1360,7 +1410,7 @@ if (submitted) {
                 setStep(2);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex items-center gap-1.5 text-[#FDB813] hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 -ml-1 rounded-lg transition-all"
+              className="flex items-center gap-1.5 text-[#CA8A04] dark:text-[#FBC02D] hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 -ml-1 rounded-lg transition-all"
             >
               <ArrowLeft size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
@@ -1371,9 +1421,9 @@ if (submitted) {
             <div className="space-y-3">
               <div className="flex gap-3">
                 <div className="w-10 h-10 flex flex-col items-center gap-1.5 py-1">
-                  <div className="w-2 h-2 rounded-full border-2 border-[#FDB813]" />
+                  <div className="w-2 h-2 rounded-full border-2 border-[#FBC02D]" />
                   <div className="w-0.5 flex-1 bg-slate-200 dark:bg-slate-700" />
-                  <div className="w-2 h-2 rounded-full bg-[#FDB813]" />
+                  <div className="w-2 h-2 rounded-full bg-[#FBC02D]" />
                 </div>
                 <div className="flex-1 space-y-4 pt-0.5">
                   <div>
@@ -1392,22 +1442,22 @@ if (submitted) {
               <div>
                 <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Departure</span>
                 <div className="flex items-center gap-1.5">
-                  <Calendar size={12} className="text-[#FDB813]" />
+                  <Calendar size={12} className="text-[#CA8A04] dark:text-[#FBC02D]" />
                   <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.date}</p>
                 </div>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <Clock size={12} className="text-[#FDB813]" />
+                  <Clock size={12} className="text-[#CA8A04] dark:text-[#FBC02D]" />
                   <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.time}</p>
                 </div>
               </div>
               <div>
                 <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Vehicle</span>
                 <div className="flex items-center gap-1.5">
-                  <Car size={12} className="text-[#FDB813]" />
+                  <Car size={12} className="text-[#CA8A04] dark:text-[#FBC02D]" />
                   <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase truncate">{formData.vehicleType}</p>
                 </div>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <Phone size={12} className="text-[#FDB813]" />
+                  <Phone size={12} className="text-[#CA8A04] dark:text-[#FBC02D]" />
                   <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.phone}</p>
                 </div>
               </div>
@@ -1416,7 +1466,7 @@ if (submitted) {
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-end">
               <div>
                 <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Estimated Distance</span>
-                <span className="text-xs font-black text-[#FDB813]">{formData.distance}</span>
+                <span className="text-xs font-black text-[#CA8A04] dark:text-[#FBC02D]">{formData.distance}</span>
               </div>
               <div className="text-right">
                 <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Total Fare</span>
@@ -1424,62 +1474,27 @@ if (submitted) {
               </div>
             </div>
 
-            {formData.fareBreakdown && formData.estimatedFare !== 'Call for Quote' && (
-              <div className="bg-slate-100/50 dark:bg-slate-900/50 p-4 rounded-2xl space-y-2 border border-slate-200/50 dark:border-slate-800/50">
-                <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Fare Breakdown</span>
-                
-                <>
-                  {formData.fareBreakdown.distanceFare > 0 && (
-                    <div className="flex justify-between items-center text-[10px]">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-500 dark:text-slate-400 uppercase">Trip Fare</span>
-                        <span className="text-[8px] text-slate-400 lowercase">
-                          ({formData.fareBreakdown.billableDistance || 0} km X ₹ {formData.fareBreakdown.ratePerKm || 0})
-                        </span>
-                      </div>
-                      <span className="font-black text-slate-900 dark:text-white">₹{formData.fareBreakdown.distanceFare}</span>
-                    </div>
-                  )}
+      {formData.fareBreakdown && formData.estimatedFare !== 'Call for Quote' && (
+  <div className="bg-slate-100/50 dark:bg-slate-900/50 p-4 rounded-2xl space-y-2 border border-slate-200/50 dark:border-slate-800/50">
+    <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">
+      Fare Breakdown
+    </span>
 
-                  {formData.fareBreakdown.driverBeta > 0 && (
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="font-bold text-slate-500 dark:text-slate-400 uppercase">Driver Allowance</span>
-                      <span className="font-black text-slate-900 dark:text-white">₹{formData.fareBreakdown.driverBeta}</span>
-                    </div>
-                  )}
+    <div className="flex justify-between items-center text-[10px]">
+      <span className="font-bold text-slate-500 dark:text-slate-400 uppercase">
+        Trip Fare
+      </span>
 
-                  {(formData.fareBreakdown.waitingCharge || 0) > 0 && (
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="font-bold text-slate-500 dark:text-slate-400 uppercase">Waiting Charges</span>
-                      <span className="font-black text-slate-900 dark:text-white">₹{formData.fareBreakdown.waitingCharge}</span>
-                    </div>
-                  )}
+      <span className="font-black text-slate-900 dark:text-white">
+        {formData.estimatedFare}
+      </span>
+    </div>
 
-                  {formData.fareBreakdown.extraDaysFare > 0 && (
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="font-bold text-slate-500 dark:text-slate-400 uppercase">Extra Days Fare</span>
-                      <span className="font-black text-slate-900 dark:text-white">₹{formData.fareBreakdown.extraDaysFare}</span>
-                    </div>
-                  )}
-
-                  {(formData.fareBreakdown.hillCharge || 0) > 0 && (
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="font-bold text-slate-500 dark:text-slate-400 uppercase">Hill Charges</span>
-                      <span className="font-black text-slate-900 dark:text-white">₹{formData.fareBreakdown.hillCharge}</span>
-                    </div>
-                  )}
-
-                  {formData.fareBreakdown.baseFare > 0 && (
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="font-bold text-slate-500 dark:text-slate-400 uppercase">Base Fare</span>
-                      <span className="font-black text-slate-900 dark:text-white">₹{formData.fareBreakdown.baseFare}</span>
-                    </div>
-                  )}
-                </>
-                
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 mt-1">
-                  <p className="text-[8px] font-bold text-slate-400 ">Excluded: Toll, Inter-State taxes & Parking (if applicable)</p>
-                </div>
+    <div className="pt-2 border-t border-slate-200 dark:border-slate-800 mt-1">
+      <p className="text-[8px] font-bold text-slate-400">
+        Excluded: Toll, Inter-State taxes & Parking (if applicable)
+      </p>
+    </div>
               </div>
             )}
           </div>
@@ -1495,7 +1510,7 @@ if (submitted) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-[#FDB813] hover:bg-[#E2A411] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FDB813]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="flex-1 bg-[#FBC02D] hover:bg-[#F5B041] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FBC02D]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               {loading ? 'Booking...' : (
                 <>
