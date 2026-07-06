@@ -10,7 +10,7 @@ export const LOCATIONS_DATA: LocationSEO[] = [
 
   {
   slug: "redtaxi",
-  name: "RedTaxi",
+  name: "RedTaxi Alternative",
   title: "RedTaxi Alternative in Coimbatore | Trusty Yellow Cabs",
   description: "Looking for RedTaxi in Coimbatore? Trusty Yellow Cabs offers affordable local, airport, and outstation taxi services with professional drivers and 24/7 support.",
   content: "Looking for RedTaxi services in Coimbatore? Trusty Yellow Cabs provides reliable taxi services across Coimbatore and surrounding areas. Whether you need an airport transfer, railway station pickup, local city ride, or outstation cab, our experienced drivers are available 24/7. We offer clean and well-maintained vehicles including Mini, Sedan, SUV, Innova, Tempo Traveller, and Tourist Bus options. Our easy online booking system allows customers to book taxis instantly with transparent pricing and professional service. Popular routes include Coimbatore Airport, Gandhipuram, Ukkadam, Singanallur, RS Puram, Peelamedu, Saibaba Colony, Isha Yoga Center, Ooty, Kodaikanal, Munnar, and more. Trusty Yellow Cabs is committed to safe, affordable, and comfortable travel across Tamil Nadu and Kerala. Book your next ride today and enjoy a hassle-free taxi experience in Coimbatore."
