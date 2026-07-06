@@ -6,7 +6,54 @@ export interface LocationSEO {
   content: string;
 }
 
-export const LOCATIONS_DATA: LocationSEO[] = [
+export const LOCATIONS_DATA: LocationSEO[] = [ 
+
+  {
+  slug: "redtaxi",
+  name: "RedTaxi",
+  title: "RedTaxi Alternative in Coimbatore | Trusty Yellow Cabs",
+  description: "Looking for RedTaxi in Coimbatore? Trusty Yellow Cabs offers affordable local, airport, and outstation taxi services with professional drivers and 24/7 support.",
+  content: "Looking for RedTaxi services in Coimbatore? Trusty Yellow Cabs provides reliable taxi services across Coimbatore and surrounding areas. Whether you need an airport transfer, railway station pickup, local city ride, or outstation cab, our experienced drivers are available 24/7. We offer clean and well-maintained vehicles including Mini, Sedan, SUV, Innova, Tempo Traveller, and Tourist Bus options. Our easy online booking system allows customers to book taxis instantly with transparent pricing and professional service. Popular routes include Coimbatore Airport, Gandhipuram, Ukkadam, Singanallur, RS Puram, Peelamedu, Saibaba Colony, Isha Yoga Center, Ooty, Kodaikanal, Munnar, and more. Trusty Yellow Cabs is committed to safe, affordable, and comfortable travel across Tamil Nadu and Kerala. Book your next ride today and enjoy a hassle-free taxi experience in Coimbatore."
+},
+
+  {
+  slug: "redtaxi-ooty-alternative",
+  name: "RedTaxi Ooty Alternative",
+  title: "RedTaxi Ooty Alternative | Coimbatore to Ooty Taxi Service",
+  description: "Looking for RedTaxi Ooty trips? Trusty Yellow Cabs offers safe and affordable Coimbatore to Ooty taxi service with experienced hill drivers.",
+  content: "Looking for RedTaxi Ooty taxi service from Coimbatore? Trusty Yellow Cabs is the best alternative for hill station travel to Ooty, offering safe, comfortable, and affordable outstation rides. Our experienced drivers are trained for ghat roads and hill driving to ensure a smooth journey. We provide one-way and round-trip taxi services from Coimbatore to Ooty via Mettupalayam and Nilgiri ghats. Vehicles available include Sedan, SUV, Innova, and Tempo Traveller for family and group trips. Popular hill routes include Ooty, Coonoor, Kotagiri, and Masinagudi. Book your Ooty taxi anytime with 24/7 support and transparent pricing."
+},
+
+  {
+  slug: "redtaxi-coimbatore-local",
+  name: "RedTaxi Local Coimbatore Alternative",
+  title: "RedTaxi Local Taxi Coimbatore | Best City Cab Service",
+  description: "Looking for RedTaxi local cab in Coimbatore? Trusty Yellow Cabs provides affordable city rides with professional drivers and instant booking.",
+  content: "Looking for RedTaxi local taxi service in Coimbatore? Trusty Yellow Cabs offers the best alternative for city travel with safe, affordable, and reliable cab services. We provide local hourly rentals, point-to-point rides, and full-day taxi packages. Our service covers all major areas in Coimbatore including Gandhipuram, Ukkadam, Peelamedu, RS Puram, Saibaba Colony, Saravanampatti, and Singanallur. Choose from Mini, Sedan, SUV, and Innova based on your travel needs. Our drivers are experienced and know all city routes for faster travel. Book your local taxi in Coimbatore anytime with 24/7 availability."
+},
+   
+  {slug: "redtaxioutstation",
+  name: "RedTaxi Outstation Alternative",
+  title: "RedTaxi Outstation Taxi Coimbatore | Reliable Long Trip Cabs",
+  description: "Looking for RedTaxi outstation cab? Trusty Yellow Cabs offers affordable Coimbatore outstation taxi service to Ooty, Munnar, Kodaikanal and more.",
+  content: "Looking for RedTaxi outstation taxi service in Coimbatore? Trusty Yellow Cabs provides reliable and affordable long-distance taxi services for family trips, business travel, and weekend tours. We offer one-way and round-trip outstation cabs from Coimbatore to destinations like Ooty, Kodaikanal, Munnar, Yercaud, Valparai, Bangalore, Kochi, and Madurai. Our fleet includes Mini, Sedan, SUV, Innova, and Tempo Traveller for comfortable group travel. All drivers are experienced in long-distance routes ensuring safe and smooth journeys. Book your outstation taxi from Coimbatore anytime with transparent pricing and 24/7 support."
+},
+
+  {
+  slug: "redtaxi-outstation-coimbatore",
+  name: "RedTaxi Outstation Alternative",
+  title: "RedTaxi Outstation Taxi Coimbatore | Reliable Long Trip Cabs",
+  description: "Looking for RedTaxi outstation cab? Trusty Yellow Cabs offers affordable Coimbatore outstation taxi service to Ooty, Munnar, Kodaikanal and more.",
+  content: "Looking for RedTaxi outstation taxi service in Coimbatore? Trusty Yellow Cabs provides reliable and affordable long-distance taxi services for family trips, business travel, and weekend tours. We offer one-way and round-trip outstation cabs from Coimbatore to destinations like Ooty, Kodaikanal, Munnar, Yercaud, Valparai, Bangalore, Kochi, and Madurai. Our fleet includes Mini, Sedan, SUV, Innova, and Tempo Traveller for comfortable group travel. All drivers are experienced in long-distance routes ensuring safe and smooth journeys. Book your outstation taxi from Coimbatore anytime with transparent pricing and 24/7 support."
+},
+
+  {
+  slug: "redtaxi-coimbatore",
+  name: "RedTaxi  Alternative",
+  title: "RedTaxi Alternative in Coimbatore | Trusty Yellow Cabs",
+  description: "Looking for RedTaxi in Coimbatore? Trusty Yellow Cabs offers affordable local, airport, and outstation taxi services with professional drivers and 24/7 support.",
+  content: "Looking for RedTaxi services in Coimbatore? Trusty Yellow Cabs provides reliable taxi services across Coimbatore and surrounding areas. Whether you need an airport transfer, railway station pickup, local city ride, or outstation cab, our experienced drivers are available 24/7. We offer clean and well-maintained vehicles including Mini, Sedan, SUV, Innova, Tempo Traveller, and Tourist Bus options. Our easy online booking system allows customers to book taxis instantly with transparent pricing and professional service. Popular routes include Coimbatore Airport, Gandhipuram, Ukkadam, Singanallur, RS Puram, Peelamedu, Saibaba Colony, Isha Yoga Center, Ooty, Kodaikanal, Munnar, and more. Trusty Yellow Cabs is committed to safe, affordable, and comfortable travel across Tamil Nadu and Kerala. Book your next ride today and enjoy a hassle-free taxi experience in Coimbatore."
+},
   {
     slug: "taxi-gandhipuram-coimbatore",
     name: "Gandhipuram",

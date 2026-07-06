@@ -43,6 +43,18 @@
     <priority>0.9</priority>
   </url>
   <!-- Dynamic Location Pages -->
+  <url><loc>https://www.trustyyellowcabs.in/redtaxi</loc><priority>0.85</priority></url>
+
+<url><loc>https://www.trustyyellowcabs.in/redtaxi-ooty-alternative</loc><priority>0.8</priority></url>
+
+<url><loc>https://www.trustyyellowcabs.in/redtaxi-coimbatore-local</loc><priority>0.85</priority></url>
+
+<url><loc>https://www.trustyyellowcabs.in/redtaxioutstation</loc><priority>0.8</priority></url>
+
+<url><loc>https://www.trustyyellowcabs.in/redtaxi-outstation-coimbatore</loc><priority>0.8</priority></url>
+
+<url><loc>https://www.trustyyellowcabs.in/redtaxi-coimbatore</loc><priority>0.8</priority></url>
+
   <url><loc>https://www.trustyyellowcabs.in/taxi-gandhipuram-coimbatore</loc><priority>0.7</priority></url>
   <url><loc>https://www.trustyyellowcabs.in/cab-service-peelamedu-coimbatore</loc><priority>0.7</priority></url>
   <url><loc>https://www.trustyyellowcabs.in/taxi-rs-puram-coimbatore</loc><priority>0.7</priority></url>
@@ -110,10 +122,10 @@
   <url><loc>https://www.trustyyellowcabs.in/taxi-dindigul-coimbatore</loc><priority>0.7</priority></url>
   <url><loc>https://www.trustyyellowcabs.in/taxi-villupuram-coimbatore</loc><priority>0.7</priority></url>
   <url><loc>https://www.trustyyellowcabs.in/isha-temple-coimbatore-taxi</loc><priority>0.7</priority></url>
-  <url><loc>https://www.trustyyellowcabs.in/isha-taxi-coimbatore</loc><priority>0.7</priority></url>
+  <url><loc>https://www.trustyyellowcabs.in/isha-taxi-coimbatore</loc><priority>0.9</priority></url>
   <url><loc>https://www.trustyyellowcabs.in/airport-to-isha-taxi</loc><priority>0.7</priority></url>
   <url><loc>https://www.trustyyellowcabs.in/isha-to-airport-railway-station-taxi</loc><priority>0.7</priority></url>
   <url><loc>https://www.trustyyellowcabs.in/coimbatore-taxi-service</loc><priority>0.7</priority></url>
-  <url><loc>https://www.trustyyellowcabs.in/taxi-near-me-coimbatore</loc><priority>0.7</priority></url>
+  <url><loc>https://www.trustyyellowcabs.in/taxi-near-me-coimbatore</loc><priority>0.85</priority></url>
   <url><loc>https://www.trustyyellowcabs.in/coimbatore-outstation-taxi-service</loc><priority>0.7</priority></url>
 </urlset>
