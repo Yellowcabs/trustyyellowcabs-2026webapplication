@@ -89,7 +89,7 @@ export const LocationPage: React.FC = () => {
                 <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl 
                                font-extrabold text-slate-900 dark:text-white 
                                leading-tight md:leading-[1.1] tracking-tight">
-                  Taxi Service in<br />
+                  Taxi Service <br />
                   <span className="text-brand-yellow">{locationData.name}</span>
                 </h1>
 
