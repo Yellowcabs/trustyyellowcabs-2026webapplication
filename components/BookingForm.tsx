@@ -1,23 +1,66 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { BookingDetails, VehicleType, TripType, FareBreakdown } from '../types';
-import { MapPin, User, Phone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Navigation, Package } from 'lucide-react';
+import { MapPin, User, Phone, Smartphone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Repeat, Navigation, Package, X } from 'lucide-react';
 import { sendBookingEmail } from '../services/emailService';
 import { appendBookingToSheet } from '../services/googleSheets';
+import { motion } from 'framer-motion';
 
 declare const google: any;
 
+const TripTypeRental = (TripType as any).RENTAL || 'Rental' as TripType;
+
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-const PRICING: Record<VehicleType, number> = {
+const ONE_WAY_PRICING: Record<VehicleType, number> = {
   [VehicleType.MINI]: 23,
   [VehicleType.SEDAN]: 25,
-  [VehicleType.SUV]: 33,
-  [VehicleType.SUV_PLUS]: 33,
-  [VehicleType.INNOVA]: 37,
+  [VehicleType.SUV]: 30,
+  [VehicleType.SUV_PLUS]: 32,
+  [VehicleType.INNOVA]: 35,
   [VehicleType.LUXURY]: 0,
   [VehicleType.TEMPO_TRAVELLER]: 0,
   [VehicleType.TOURIST_BUS]: 0,
   [VehicleType.CUSTOM]: 0,
+};
+
+const ROUND_TRIP_PRICING: Record<VehicleType, number> = {
+  [VehicleType.MINI]: 16.5,
+  [VehicleType.SEDAN]: 17.5,
+  [VehicleType.SUV]: 22,
+  [VehicleType.SUV_PLUS]: 23,
+  [VehicleType.INNOVA]: 25,
+  [VehicleType.LUXURY]: 0,
+  [VehicleType.TEMPO_TRAVELLER]: 0,
+  [VehicleType.TOURIST_BUS]: 0,
+  [VehicleType.CUSTOM]: 0,
+};
+
+const LOCAL_PRICING: Record<VehicleType, number> = {
+  [VehicleType.MINI]: 23,
+  [VehicleType.SEDAN]: 25,
+  [VehicleType.SUV]: 40,
+  [VehicleType.SUV_PLUS]: 45,
+  [VehicleType.INNOVA]: 50,
+  [VehicleType.LUXURY]: 0,
+  [VehicleType.TEMPO_TRAVELLER]: 0,
+  [VehicleType.TOURIST_BUS]: 0,
+  [VehicleType.CUSTOM]: 0,
+};
+
+const ONE_WAY_SHORT_RATES: Record<string, number> = {
+  [VehicleType.MINI]: 23,
+  [VehicleType.SEDAN]: 25,
+  [VehicleType.SUV]: 40,
+  [VehicleType.SUV_PLUS]: 45,
+  [VehicleType.INNOVA]: 50,
+};
+
+const LOCAL_SHORT_RATES: Record<string, number> = {
+  [VehicleType.MINI]: 23,
+  [VehicleType.SEDAN]: 25,
+  [VehicleType.SUV]: 40,
+  [VehicleType.SUV_PLUS]: 45,
+  [VehicleType.INNOVA]: 50,
 };
 
 const HILL_STATIONS = [
@@ -167,15 +210,18 @@ const calculateFareDetails = (distance: number, vehicle: VehicleType, tripType: 
 
   if (NO_FARE_VEHICLES.includes(vehicle)) return result;
   
-  const perKmRate = PRICING[vehicle] || 0;
+  let pricingList = ONE_WAY_PRICING;
+  if (tripType === TripType.ROUND_TRIP) {
+    pricingList = ROUND_TRIP_PRICING;
+  } else if (tripType === TripType.LOCAL) {
+    pricingList = LOCAL_PRICING;
+  }
+  const perKmRate = pricingList[vehicle] || 0;
 
   let hillCharge = 0;
-  if (isHillStation) {
-    hillCharge = 300; // Flat 300 hill charge
-  }
   result.breakdown.hillCharge = hillCharge;
 
-  if (tripType === TripType.LOCAL) {
+  if (tripType === TripTypeRental) {
     const pkg = LOCAL_PACKAGES.find(p => p.id === localPackage);
     if (!pkg) return result;
     
@@ -185,9 +231,9 @@ const calculateFareDetails = (distance: number, vehicle: VehicleType, tripType: 
     
     let total = 0;
     if (vehicle === VehicleType.MINI) {
-      total = hours * 300;
-    } else if (vehicle === VehicleType.SEDAN) {
       total = hours * 350;
+    } else if (vehicle === VehicleType.SEDAN) {
+      total = hours * 375;
     } else {
       // SUV, Innova and others - Call on Quote
       return result;
@@ -197,14 +243,14 @@ const calculateFareDetails = (distance: number, vehicle: VehicleType, tripType: 
     result.breakdown.baseFare = total;
     result.displayTotal = `₹${total}`;
     
-    // For local, we don't want extra charges or driver beta shown separately as they are included
+    // For rental, we don't want extra charges or driver beta shown separately as they are included
     result.breakdown.driverBeta = 0;
     result.breakdown.extraCharges = 0;
     result.breakdown.distanceFare = 0;
     return result;
   }
 
-  if (tripType === TripType.ONE_WAY) {
+  if (tripType === TripType.ONE_WAY || tripType === TripType.LOCAL) {
     if (distance >= 130) {
       const billableDistance = Math.max(distance, 130);
       const distanceFare = Math.round(billableDistance * perKmRate);
@@ -219,13 +265,7 @@ const calculateFareDetails = (distance: number, vehicle: VehicleType, tripType: 
       result.breakdown.driverBeta = driverBeta;
       result.total = distanceFare + driverBeta + hillCharge;
     } else {
-      const shortRates: Record<string, number> = {
-        [VehicleType.MINI]: 23,
-        [VehicleType.SEDAN]: 25,
-        [VehicleType.SUV]: 35,
-        [VehicleType.SUV_PLUS]: 40,
-        [VehicleType.INNOVA]: 40,
-      };
+      const shortRates = tripType === TripType.LOCAL ? LOCAL_SHORT_RATES : ONE_WAY_SHORT_RATES;
       const rate = shortRates[vehicle] || perKmRate;
       let baseFare = 0;
       
@@ -236,11 +276,11 @@ const calculateFareDetails = (distance: number, vehicle: VehicleType, tripType: 
       } else if (vehicle === VehicleType.SUV || vehicle === VehicleType.SUV_PLUS) {
         if (distance <= 5) baseFare = 150;
         else if (distance <= 7) baseFare = 200;
-        else if (distance <= 65) baseFare = 300;
+        else if (distance <= 65) baseFare = 203;
         else baseFare = 350;
       } else if (vehicle === VehicleType.INNOVA) {
-        if (distance > 5 && distance <= 65) baseFare = 300;
-        else if (distance > 65) baseFare = 300;
+        if (distance > 5 && distance <= 65) baseFare = 203;
+        else if (distance > 65) baseFare = 399;
         else return result;
       } else {
         baseFare = 80;
@@ -253,6 +293,34 @@ const calculateFareDetails = (distance: number, vehicle: VehicleType, tripType: 
       result.breakdown.ratePerKm = rate;
       result.total = distanceFare + baseFare + hillCharge;
     }
+  } else if (tripType === TripType.ROUND_TRIP) {
+    const effectiveDistance = distance * 2;
+    const distanceFare = Math.round(effectiveDistance * perKmRate);
+    result.breakdown.distanceFare = distanceFare;
+    result.breakdown.billableDistance = effectiveDistance;
+    result.breakdown.ratePerKm = perKmRate;
+    
+    result.breakdown.extraDaysFare = 0;
+
+   let driverBetaPerDay = 0;
+
+if (distance > 38) {
+  if (vehicle === VehicleType.MINI || vehicle === VehicleType.SEDAN)
+    driverBetaPerDay = 300;
+  else if (
+    vehicle === VehicleType.SUV ||
+    vehicle === VehicleType.SUV_PLUS ||
+    vehicle === VehicleType.INNOVA
+  )
+    driverBetaPerDay = 400;
+}
+
+result.breakdown.driverBeta = days * driverBetaPerDay;
+
+    // Waiting charge (Only for One Way if days=1, user requested to remove for round trip)
+    result.breakdown.waitingCharge = 0;
+    
+    result.total = distanceFare + result.breakdown.extraDaysFare + result.breakdown.driverBeta + result.breakdown.waitingCharge + hillCharge;
   }
 
   result.breakdown.extraCharges = (result.breakdown.baseFare || 0) + (result.breakdown.extraDaysFare || 0) + (result.breakdown.waitingCharge || 0) + (result.breakdown.hillCharge || 0);
@@ -286,17 +354,17 @@ const LOCAL_PACKAGES = [
 const VEHICLE_CONFIG = [
   { 
     type: VehicleType.MINI, 
-    label: 'MINI / ANY SEDAN', 
+    label: 'MINI', 
     image: '/images/car_etios.svg', 
     capacity: 4,
-    description: 'AFFORDABLE'
+    description: 'ANY SEDAN'
   },
   { 
     type: VehicleType.SEDAN, 
     label: 'Sedan', 
     image: '/images/sedan.webp', 
     capacity: 4,
-    description: 'PRIME SEDAN'
+    description: 'SEDAN'
   },
   { 
     type: VehicleType.SUV, 
@@ -310,14 +378,14 @@ const VEHICLE_CONFIG = [
     label: 'Innova', 
     image: '/images/car_innova.svg', 
     capacity: 7,
-    description: 'PREMIUM INNOVA'
+    description: 'INNOVA'
   },
   { 
     type: VehicleType.TEMPO_TRAVELLER, 
     label: 'Traveller', 
     image: '/images/tempo travaller.webp',
     capacity: 12,
-    description: 'Group travel(12-18 seats)'
+    description: '(12-18 seats)'
   },
   { 
     type: VehicleType.TOURIST_BUS, 
@@ -339,13 +407,36 @@ const InputWrapper = memo(({ children, icon: Icon, label }: { children: React.Re
   <div className="relative group w-full">
     {label && <label className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">{label}</label>}
     <div className="relative">
-      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#FBC02D] transition-colors duration-300 pointer-events-none z-10">
+      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#EAB308] transition-colors duration-300 pointer-events-none z-10">
         <Icon size={16} />
       </div>
       {children}
     </div>
   </div>
 ));
+
+const POPULAR_LOCATIONS = [
+  "Coimbatore International Airport (CJB)",
+  "Coimbatore Junction Railway Station (CBE)",
+  "Gandhipuram Bus Stand, Coimbatore",
+  "Ukkadam Bus Stand, Coimbatore",
+  "Singanallur Bus Stand, Coimbatore",
+  "RS Puram, Coimbatore",
+  "Peelamedu, Coimbatore",
+  "Saravanampatti, Coimbatore",
+  "Vadavalli, Coimbatore",
+  "Thudiyalur, Coimbatore",
+  "Kuniamuthur, Coimbatore",
+  "Koundampalayam, Coimbatore",
+  "Hope College, Coimbatore",
+  "L&T Bypass Road, Coimbatore",
+  "Laxmi Mills Junction, Coimbatore",
+  "PSG Tech, Peelamedu, Coimbatore",
+  "Brookefields Mall, Coimbatore",
+  "Prozone Mall, Sathy Road, Coimbatore",
+  "Fun Republic Mall, Avinashi Road, Coimbatore",
+  "Eachanari Vinayagar Temple, Coimbatore"
+];
 
 const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialValue }: { 
   type: 'pickup' | 'drop', 
@@ -374,52 +465,46 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
     };
   }, []);
 
-useEffect(() => {
-  if (!query || !service.current) {
-    setPredictions([]);
-    return;
-  }
-
-  const serviceInstance = service.current;
-
-  const COIMBATORE_CENTER = new google.maps.LatLng(11.0168, 76.9558);
-
-  // 1. Search with Coimbatore bias
-  serviceInstance.getPlacePredictions(
-    {
-      input: query,
-      componentRestrictions: { country: "in" },
-      location: COIMBATORE_CENTER,
-      radius: 45000,
-    },
-    (cbeResults: any[] = []) => {
-      // 2. Search without location bias
-      serviceInstance.getPlacePredictions(
-        {
+  useEffect(() => {
+    if (query.length > 0 && service.current) {
+      const COIMBATORE_CENTER = new (window as any).google.maps.LatLng(11.0168, 76.9558);
+      
+      // 1. Search with Coimbatore bias
+      service.current.getPlacePredictions({ 
+        input: query, 
+        componentRestrictions: { country: 'in' },
+        location: COIMBATORE_CENTER,
+        radius: 50000 
+      }, (cbeResults: any) => {
+        // 2. Search without location bias
+        service.current.getPlacePredictions({
           input: query,
-          componentRestrictions: { country: "in" },
-        },
-        (allResults: any[] = []) => {
+          componentRestrictions: { country: 'in' }
+        }, (allResults: any) => {
           const map = new Map();
 
           // Coimbatore results first
-          cbeResults.forEach((item) => {
-            map.set(item.place_id, item);
-          });
-
-          // Then all other results
-          allResults.forEach((item) => {
-            if (!map.has(item.place_id)) {
+          (cbeResults || []).forEach((item: any) => {
+            if (item && item.place_id) {
               map.set(item.place_id, item);
             }
           });
 
-          setPredictions([...map.values()]);
-        }
-      );
+          // Then all other results
+          (allResults || []).forEach((item: any) => {
+            if (item && item.place_id && !map.has(item.place_id)) {
+              map.set(item.place_id, item);
+            }
+          });
+
+          setPredictions(Array.from(map.values()));
+        });
+      });
+    } else {
+      setPredictions([]);
     }
-  );
-}, [query]);
+  }, [query]);
+
   return (
     <div className="fixed inset-0 bg-white dark:bg-slate-900 z-[9999] flex flex-col animate-in slide-in-from-bottom-5 duration-300 h-screen">
       <style>{`
@@ -443,7 +528,7 @@ useEffect(() => {
         <div className="flex items-center justify-between mb-4">
           <button 
             onClick={onClose} 
-            className="flex items-center gap-1 text-[#CA8A04] dark:text-[#FBC02D] hover:bg-slate-50 dark:hover:bg-slate-800 p-2 -ml-2 rounded-xl transition-all"
+            className="flex items-center gap-1 text-[#EAB308] hover:bg-slate-50 dark:hover:bg-slate-800 p-2 -ml-2 rounded-xl transition-all"
           >
             <ArrowLeft size={20} />
             <span className="text-[11px] font-black uppercase tracking-widest">Back</span>
@@ -453,7 +538,7 @@ useEffect(() => {
           </h2>
           <button 
             onClick={onClose}
-            className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest p-2"
+            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-slate-250 dark:border-slate-700 shadow-sm"
           >
             Cancel
           </button>
@@ -466,9 +551,9 @@ useEffect(() => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={type === 'pickup' ? "Enter pickup location..." : "Enter destination..."}
-            className="w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-[#FBC02D]/30 rounded-2xl px-12 py-4 text-[13px] font-bold outline-none dark:text-white transition-all shadow-inner"
+            className="w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-[#EAB308]/20 rounded-2xl px-12 py-4 text-[13px] font-bold outline-none dark:text-white transition-all shadow-inner"
           />
-          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FBC02D]" size={18} />
+          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#EAB308]" size={18} />
           {query && (
             <button 
               onClick={() => setQuery('')}
@@ -480,50 +565,56 @@ useEffect(() => {
         </div>
       </div>
 
-     <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1 pb-[500px] overscroll-contain">
+      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1 pb-[500px] overscroll-contain">
+        {predictions.length > 0 ? (
+          predictions.map((p) => (
+            <button 
+              key={p.place_id}
+              onClick={() => onSelect(p.description)}
+              className="w-full flex items-start gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors text-left group border-b border-slate-50 dark:border-slate-800 last:border-none"
+            >
+              <div className="bg-slate-100 p-2.5 rounded-xl text-slate-400">
+                <MapPin size={18} />
+              </div>
 
-      {false && (
-  <button
-    onClick={() => onSelect(query)}
-    className="w-full flex items-start gap-4 p-4 bg-[#FBC02D]/5 hover:bg-[#FBC02D]/10 rounded-2xl transition-colors text-left border-b border-slate-100 dark:border-slate-800"
-  >
-    <div className="bg-[#FBC02D]/10 p-2.5 rounded-xl text-[#CA8A04] dark:text-[#FBC02D]">
-      <MapPin size={18} />
-    </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[14px] font-semibold text-[#EAB308] dark:text-[#EAB308] leading-5">
+                  {p.structured_formatting?.main_text || p.description}
+                </div>
 
-    <div className="flex-1 min-w-0">
-      <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
-        {query}
-      </p>
-      <p className="text-[11px] text-slate-500 font-medium">
-        Use typed location
-      </p>
-    </div>
-  </button>
-)} 
-  
-{predictions.map((p) => (
-  <button
-    key={p.place_id}
-    onClick={() => onSelect(p.description)}
-    className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left border-b border-slate-100 dark:border-slate-800"
-  >
-    <MapPin
-      size={18}
-      className="text-slate-400 mt-1 flex-shrink-0"
-    />
-
-    <div className="flex-1 overflow-hidden">
-    <div className="text-[14px] font-semibold text-yellow-500 dark:text-yellow-400 leading-5">
-  {p.structured_formatting.main_text}
-</div>
-
-     <div className="text-[12px] text-slate-900 dark:text-white mt-1 leading-5 break-words font-medium">
-  {p.structured_formatting.secondary_text || p.description}
-</div>
-    </div>
-  </button>
-))}
+                <div className="text-[12px] text-slate-900 dark:text-white mt-1 leading-5 break-words font-medium">
+                  {p.structured_formatting?.secondary_text || p.description}
+                </div>
+              </div>
+            </button>
+          ))
+        ) : (
+          <div className="space-y-1 pt-2">
+            <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-2">
+              {query ? 'Matching Locations' : 'Popular Locations Coimbatore'}
+            </h3>
+            {(query ? POPULAR_LOCATIONS.filter(l => l.toLowerCase().includes(query.toLowerCase())) : POPULAR_LOCATIONS).map((loc) => (
+              <button
+                key={loc}
+                type="button"
+                onClick={() => onSelect(loc)}
+                className="w-full flex items-center gap-3.5 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all text-left border-b border-slate-100 dark:border-slate-800/40 last:border-none"
+              >
+                <div className="bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl text-emerald-500">
+                  <MapPin size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block truncate">
+                    {loc}
+                  </span>
+                  <span className="text-[9px] text-slate-400 dark:text-slate-500 block">
+                    Coimbatore, Tamil Nadu
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -531,6 +622,10 @@ useEffect(() => {
 
 export const BookingForm: React.FC = () => {
   const [step, setStep] = useState(1);
+  const stepRef = useRef(1);
+  useEffect(() => { stepRef.current = step; }, [step]);
+
+  const [mapNode, setMapNode] = useState<HTMLDivElement | null>(null);
   const pickupRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLInputElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -546,6 +641,18 @@ export const BookingForm: React.FC = () => {
   const [indiaToday, setIndiaToday] = useState('');
   const [mapError, setMapError] = useState<string | null>(null);
 
+  const getTomorrowDate = () => {
+    if (!indiaToday) return '';
+    const parts = indiaToday.split('-');
+    const dt = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    dt.setDate(dt.getDate() + 1);
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const d = String(dt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+  const tomorrowStr = getTomorrowDate();
+
   const [formData, setFormData] = useState<BookingDetails>({
     phone: '',
     pickup: '',
@@ -555,8 +662,8 @@ export const BookingForm: React.FC = () => {
     numberOfDays: '1',
     waitingHours: '0',
     vehicleType: VehicleType.MINI,
-    tripType: TripType.ONE_WAY,
-    localPackage: '8hr80km',
+    tripType: TripType.LOCAL,
+    localPackage: '',
     isHillStation: false,
     distance: '',
     rawDistance: 0,
@@ -568,21 +675,6 @@ export const BookingForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const sessionLeadId = useRef(`lead_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`);
   const isSubmittingRef = useRef(false);
-  const formDataRef = useRef(formData);
-  const stepRef = useRef(step);
-  const submittedRef = useRef(submitted);
-
-  useEffect(() => {
-    formDataRef.current = formData;
-  }, [formData]);
-
-  useEffect(() => {
-    stepRef.current = step;
-  }, [step]);
-
-  useEffect(() => {
-    submittedRef.current = submitted;
-  }, [submitted]);
 
   useEffect(() => {
     setFormData(prev => ({ ...prev, leadId: sessionLeadId.current }));
@@ -597,6 +689,7 @@ export const BookingForm: React.FC = () => {
       day: '2-digit'
     }).format(now);
     setIndiaToday(dateStr);
+    setFormData(prev => ({ ...prev, date: dateStr }));
 
     if ((window as any).google?.maps) {
       setGoogleLoaded(true);
@@ -646,7 +739,7 @@ style.innerHTML = `
 
   .pac-item .pac-item-query {
     font-weight: 900 !important;
-    color: #CA8A04 !important; /* custom highlight */
+    color: #EAB308 !important; /* custom highlight */
   }
 
   .pac-item .pac-item-subtitle {
@@ -692,54 +785,50 @@ style.innerHTML = `
   // Initialize Autocomplete (Always active for inputs)
   useEffect(() => {
     if (!googleLoaded) return;
-    if (pickupAutocomplete.current && dropAutocomplete.current) return;
 
     try {
-  const COIMBATORE_BOUNDS = new google.maps.LatLngBounds(
-    new google.maps.LatLng(10.60, 76.65),
-    new google.maps.LatLng(11.35, 77.10)
-  );
+      const COIMBATORE_BOUNDS = new google.maps.LatLngBounds(
+        new google.maps.LatLng(10.60, 76.65),
+        new google.maps.LatLng(11.35, 77.10)
+      );
 
-  const options = {
-    bounds: COIMBATORE_BOUNDS,
-    strictBounds: false,
-    componentRestrictions: { country: "in" },
+      const options = {
+        bounds: COIMBATORE_BOUNDS,
+        strictBounds: false,
+        componentRestrictions: { country: "in" },
+        locationBias: COIMBATORE_BOUNDS,
+        fields: ["formatted_address", "geometry"],
+      };
 
-    // 🔥 IMPORTANT: add this
-    locationBias: COIMBATORE_BOUNDS,
+      if (pickupRef.current && !(pickupRef.current as any).__autocompleteInitialized) {
+        (pickupRef.current as any).__autocompleteInitialized = true;
+        pickupAutocomplete.current = new google.maps.places.Autocomplete(pickupRef.current, options);
+        pickupAutocomplete.current.addListener('place_changed', () => {
+          const place = pickupAutocomplete.current.getPlace();
+          if (place.formatted_address) {
+            setFormData(prev => ({ ...prev, pickup: place.formatted_address }));
+          }
+        });
+      }
 
-    fields: ["formatted_address", "geometry"],
-  };
-
-    if (pickupRef.current && !pickupAutocomplete.current) {
-  pickupAutocomplete.current = new google.maps.places.Autocomplete(pickupRef.current, options);
-  pickupAutocomplete.current.addListener('place_changed', () => {
-    const place = pickupAutocomplete.current.getPlace();
-    if (place.formatted_address) {
-      setFormData(prev => ({ ...prev, pickup: place.formatted_address }));
-      // ✅ remove pickupRef.current.value = ...
-    }
-  });
-}
-
-if (dropRef.current && !dropAutocomplete.current) {
-  dropAutocomplete.current = new google.maps.places.Autocomplete(dropRef.current, options);
-  dropAutocomplete.current.addListener('place_changed', () => {
-    const place = dropAutocomplete.current.getPlace();
-    if (place.formatted_address) {
-      setFormData(prev => ({ ...prev, drop: place.formatted_address }));
-      // ✅ remove dropRef.current.value = ...
-    }
-  });
-}
+      if (dropRef.current && !(dropRef.current as any).__autocompleteInitialized) {
+        (dropRef.current as any).__autocompleteInitialized = true;
+        dropAutocomplete.current = new google.maps.places.Autocomplete(dropRef.current, options);
+        dropAutocomplete.current.addListener('place_changed', () => {
+          const place = dropAutocomplete.current.getPlace();
+          if (place.formatted_address) {
+            setFormData(prev => ({ ...prev, drop: place.formatted_address }));
+          }
+        });
+      }
     } catch (e) {
       console.error("Autocomplete Initialization Error:", e);
     }
-  }, [googleLoaded]);
+  }, [googleLoaded, step, formData.tripType]);
 
   // Initialize Map (Only when visible)
   useEffect(() => {
-    if (!googleLoaded || !mapRef.current) {
+    if (!googleLoaded || !mapNode) {
       // Reset instances if container is gone
       mapInstance.current = null;
       directionsRenderer.current = null;
@@ -748,7 +837,7 @@ if (dropRef.current && !dropAutocomplete.current) {
     if (mapInstance.current) return;
 
     try {
-      mapInstance.current = new google.maps.Map(mapRef.current, {
+      mapInstance.current = new google.maps.Map(mapNode, {
         center: { lat: 11.0168, lng: 76.9558 },
         zoom: 12,
         disableDefaultUI: true,
@@ -758,7 +847,7 @@ if (dropRef.current && !dropAutocomplete.current) {
       directionsService.current = new google.maps.DirectionsService();
       directionsRenderer.current = new google.maps.DirectionsRenderer({
         map: mapInstance.current,
-        polylineOptions: { strokeColor: "#FBC02D", strokeWeight: 6, strokeOpacity: 0.95 },
+        polylineOptions: { strokeColor: "#EAB308", strokeWeight: 6, strokeOpacity: 0.95 },
         suppressMarkers: false
       });
     } catch (e) {
@@ -769,7 +858,7 @@ if (dropRef.current && !dropAutocomplete.current) {
       mapInstance.current = null;
       directionsRenderer.current = null;
     };
-  }, [googleLoaded, !!(formData.pickup && (formData.tripType === TripType.LOCAL || formData.drop))]);
+  }, [googleLoaded, mapNode]);
 
   const pickupMarker = useRef<any>(null);
 
@@ -782,7 +871,7 @@ if (dropRef.current && !dropAutocomplete.current) {
       pickupMarker.current = null;
     }
 
-    if (formData.tripType === TripType.LOCAL || !destination) {
+    if (formData.tripType === TripTypeRental || !destination) {
       // For local or single point, just center and mark
       const geocoder = new google.maps.Geocoder();
       geocoder.geocode({ address: origin }, (results: any, status: string) => {
@@ -825,42 +914,53 @@ if (dropRef.current && !dropAutocomplete.current) {
   }, [googleLoaded, formData.tripType]);
 
   useEffect(() => {
-    if (step === 1 && mapInstance.current) {
-      // Small timeout to ensure DOM is updated and map container has dimensions
-      const timer = setTimeout(() => {
-        if ((window as any).google?.maps) {
-          google.maps.event.trigger(mapInstance.current, 'resize');
-          if (formData.pickup && (formData.tripType === TripType.LOCAL || formData.drop)) {
-            updateMapRoute(formData.pickup, formData.drop);
-          } else {
-            mapInstance.current.setCenter({ lat: 11.0168, lng: 76.9558 });
-            mapInstance.current.setZoom(12);
-            if (directionsRenderer.current) {
-              directionsRenderer.current.setDirections({ routes: [] });
-            }
-            if (pickupMarker.current) {
-              pickupMarker.current.setMap(null);
-              pickupMarker.current = null;
-            }
+    if (!googleLoaded) return;
+
+    // Clear any previous route error when input changes so the map remains clear and visible
+    setMapError(null);
+
+    const timer = setTimeout(() => {
+      if (step === 1 && mapInstance.current) {
+        // Handle map container size updates gracefully
+        google.maps.event.trigger(mapInstance.current, 'resize');
+
+        if (formData.pickup && (formData.tripType === TripTypeRental || formData.drop)) {
+          updateMapRoute(formData.pickup, formData.drop);
+        } else {
+          mapInstance.current.setCenter({ lat: 11.0168, lng: 76.9558 });
+          mapInstance.current.setZoom(12);
+          if (directionsRenderer.current) {
+            directionsRenderer.current.setDirections({ routes: [] });
+          }
+          if (pickupMarker.current) {
+            pickupMarker.current.setMap(null);
+            pickupMarker.current = null;
           }
         }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [step, formData.pickup, formData.drop, formData.tripType, updateMapRoute]);
+      }
+    }, 800); // 800ms debounce to prevent constant routing updates while typing
 
-  useEffect(() => {
-    if (formData.pickup && (formData.tripType === TripType.LOCAL || formData.drop)) {
-      updateMapRoute(formData.pickup, formData.drop);
-    }
-  }, [formData.pickup, formData.drop, formData.tripType, updateMapRoute]);
+    return () => clearTimeout(timer);
+  }, [step, formData.pickup, formData.drop, formData.tripType, googleLoaded, updateMapRoute]);
 
   const calculateFare = useCallback(async (origin: string, destination: string, vehicle: VehicleType, tripType: TripType) => {
     const isHill = false;
     
-    if (tripType === TripType.LOCAL) {
-      const pkg = LOCAL_PACKAGES.find(p => p.id === formData.localPackage) || LOCAL_PACKAGES[0];
-      const fareInfo = calculateFareDetails(0, vehicle, TripType.LOCAL, formData.localPackage, 1, 0, isHill);
+    if (tripType === TripTypeRental) {
+      if (!formData.localPackage) {
+        setFormData(prev => ({
+          ...prev,
+          isHillStation: isHill,
+          distance: '',
+          rawDistance: 0,
+          estimatedFare: '',
+          fareBreakdown: undefined
+        }));
+        return;
+      }
+      const pkg = LOCAL_PACKAGES.find(p => p.id === formData.localPackage);
+      if (!pkg) return;
+      const fareInfo = calculateFareDetails(0, vehicle, TripTypeRental, formData.localPackage, 1, 0, isHill);
       
       // Format distance as "1Hr/10kms"
       const pkgDisplay = pkg.label.replace(/\s/g, '').replace('/', '/').replace('Km', 'kms');
@@ -894,14 +994,14 @@ if (dropRef.current && !dropAutocomplete.current) {
         if (status === 'OK' && response?.rows[0]?.elements[0]?.status === 'OK') {
           const distanceText = response.rows[0].elements[0].distance.text;
           const distanceValue = response.rows[0].elements[0].distance.value / 1000;
-          const dayCount = 1;
-          const waitHrs = 0;
+          const dayCount = parseInt(formData.numberOfDays || '1', 10) || 1;
+          const waitHrs = parseInt(formData.waitingHours || '0', 10) || 0;
           const fareInfo = calculateFareDetails(distanceValue, vehicle, tripType, undefined, dayCount, waitHrs, isHill);
 
           setFormData(prev => ({
             ...prev,
             isHillStation: isHill,
-            distance: distanceText,
+            distance: tripType === TripType.ROUND_TRIP ? `${(distanceValue * 2).toFixed(1)} km` : distanceText,
             rawDistance: distanceValue,
             estimatedFare: fareInfo.displayTotal,
             fareBreakdown: { ...fareInfo.breakdown, total: fareInfo.total }
@@ -913,7 +1013,7 @@ if (dropRef.current && !dropAutocomplete.current) {
 
   useEffect(() => {
     const runCalculation = async () => {
-      if (formData.tripType === TripType.LOCAL) {
+      if (formData.tripType === TripTypeRental) {
         await calculateFare('', '', formData.vehicleType, formData.tripType);
       } else if (formData.pickup && formData.drop) {
         await calculateFare(formData.pickup, formData.drop, formData.vehicleType, formData.tripType);
@@ -931,15 +1031,14 @@ if (dropRef.current && !dropAutocomplete.current) {
   const handleNextStep = async () => {
     const p = pickupRef.current?.value || formData.pickup;
     const d = dropRef.current?.value || formData.drop;
-    const phone = formData.phone.trim();
-    const phoneRegex = /^[6-9]\d{9}$/;
 
-    if (!p || !d) {
-      alert("Please enter pickup and destination.");
+    const isRental = formData.tripType === TripTypeRental;
+    if (isRental && !formData.localPackage) {
+      alert("Please select a local package.");
       return;
     }
-    if (!phoneRegex.test(phone)) {
-      alert("Please enter a valid 10-digit Indian phone number.");
+    if (!p || (!d && !isRental)) {
+      alert(isRental ? "Please enter pickup location." : "Please enter pickup and destination.");
       return;
     }
 
@@ -951,8 +1050,14 @@ if (dropRef.current && !dropAutocomplete.current) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const formDataRef = useRef(formData);
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
   // Abandoned Lead Capture Logic
   const leadSentRef = useRef(false);
+  const submittedRef = useRef(false);
 
   const handleAbandonment = useCallback(async () => {
     const currentFormData = formDataRef.current;
@@ -1037,6 +1142,7 @@ if (dropRef.current && !dropAutocomplete.current) {
       }
       
       if (success) {
+        submittedRef.current = true;
         setSubmitted(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
@@ -1053,9 +1159,10 @@ if (dropRef.current && !dropAutocomplete.current) {
       setLoading(false);
     }
   };
-
   const handleWhatsAppConfirm = () => {
-  const tripDetails = `*Destination:* ${formData.drop}`;
+  const tripDetails = formData.tripType === TripTypeRental 
+    ? `*Package:* ${LOCAL_PACKAGES.find(p => p.id === formData.localPackage)?.label}`
+    : `*Drop:* ${formData.drop}${formData.tripType === TripType.ROUND_TRIP ? `%0A*Days:* ${formData.numberOfDays}` : ''}`;
   
   const dateTimeStr = (formData.date || formData.time) 
     ? `*Date/Time:* ${formData.date || 'Not specified'} at ${formData.time || 'Not specified'}`
@@ -1063,8 +1170,8 @@ if (dropRef.current && !dropAutocomplete.current) {
 
   const hillStr = formData.isHillStation ? '%0A*Hill Station Charge:* Applied (₹300)' : '';
 
-  const message = `*NEW BOOKING CONFIRMATION*%0A*Phone:* ${formData.phone}%0A*Pickup:* ${formData.pickup}%0A${tripDetails}%0A${dateTimeStr}${hillStr}%0A*Vehicle:* ${formData.vehicleType}%0A*Fare:* ${formData.estimatedFare}`;
-  window.open(`https://wa.me/919488834020?text=${message}`, '_blank');
+  const message = `*NEW BOOKING CONFIRMATION*%0A*Trip Type:* ${formData.tripType}%0A*Phone:* ${formData.phone}%0A*Pickup:* ${formData.pickup}%0A${tripDetails}%0A${dateTimeStr}${hillStr}%0A*Vehicle:* ${formData.vehicleType}%0A*Fare:* ${formData.estimatedFare}`;
+  window.open(`https://wa.me/918870088020?text=${message}`, '_blank');
 };
 
 if (submitted) {
@@ -1088,13 +1195,14 @@ if (submitted) {
 <button 
   type="button"   // important to prevent accidental form submission
   onClick={() => {
+    const verifiedPhone = formData.phone;
     setSubmitted(false);      // go back to the form
     setStep(1);               // start from step 1
     setFormData({             // reset all fields
-      phone: '',
+      phone: verifiedPhone,
       pickup: '',
       drop: '',
-      date: '',
+      date: indiaToday,
       time: '',
       numberOfDays: '1',
       waitingHours: '0',
@@ -1136,175 +1244,402 @@ if (submitted) {
 
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-5 pb-10 sm:pb-5 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-sm mx-auto transition-all duration-500">
+    <div className="bg-white dark:bg-slate-900 p-4 pb-6 sm:p-5 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-sm mx-auto transition-all duration-500">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-          {step === 1 ? 'Book Your Trip' : step === 2 ? 'Select Vehicle' : 'Trip Summary'}
+        <h3 className="text-md font-black text-slate-900 dark:text-white uppercase tracking-tight">
+          {step === 1 ? 'Enter Locations' : step === 2 ? 'Enter Mobile' : step === 3 ? 'Select Vehicle' : 'Trip Summary'}
         </h3>
-        <div className="flex gap-2">
-          <div className={`h-1 w-6 rounded-full transition-all ${step === 1 ? 'bg-[#FBC02D]' : 'bg-slate-200 dark:bg-slate-700'}`} />
-          <div className={`h-1 w-6 rounded-full transition-all ${step === 2 ? 'bg-[#FBC02D]' : 'bg-slate-200 dark:bg-slate-700'}`} />
-          <div className={`h-1 w-6 rounded-full transition-all ${step === 3 ? 'bg-[#FBC02D]' : 'bg-slate-200 dark:bg-slate-700'}`} />
+        <div className="flex gap-1.5">
+          <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+          <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+          <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+          <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-3.5">
-        {/* Step 1 */}
-        <div className={`${step === 1 ? 'space-y-3.5' : 'hidden'} animate-fade-in`}>
-          {/* Map - Only Visible in Step 1 when both locations are entered */}
-          {formData.pickup && formData.drop && (
-            <div className="relative h-48 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-inner animate-in fade-in zoom-in duration-500">
-              <div ref={mapRef} className="w-full h-full" />
-              {mapError && (
-                <div className="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center p-4 text-center">
-                  <AlertTriangle size={20} className="text-[#CA8A04] dark:text-[#FBC02D] mb-1" />
-                  <p className="text-[9px] text-white font-bold uppercase">{mapError}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 gap-3">
-            <InputWrapper icon={MapPin} label="Pickup Location">
-              <div className="relative w-full">
-                <input
-                  ref={pickupRef}
-                  type="text"
-                  readOnly={window.innerWidth < 640}
-                  onFocus={() => {
-                    if (window.innerWidth < 640) setMobileSearchType('pickup');
-                  }}
-                  required
-                  placeholder="Enter Pickup Location"
-                  defaultValue={formData.pickup}
-                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-[#FBC02D] rounded-xl text-xs font-bold outline-none dark:text-white"
-                />
-
-                {formData.pickup && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (pickupRef.current) pickupRef.current.value = '';
-                      setFormData(prev => ({ ...prev, pickup: '' }));
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#FBC02D]"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </InputWrapper>
-
-            <InputWrapper icon={MapPin} label="Destination">
-              <div className="relative w-full">
-                <input
-                  ref={dropRef}
-                  type="text"
-                  readOnly={window.innerWidth < 640}
-                  onFocus={() => {
-                    if (window.innerWidth < 640) setMobileSearchType('drop');
-                  }}
-                  required
-                  placeholder="Enter Destination"
-                  defaultValue={formData.drop}
-                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 focus:border-[#FBC02D] rounded-xl text-xs font-bold outline-none dark:text-white"
-                />
-
-                {formData.drop && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (dropRef.current) dropRef.current.value = '';
-                      setFormData(prev => ({ ...prev, drop: '' }));
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#FBC02D]"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </InputWrapper>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-  
-  {/* Date */}
-  <div className="col-span-1">
-    <InputWrapper icon={Calendar} label="Date">
-      <input
-        type="date"
-        name="date"
-        min={indiaToday}
-        value={formData.date}
-        onChange={handleChange}
-        className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-[10px] font-bold outline-none dark:text-white"
-      />
-    </InputWrapper>
-  </div>
-
-  {/* Time */}
-  <div className="col-span-1">
-    <InputWrapper icon={Clock} label="Time">
-      <input
-        type="time"
-        name="time"
-        value={formData.time}
-        onChange={handleChange}
-        className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-transparent dark:border-slate-800 rounded-xl text-[10px] font-bold outline-none dark:text-white"
-      />
-    </InputWrapper>
-  </div>
-
-  {/* No. of Days / Waiting Charge row - Removed as Round Trip is removed */}
-</div>
-
-<div className="grid grid-cols-1 gap-3">
-  <InputWrapper icon={Phone} label="Phone Number">
-    <input
-      type="tel"
-      name="phone"
-      required
-      placeholder="10-digit number"
-      value={formData.phone}
-      onChange={(e) => {
-        const cleaned = e.target.value.replace(/\D/g, "");
-        setFormData(prev => ({ ...prev, phone: cleaned.slice(0, 10) }));
-      }}
-      className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-[#FBC02D] rounded-xl text-xs font-black outline-none dark:text-white
-                 ring-2 ring-[#FBC02D] ring-opacity-40 transition-all duration-200"
-      maxLength={10}
-    />
-            </InputWrapper>
-          </div>
-
-      <button 
-            type="button" 
-            onClick={handleNextStep} 
-            className="w-full bg-[#FBC02D] hover:bg-[#F5B041] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FBC02D]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
-          >
-            Continue <ArrowRight size={18} />
-          </button>
-        </div>
-
-        {/* Step 2 */}
-        <div className={`${step === 2 ? 'space-y-3.5' : 'hidden'} animate-fade-in`}>
-          <div className="flex justify-between items-center px-1">
+        {/* Step 2: Phone Number Verification / App Access */}
+        {step === 2 && (
+          <div className="space-y-4 py-3 animate-fade-in flex flex-col items-stretch">
             <button 
               type="button"
               onClick={() => {
                 setStep(1);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex items-center gap-1.5 text-[#CA8A04] dark:text-[#FBC02D] hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 -ml-1 rounded-lg transition-all"
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-1.5 self-start mb-2"
+            >
+              <ArrowLeft size={14} className="stroke-[3px]" />
+              <span>Change Locations</span>
+            </button>
+
+            <div className="w-full bg-[#EAB308]/5 dark:bg-[#EAB308]/10 border-2 border-[#EAB308] focus-within:ring-4 focus-within:ring-[#EAB308]/20 rounded-xl p-2.5 px-3.5 flex items-center gap-3 transition-all shadow-md shadow-[#EAB308]/5 relative overflow-hidden text-left mt-2">
+              <span className="text-xs font-black text-[#EAB308] select-none border-r border-[#EAB308]/20 pr-2">
+                +91
+              </span>
+              <div className="flex-1 min-w-0">
+                <span className="block text-[8px] font-black text-[#EAB308] uppercase tracking-widest mb-0.5">Mobile Number</span>
+                <input
+                  type="tel"
+                  placeholder="10-digit number"
+                  value={formData.phone}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/\D/g, "");
+                    setFormData(prev => ({ ...prev, phone: cleaned.slice(0, 10) }));
+                  }}
+                  className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-black outline-none text-slate-900 dark:text-white placeholder-[#EAB308]/40"
+                  maxLength={10}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const phone = formData.phone.trim();
+                const phoneRegex = /^[6-9]\d{9}$/;
+                if (!phoneRegex.test(phone)) {
+                  alert("Please enter a valid 10-digit Indian mobile number.");
+                  return;
+                }
+                setStep(3);
+              }}
+              className="w-full bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-[10px] active:scale-95 transition-all flex items-center justify-center gap-2 mt-2"
+            >
+              Continue to Vehicle Selection <ArrowRight size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* Step 1 */}
+        <div className={`${step === 1 ? 'space-y-3.5' : 'hidden'} animate-fade-in`}>
+          {/* Trip Type Category Selector */}
+          <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl gap-1 relative overflow-hidden border border-slate-200/10 dark:border-slate-700/20">
+            {[
+              { id: 'local', label: 'Local' },
+              { id: 'outstation', label: 'Outstation' },
+              { id: 'rental', label: 'Rental' }
+            ].map((cat) => {
+              const isActive = 
+                (cat.id === 'local' && formData.tripType === TripType.LOCAL) ||
+                (cat.id === 'outstation' && (formData.tripType === TripType.ONE_WAY || formData.tripType === TripType.ROUND_TRIP)) ||
+                (cat.id === 'rental' && formData.tripType === TripTypeRental);
+              
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    let newTripType = TripType.LOCAL;
+                    if (cat.id === 'outstation') {
+                      newTripType = TripType.ONE_WAY; // Default to One Way
+                    } else if (cat.id === 'rental') {
+                      newTripType = TripTypeRental;
+                    }
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      tripType: newTripType, 
+                      estimatedFare: '', 
+                      distance: '',
+                      localPackage: ''
+                    }));
+                  }}
+                  className={`
+                    relative flex-1 flex items-center justify-center py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors duration-200 z-10
+                    ${isActive 
+                      ? 'text-slate-950' 
+                      : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}
+                  `}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeCategoryType"
+                      className="absolute inset-0 bg-[#FACC15] rounded-xl shadow-md"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10">{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active Booking Session Badge */}
+          {formData.phone && (
+            <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-2.5 px-3 flex items-center justify-between transition-all shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">
+                  Active Session:
+                </span>
+                <span className="text-xs font-black text-slate-700 dark:text-slate-300">
+                  +91 {formData.phone}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="text-[8px] font-black text-[#EAB308] uppercase tracking-widest hover:underline"
+              >
+                Change
+              </button>
+            </div>
+          )}
+
+          {/* Outstation Type Sub-selector (One Way vs Round Trip Toggle Switch) */}
+          {(formData.tripType === TripType.ONE_WAY || formData.tripType === TripType.ROUND_TRIP) && (
+            <div className="relative flex bg-slate-100 dark:bg-slate-950/60 p-1.5 rounded-xl border border-slate-200/40 dark:border-slate-800/80 gap-1 select-none">
+              {[
+                { id: TripType.ONE_WAY, label: 'One Way (Drop)' },
+                { id: TripType.ROUND_TRIP, label: 'Round Trip' }
+              ].map((subType) => {
+                const isSelected = formData.tripType === subType.id;
+                return (
+                  <button
+                    key={subType.id}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, tripType: subType.id, estimatedFare: '', distance: '' }))}
+                    className={`
+                      relative flex-1 flex items-center justify-center py-2 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition-colors duration-200 z-10
+                      ${isSelected 
+                        ? 'text-slate-800 dark:text-white font-black' 
+                        : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}
+                    `}
+                  >
+                    {isSelected && (
+                      <motion.div
+                        layoutId="activeOutstationSubtype"
+                        className="absolute inset-0 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200/20 dark:border-slate-700/20"
+                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10">{subType.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Map - Only Visible in Step 1 when both locations are entered */}
+          {formData.pickup && (formData.tripType === TripTypeRental || formData.drop) && (
+            <div className="relative h-32 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-inner animate-in fade-in zoom-in duration-500">
+              <div ref={setMapNode} className="w-full h-full" />
+              {mapError && (
+                <div className="absolute bottom-2 left-2 right-2 bg-rose-50/95 dark:bg-rose-950/95 border border-rose-200 dark:border-rose-900/50 p-1.5 px-2.5 rounded-xl flex items-center gap-2 shadow-md animate-in fade-in slide-in-from-bottom-1 z-10">
+                  <AlertTriangle size={12} className="text-[#FF6467] shrink-0" />
+                  <span className="text-[9px] text-rose-800 dark:text-rose-200 font-bold uppercase tracking-wider">{mapError}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Unified App-Style Route Selector Card */}
+          <div className="relative bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-850 rounded-2xl p-3 flex gap-3 shadow-sm">
+            {/* Visual native-app line connector */}
+            <div className="flex flex-col items-center justify-center py-1.5">
+              {/* Pickup Dot */}
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/10 flex-shrink-0" />
+              
+              {formData.tripType !== TripTypeRental && (
+                <>
+                  {/* Connecting line */}
+                  <div className="w-0.5 bg-slate-200 dark:bg-slate-800 flex-1 my-1.5 min-h-[14px] border-l border-dashed border-slate-300 dark:border-slate-700" />
+                  
+                  {/* Drop Dot */}
+                  <div className="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-rose-500/10 flex-shrink-0" />
+                </>
+              )}
+            </div>
+
+            {/* Input fields */}
+            <div className="flex-1 space-y-2">
+              {/* Pickup input */}
+              <div className="relative">
+                <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">Pickup Location</span>
+                <input
+                  ref={pickupRef}
+                  type="text"
+                  readOnly={window.innerWidth < 640}
+                  onClick={() => {
+                    if (window.innerWidth < 640) setMobileSearchType('pickup');
+                  }}
+                  onFocus={() => {
+                    if (window.innerWidth < 640) setMobileSearchType('pickup');
+                  }}
+                  required
+                  placeholder="Enter Pickup Location"
+                  value={formData.pickup}
+                  onChange={(e) => setFormData(prev => ({ ...prev, pickup: e.target.value }))}
+                  className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-bold outline-none dark:text-white placeholder-slate-400 pr-8"
+                />
+                {formData.pickup && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, pickup: '' }));
+                    }}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-[#EAB308] rounded-full flex items-center justify-center transition-all shadow-sm border border-slate-200 dark:border-slate-700"
+                    title="Clear pickup"
+                  >
+                    <X size={12} className="stroke-[3px]" />
+                  </button>
+                )}
+              </div>
+
+              {formData.tripType !== TripTypeRental && (
+                <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/80 relative">
+                  <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">Destination</span>
+                  <input
+                    ref={dropRef}
+                    type="text"
+                    readOnly={window.innerWidth < 640}
+                    onClick={() => {
+                      if (window.innerWidth < 640) setMobileSearchType('drop');
+                    }}
+                    onFocus={() => {
+                      if (window.innerWidth < 640) setMobileSearchType('drop');
+                    }}
+                    required={formData.tripType !== TripTypeRental}
+                    placeholder="Enter Destination"
+                    value={formData.drop}
+                    onChange={(e) => setFormData(prev => ({ ...prev, drop: e.target.value }))}
+                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-bold outline-none dark:text-white placeholder-slate-400 pr-8"
+                  />
+                  {formData.drop && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, drop: '' }));
+                      }}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-[#EAB308] rounded-full flex items-center justify-center transition-all shadow-sm border border-slate-200 dark:border-slate-700"
+                      title="Clear destination"
+                    >
+                      <X size={12} className="stroke-[3px]" />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Local Package Select */}
+          {formData.tripType === TripTypeRental && (
+            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-xl p-2 px-3 flex items-center gap-3 shadow-sm">
+              <Package size={14} className="text-[#EAB308]" />
+              <div className="flex-1">
+                <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">Local Package</span>
+                <select
+                  name="localPackage"
+                  value={formData.localPackage}
+                  onChange={handleChange}
+                  className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-bold outline-none dark:text-white appearance-none cursor-pointer"
+                >
+                  <option value="">Select Package</option>
+                  {LOCAL_PACKAGES.map(pkg => (
+                    <option key={pkg.id} value={pkg.id}>{pkg.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Compact Date & Time / Duration Grid */}
+          <style>{`
+            input[type="date"]::-webkit-calendar-picker-indicator,
+            input[type="time"]::-webkit-calendar-picker-indicator {
+              background: transparent;
+              display: none !important;
+              -webkit-appearance: none;
+            }
+          `}</style>
+          <div className={`grid gap-1.5 sm:gap-2.5 ${formData.tripType === TripType.ROUND_TRIP ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {/* Date Picker */}
+            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 focus-within:border-[#EAB308] focus-within:ring-2 focus-within:ring-[#EAB308]/10 rounded-xl p-1.5 px-2.5 sm:p-2 sm:px-3 flex items-center gap-1 sm:gap-2 transition-all shadow-sm min-w-0">
+              <Calendar size={13} className="text-[#EAB308] flex-shrink-0 hidden xs:block" />
+              <div className="flex-1 min-w-0">
+                <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Date</span>
+                <input
+                  type="date"
+                  name="date"
+                  min={indiaToday}
+                  value={formData.date}
+                  onChange={handleChange}
+                  className="w-full bg-transparent border-none p-0 focus:ring-0 text-[11px] sm:text-xs font-bold outline-none dark:text-white cursor-pointer min-w-0"
+                />
+              </div>
+            </div>
+
+            {/* Time Picker */}
+            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 focus-within:border-[#EAB308] focus-within:ring-2 focus-within:ring-[#EAB308]/10 rounded-xl p-1.5 px-2.5 sm:p-2 sm:px-3 flex items-center gap-1 sm:gap-2 transition-all shadow-sm min-w-0">
+              <Clock size={13} className="text-[#EAB308] flex-shrink-0 hidden xs:block" />
+              <div className="flex-1 min-w-0">
+                <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Time</span>
+                <input
+                  type="time"
+                  name="time"
+                  value={formData.time}
+                  onChange={handleChange}
+                  className="w-full bg-transparent border-none p-0 focus:ring-0 text-[11px] sm:text-xs font-bold outline-none dark:text-white cursor-pointer min-w-0"
+                />
+              </div>
+            </div>
+
+            {/* Duration (Round Trip only) */}
+            {formData.tripType === TripType.ROUND_TRIP && (
+              <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 focus-within:border-[#EAB308] focus-within:ring-2 focus-within:ring-[#EAB308]/10 rounded-xl p-1.5 px-2.5 sm:p-2 sm:px-3 flex items-center gap-1 sm:gap-2 transition-all shadow-sm min-w-0">
+                <Clock size={13} className="text-[#EAB308] flex-shrink-0 hidden xs:block" />
+                <div className="flex-1 min-w-0">
+                  <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Duration</span>
+                  <select
+                    name="numberOfDays"
+                    value={formData.numberOfDays}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-[11px] sm:text-xs font-bold outline-none dark:text-white appearance-none cursor-pointer min-w-0"
+                  >
+                    {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].map(n => (
+                      <option key={n} value={n.toString()}>
+                        {n === 1 ? 'Same Day' : `${n} Days`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button 
+            type="button" 
+            id="btn-next-step"
+            onClick={handleNextStep} 
+            className="w-full bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            Continue <ArrowRight size={18} />
+          </button>
+        </div>
+
+        {/* Step 3 */}
+        <div className={`${step === 3 ? 'space-y-3.5' : 'hidden'} animate-fade-in`}>
+          <div className="flex justify-between items-center px-1">
+            <button 
+              type="button"
+              onClick={() => {
+                setStep(2);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex items-center gap-1.5 text-[#EAB308] hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 -ml-1 rounded-lg transition-all"
             >
               <ArrowLeft size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
             </button>
-            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Choose Vehicle (Scroll Down)</span>
+            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Select Vehicle</span>
           </div>
 
           <div className="relative group">
-            <div className="space-y-1.5 max-h-[400px] sm:max-h-[280px] overflow-y-auto pr-1 app-scroll">
+            <div className="space-y-1.5 max-h-[350px] overflow-y-auto pr-1 app-scroll">
             {VEHICLE_CONFIG.map((v) => {
               return (
                 <button
@@ -1325,51 +1660,44 @@ if (submitted) {
                     }));
                   }}
                   className={`
-                    w-full flex items-center gap-3 p-2.5 rounded-2xl border-2 transition-all text-left
+                    w-full flex items-center gap-0 p-6 rounded-2xl border-2 transition-all text-left
                     ${formData.vehicleType === v.type 
-                      ? 'border-[#FBC02D] bg-[#FBC02D]/5 dark:bg-[#FBC02D]/10' 
+                      ? 'border-[#EAB308] bg-[#EAB308]/5 dark:bg-[#EAB308]/10' 
                       : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-950'}
                   `}
                 >
-      {/* Vehicle Image */}
+                  {/* Vehicle Image */}
                   {v.image ? (
                     <img
                       src={v.image}
                       alt={v.label}
-                      className="w-24 h-24 object-contain rounded-lg"
+                      className="w-30 h-14 object-contain rounded-lg shrink-0"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-24 h-24 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg">
-                      <Car size={32} className="text-slate-400" />
+                    <div className="w-30 h-14 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg shrink-0">
+                      <Car size={24} className="text-slate-400" />
                     </div>
                   )}
 
-  {/* Vehicle Info */}
-  <div className="flex-1 flex flex-col justify-between">
-    {/* Top row: Label */}
-    <div className="flex items-center justify-between">
-      <span className="text-sm font-bold text-slate-900 dark:text-white uppercase">
-        {v.label}
-      </span>
-    </div>
-
-    {/* Bottom row: Capacity & Description */}
-    <div className="flex items-center gap-3 mt-1">
-      <span className="text-xs text-slate-400 flex items-center gap-1">
-        <User size={10} /> {v.capacity}
-      </span>
-      <span className="text-xs text-slate-400 font-medium truncate">
-        • {v.description}
-      </span>
-    </div>
-  </div>
-</button>
+                  {/* Vehicle Info */}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white uppercase block truncate">
+                      {v.label}
+                    </span>
+                    <div className="flex items-center gap-2 mt-0.5 text-[10px]">
+                      <span className="text-slate-400 dark:text-slate-500 flex items-center gap-0.5 shrink-0">
+                        <User size={10} /> {v.capacity} 
+                      </span>
+                      <span className="text-slate-400 dark:text-slate-500 font-semibold truncate">
+                        • {v.description}
+                      </span>
+                    </div>
+                  </div>
+                </button>
               );
             })}
             </div>
-            {/* Bottom fade to indicate more content */}
-            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white dark:from-slate-900 to-transparent pointer-events-none opacity-60 rounded-b-2xl" />
           </div>
 
 
@@ -1378,7 +1706,7 @@ if (submitted) {
           
             <button
               type="button"
-              onClick={() => setStep(1)}
+              onClick={() => setStep(2)}
               className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl border border-slate-100 dark:border-slate-700 active:scale-95 transition-all"
             >
               <ArrowLeft size={20} />
@@ -1386,13 +1714,13 @@ if (submitted) {
         <button
   type="button"
   disabled={loading}
-  className="flex-1 bg-[#FBC02D] hover:bg-[#F5B041] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FBC02D]/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
+  className="flex-1 bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
   onClick={() => {
     if (!formData.vehicleType) {
       alert("Please select a vehicle.");
       return;
     }
-    setStep(3);
+    setStep(4);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }}
 >
@@ -1401,125 +1729,100 @@ if (submitted) {
           </div>
         </div>
 
-        {/* Step 3: Summary */}
-        <div className={`${step === 3 ? 'space-y-4' : 'hidden'} animate-fade-in`}>
-          <div className="flex justify-between items-center px-1">
-            <button 
-              type="button"
-              onClick={() => {
-                setStep(2);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="flex items-center gap-1.5 text-[#CA8A04] dark:text-[#FBC02D] hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 -ml-1 rounded-lg transition-all"
-            >
-              <ArrowLeft size={16} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
-            </button>
-            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Trip Summary</span>
-          </div>
-          <div className="bg-slate-50 dark:bg-slate-950 rounded-[2rem] p-5 border border-slate-100 dark:border-slate-800 space-y-4 shadow-sm">
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <div className="w-10 h-10 flex flex-col items-center gap-1.5 py-1">
-                  <div className="w-2 h-2 rounded-full border-2 border-[#FBC02D]" />
-                  <div className="w-0.5 flex-1 bg-slate-200 dark:bg-slate-700" />
-                  <div className="w-2 h-2 rounded-full bg-[#FBC02D]" />
+        {/* Step 4: Summary */}
+      <div className={`${step === 4 ? 'space-y-4' : 'hidden'} animate-fade-in`}>
+        <div className="bg-slate-50 dark:bg-slate-950 rounded-[2rem] p-5 border border-slate-100 dark:border-slate-800 space-y-4 shadow-sm">
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <div className="w-10 h-10 flex flex-col items-center gap-1.5 py-1">
+                <div className="w-2 h-2 rounded-full border-2 border-[#EAB308]" />
+                <div className="w-0.5 flex-1 bg-slate-200 dark:bg-slate-700" />
+                <div className="w-2 h-2 rounded-full bg-[#EAB308]" />
+              </div>
+              <div className="flex-1 space-y-4 pt-0.5">
+                <div>
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Pickup</span>
+                  <p className="text-[10px] font-bold text-slate-900 dark:text-white leading-tight">{formData.pickup}</p>
                 </div>
-                <div className="flex-1 space-y-4 pt-0.5">
-                  <div>
-                    <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Pickup</span>
-                    <p className="text-[10px] font-bold text-slate-900 dark:text-white leading-tight">{formData.pickup}</p>
-                  </div>
-                  <div>
-                    <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Destination</span>
-                    <p className="text-[10px] font-bold text-slate-900 dark:text-white leading-tight">{formData.drop}</p>
-                  </div>
+                <div>
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Destination</span>
+                  <p className="text-[10px] font-bold text-slate-900 dark:text-white leading-tight">
+                    {formData.tripType === TripTypeRental
+                      ? LOCAL_PACKAGES.find(p => p.id === formData.localPackage)?.label
+                      : formData.drop}
+                  </p>
                 </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <div>
-                <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Departure</span>
-                <div className="flex items-center gap-1.5">
-                  <Calendar size={12} className="text-[#CA8A04] dark:text-[#FBC02D]" />
-                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.date}</p>
-                </div>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <Clock size={12} className="text-[#CA8A04] dark:text-[#FBC02D]" />
-                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.time}</p>
-                </div>
-              </div>
-              <div>
-                <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Vehicle</span>
-                <div className="flex items-center gap-1.5">
-                  <Car size={12} className="text-[#CA8A04] dark:text-[#FBC02D]" />
-                  <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase truncate">{formData.vehicleType}</p>
-                </div>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <Phone size={12} className="text-[#CA8A04] dark:text-[#FBC02D]" />
-                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.phone}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-end">
-              <div>
-                <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Estimated Distance</span>
-                <span className="text-xs font-black text-[#CA8A04] dark:text-[#FBC02D]">{formData.distance}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Total Fare</span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white">{formData.estimatedFare}</span>
-              </div>
-            </div>
-
-      {formData.fareBreakdown && formData.estimatedFare !== 'Call for Quote' && (
-  <div className="bg-slate-100/50 dark:bg-slate-900/50 p-4 rounded-2xl space-y-2 border border-slate-200/50 dark:border-slate-800/50">
-    <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">
-      Fare Breakdown
-    </span>
-
-    <div className="flex justify-between items-center text-[10px]">
-      <span className="font-bold text-slate-500 dark:text-slate-400 uppercase">
-        Trip Fare
-      </span>
-
-      <span className="font-black text-slate-900 dark:text-white">
-        {formData.estimatedFare}
-      </span>
-    </div>
-
-    <div className="pt-2 border-t border-slate-200 dark:border-slate-800 mt-1">
-      <p className="text-[8px] font-bold text-slate-400">
-        Excluded: Toll, Inter-State taxes & Parking (if applicable)
-      </p>
-    </div>
-              </div>
-            )}
           </div>
 
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl border border-slate-100 dark:border-slate-700 active:scale-95 transition-all"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-[#FBC02D] hover:bg-[#F5B041] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FBC02D]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? 'Booking...' : (
-                <>
-                  Confirm & Book Now <CheckCircle2 size={18} />
-                </>
-              )}
-            </button>
+          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div>
+              <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Departure</span>
+              <div className="flex items-center gap-1.5">
+                <Calendar size={12} className="text-[#EAB308]" />
+                <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.date}</p>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Clock size={12} className="text-[#EAB308]" />
+                <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.time}</p>
+              </div>
+            </div>
+            <div>
+              <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Vehicle</span>
+              <div className="flex items-center gap-1.5">
+                <Car size={12} className="text-[#EAB308]" />
+                <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase truncate">{formData.vehicleType}</p>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Phone size={12} className="text-[#EAB308]" />
+                <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.phone}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-end">
+            <div>
+              <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Estimated Distance</span>
+              <span className="text-xs font-black text-[#EAB308]">{formData.distance}</span>
+            </div>
+            <div className="text-right">
+              <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Total Fare</span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white">{formData.estimatedFare}</span>
+            </div>
+          </div>
+
+          <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 text-center">
+            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              * Tolls, state permit & parking extra
+            </p>
           </div>
         </div>
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setStep(3);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl border border-slate-100 dark:border-slate-700 active:scale-95 transition-all"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            {loading ? 'Booking...' : (
+              <>
+                Confirm & Book Now <CheckCircle2 size={18} />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
       </form>
       
       {mobileSearchType && (
