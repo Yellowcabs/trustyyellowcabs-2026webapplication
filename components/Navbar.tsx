@@ -28,15 +28,22 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           
-          <Link to="/" className="flex items-center group gap-0.5">
-             <span className="text-xl font-extrabold tracking-tighter text-slate-900 dark:text-white transition-colors">
-               Trusty
-             </span>
-             <span className="text-xl font-extrabold tracking-tighter text-brand-yellow transition-colors">
-               YellowCabs
-             </span>
-          </Link>
+<Link to="/" className="flex items-center gap-2">
+  <img
+    src="/images/taxi-icon-512.png"
+    alt="TrustyYellowCabs"
+    className="h-12 w-auto"
+  />
 
+  <span className="text-lg font-extrabold tracking-tight whitespace-nowrap">
+    <span className="text-slate-900 dark:text-white">
+      Trusty
+    </span>
+    <span className="text-brand-yellow">
+      YellowCabs
+    </span>
+  </span>
+</Link>
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             {links.map((link) => (
