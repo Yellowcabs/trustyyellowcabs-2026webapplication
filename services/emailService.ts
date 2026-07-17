@@ -38,7 +38,7 @@ ${details.tripType === "Local" ? ` *Package:* ${details.localPackage || "N/A"}` 
 *Date:* ${details.date || "N/A"}
 *Time:* ${details.time || "N/A"}
 
-*Days:* ${details.numberOfDays || "1"}
+
 *Waiting Hours:* ${details.waitingHours || "0"}
 
 *Hill Station:* ${details.isHillStation ? "Yes (Extra Charge)" : "No"}
@@ -181,13 +181,7 @@ const waLink = `https://wa.me/${phoneWithCountryCode}?text=${waMessage}`;
           </td>
         </tr>
 
-        <!-- Days -->
-        <tr>
-          <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9; color: #64748b;">Days</td>
-          <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-weight: bold;">
-            ${details.numberOfDays || "1"}
-          </td>
-        </tr>
+      
 
        
 
