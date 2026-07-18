@@ -640,6 +640,7 @@ export const BookingForm: React.FC = () => {
   const [loadingFare, setLoadingFare] = useState(false);
   const [indiaToday, setIndiaToday] = useState('');
   const [mapError, setMapError] = useState<string | null>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   const getTomorrowDate = () => {
     if (!indiaToday) return '';
@@ -671,6 +672,7 @@ export const BookingForm: React.FC = () => {
   });
 
   const [mobileSearchType, setMobileSearchType] = useState<null | 'pickup' | 'drop'>(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const sessionLeadId = useRef(`lead_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`);
@@ -832,6 +834,7 @@ style.innerHTML = `
       // Reset instances if container is gone
       mapInstance.current = null;
       directionsRenderer.current = null;
+      setMapReady(false);
       return;
     }
     if (mapInstance.current) return;
@@ -848,15 +851,19 @@ style.innerHTML = `
       directionsRenderer.current = new google.maps.DirectionsRenderer({
         map: mapInstance.current,
         polylineOptions: { strokeColor: "#EAB308", strokeWeight: 6, strokeOpacity: 0.95 },
-        suppressMarkers: false
+        suppressMarkers: false,
+        preserveViewport: true
       });
+      setMapReady(true);
     } catch (e) {
       console.error("Map Initialization Error:", e);
+      setMapReady(false);
     }
 
     return () => {
       mapInstance.current = null;
       directionsRenderer.current = null;
+      setMapReady(false);
     };
   }, [googleLoaded, mapNode]);
 
@@ -876,11 +883,15 @@ style.innerHTML = `
       const geocoder = new google.maps.Geocoder();
       geocoder.geocode({ address: origin }, (results: any, status: string) => {
         if (status === 'OK' && results[0] && mapInstance.current) {
-          mapInstance.current.setCenter(results[0].geometry.location);
+          const location = results[0].geometry.location;
+          mapInstance.current.setCenter(location);
           mapInstance.current.setZoom(15);
           
+          if (pickupMarker.current) {
+            pickupMarker.current.setMap(null);
+          }
           pickupMarker.current = new google.maps.Marker({
-            position: results[0].geometry.location,
+            position: location,
             map: mapInstance.current,
             title: 'Pickup Location',
             animation: google.maps.Animation.DROP
@@ -889,6 +900,16 @@ style.innerHTML = `
           // Clear any existing route
           if (directionsRenderer.current) {
             directionsRenderer.current.setDirections({ routes: [] });
+          }
+
+          // Shift center up on mobile so it is not hidden below the bottom sheet
+          const isMobile = window.innerWidth < 768;
+          if (isMobile) {
+            setTimeout(() => {
+              if (mapInstance.current) {
+                mapInstance.current.panBy(0, Math.floor(window.innerHeight * 0.18));
+              }
+            }, 150);
           }
         }
       });
@@ -906,6 +927,21 @@ style.innerHTML = `
         if (status === 'OK') {
           directionsRenderer.current.setDirections(result);
           setMapError(null);
+
+          if (mapInstance.current && result.routes && result.routes[0]) {
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+              const bottomPadding = Math.floor(window.innerHeight * 0.58);
+              mapInstance.current.fitBounds(result.routes[0].bounds, {
+                top: 80,
+                bottom: bottomPadding,
+                left: 30,
+                right: 30
+              });
+            } else {
+              mapInstance.current.fitBounds(result.routes[0].bounds, 40);
+            }
+          }
         } else {
           setMapError("Route update failed.");
         }
@@ -920,7 +956,7 @@ style.innerHTML = `
     setMapError(null);
 
     const timer = setTimeout(() => {
-      if (step === 1 && mapInstance.current) {
+      if (mapInstance.current) {
         // Handle map container size updates gracefully
         google.maps.event.trigger(mapInstance.current, 'resize');
 
@@ -941,7 +977,7 @@ style.innerHTML = `
     }, 800); // 800ms debounce to prevent constant routing updates while typing
 
     return () => clearTimeout(timer);
-  }, [step, formData.pickup, formData.drop, formData.tripType, googleLoaded, updateMapRoute]);
+  }, [step, formData.pickup, formData.drop, formData.tripType, googleLoaded, updateMapRoute, mapReady]);
 
   const calculateFare = useCallback(async (origin: string, destination: string, vehicle: VehicleType, tripType: TripType) => {
     const isHill = false;
@@ -1243,21 +1279,94 @@ if (submitted) {
 }
 
 
-  return (
-    <div className="bg-white dark:bg-slate-900 p-4 pb-6 sm:p-5 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-sm mx-auto transition-all duration-500">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-md font-black text-slate-900 dark:text-white uppercase tracking-tight">
-          {step === 1 ? 'Enter Locations' : step === 2 ? 'Enter Mobile' : step === 3 ? 'Select Vehicle' : 'Trip Summary'}
-        </h3>
-        <div className="flex gap-1.5">
-          <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-          <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-          <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-          <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-        </div>
-      </div>
+  const isMapActive = !!(formData.pickup && (formData.tripType === TripTypeRental || formData.drop));
 
-      <form onSubmit={handleSubmit} className="space-y-3.5">
+  useEffect(() => {
+    const checkAndToggleClass = () => {
+      const isMobile = window.innerWidth < 768;
+      if (isMobile && isMapActive) {
+        document.documentElement.classList.add('map-is-active');
+      } else {
+        document.documentElement.classList.remove('map-is-active');
+      }
+    };
+
+    checkAndToggleClass();
+    window.addEventListener('resize', checkAndToggleClass);
+
+    return () => {
+      document.documentElement.classList.remove('map-is-active');
+      window.removeEventListener('resize', checkAndToggleClass);
+    };
+  }, [isMapActive]);
+
+  return (
+    <div className={`
+      transition-all duration-500 relative
+      ${isMapActive 
+        ? 'fixed inset-0 md:relative md:w-full md:max-w-3xl md:min-h-[500px] pointer-events-auto bg-slate-50 dark:bg-slate-950 md:bg-white md:dark:bg-slate-900 md:p-5 md:rounded-[2.5rem] shadow-none md:shadow-2xl md:border md:border-slate-100 md:dark:border-slate-800 mx-auto flex flex-col md:flex-row gap-5 z-[80]' 
+        : 'w-full max-w-sm bg-white dark:bg-slate-900 p-4 pb-6 sm:p-5 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 mx-auto'
+      }
+    `}>
+      {isMapActive && (
+        <div className="fixed inset-0 md:relative md:w-[45%] md:h-[460px] md:rounded-[2rem] overflow-hidden border-none md:border md:border-slate-100 md:dark:border-slate-800 shadow-none md:shadow-inner z-0 pointer-events-auto">
+          <div ref={setMapNode} className="w-full h-full" />
+          {mapError && (
+            <div className="absolute top-20 md:top-auto md:bottom-2 left-4 right-4 md:left-2 md:right-2 bg-rose-50/95 dark:bg-rose-950/95 border border-rose-200 dark:border-rose-900/50 p-1.5 px-2.5 rounded-xl flex items-center gap-2 shadow-md animate-in fade-in slide-in-from-bottom-1 z-10">
+              <AlertTriangle size={12} className="text-[#FF6467] shrink-0" />
+              <span className="text-[9px] text-rose-800 dark:text-rose-200 font-bold uppercase tracking-wider">{mapError}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {isMapActive && (
+        <button
+          type="button"
+          onClick={() => {
+            // Capture lead immediately before we clear or reset anything!
+            handleAbandonment();
+            leadSentRef.current = false; // Reset tracker for future attempts
+            
+            // Fall back to home screen by resetting locations and step
+            setFormData(prev => ({ 
+              ...prev, 
+              pickup: '', 
+              drop: '', 
+              distance: '', 
+              estimatedFare: '' 
+            }));
+            setStep(1);
+          }}
+          className="md:hidden fixed top-4 left-4 z-50 bg-white/95 dark:bg-slate-900/95 p-3 rounded-full shadow-xl border border-slate-200 dark:border-slate-800 flex items-center justify-center active:scale-95 transition-all pointer-events-auto"
+          title="Back"
+        >
+          <ArrowLeft size={18} className="text-slate-700 dark:text-slate-300 stroke-[3px]" />
+        </button>
+      )}
+
+      <div className={`
+        ${isMapActive 
+          ? `fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 pb-6 rounded-t-3xl shadow-[0_-15px_30px_rgba(0,0,0,0.15)] border-t border-slate-100 dark:border-slate-800 ${isKeyboardVisible ? 'max-h-[85vh]' : 'max-h-[60vh]'} overflow-y-auto flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:max-h-[460px] md:overflow-y-auto md:flex-1 md:pr-1 app-scroll pointer-events-auto` 
+          : 'w-full flex flex-col gap-3.5'
+        }
+      `}>
+        {isMapActive && (
+          <div className="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-2 md:hidden" />
+        )}
+        <div className="flex justify-between items-center mb-1">
+          <h3 className="text-md font-black text-slate-900 dark:text-white uppercase tracking-tight">
+            {step === 1 ? 'Enter Locations' : step === 2 ? 'Enter Mobile' : step === 3 ? 'Select Vehicle' : 'Trip Summary'}
+          </h3>
+          <div className="flex gap-1.5">
+            <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+            <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+            <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+            <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3.5">
         {/* Step 2: Phone Number Verification / App Access */}
         {step === 2 && (
           <div className="space-y-4 py-3 animate-fade-in flex flex-col items-stretch">
@@ -1283,9 +1392,22 @@ if (submitted) {
                   type="tel"
                   placeholder="10-digit number"
                   value={formData.phone}
+                  onFocus={(e) => {
+                    setIsKeyboardVisible(true);
+                    setTimeout(() => {
+                      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 250);
+                  }}
+                  onBlur={() => {
+                    setIsKeyboardVisible(false);
+                  }}
                   onChange={(e) => {
                     const cleaned = e.target.value.replace(/\D/g, "");
-                    setFormData(prev => ({ ...prev, phone: cleaned.slice(0, 10) }));
+                    const sliced = cleaned.slice(0, 10);
+                    setFormData(prev => ({ ...prev, phone: sliced }));
+                    if (sliced.length === 10) {
+                      e.target.blur();
+                    }
                   }}
                   className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-black outline-none text-slate-900 dark:text-white placeholder-[#EAB308]/40"
                   maxLength={10}
@@ -1424,18 +1546,7 @@ if (submitted) {
             </div>
           )}
 
-          {/* Map - Only Visible in Step 1 when both locations are entered */}
-          {formData.pickup && (formData.tripType === TripTypeRental || formData.drop) && (
-            <div className="relative h-32 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-inner animate-in fade-in zoom-in duration-500">
-              <div ref={setMapNode} className="w-full h-full" />
-              {mapError && (
-                <div className="absolute bottom-2 left-2 right-2 bg-rose-50/95 dark:bg-rose-950/95 border border-rose-200 dark:border-rose-900/50 p-1.5 px-2.5 rounded-xl flex items-center gap-2 shadow-md animate-in fade-in slide-in-from-bottom-1 z-10">
-                  <AlertTriangle size={12} className="text-[#FF6467] shrink-0" />
-                  <span className="text-[9px] text-rose-800 dark:text-rose-200 font-bold uppercase tracking-wider">{mapError}</span>
-                </div>
-              )}
-            </div>
-          )}
+
 
           {/* Unified App-Style Route Selector Card */}
           <div className="relative bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-850 rounded-2xl p-3 flex gap-3 shadow-sm">
@@ -1824,6 +1935,7 @@ if (submitted) {
         </div>
       </div>
       </form>
+      </div>
       
       {mobileSearchType && (
         <LocationSearchOverlay 

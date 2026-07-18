@@ -188,6 +188,33 @@
       padding-bottom: 0;
     }
   }
+
+  /* When map is active on mobile, hide surrounding layout, lock scrolling and optimize view */
+  @media (max-width: 767px) {
+    html.map-is-active {
+      overflow: hidden !important;
+      position: fixed !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+    html.map-is-active body {
+      overflow: hidden !important;
+      position: fixed !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+    html.map-is-active nav,
+    html.map-is-active footer,
+    html.map-is-active .md\:hidden.fixed.bottom-0,
+    html.map-is-active a[href^="tel:"],
+    html.map-is-active div[class*="ChatWidget"],
+    html.map-is-active div[id*="chat-widget"] {
+      display: none !important;
+    }
+    html.map-is-active main {
+      padding-bottom: 0 !important;
+    }
+  }
 </style>
 
 <script>
