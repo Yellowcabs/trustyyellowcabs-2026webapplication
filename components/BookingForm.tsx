@@ -1347,7 +1347,7 @@ if (submitted) {
 
       <div className={`
         ${isMapActive 
-          ? `fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 pb-6 rounded-t-3xl shadow-[0_-15px_30px_rgba(0,0,0,0.15)] border-t border-slate-100 dark:border-slate-800 ${isKeyboardVisible ? 'max-h-[85vh]' : 'max-h-[60vh]'} overflow-y-auto flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:max-h-[460px] md:overflow-y-auto md:flex-1 md:pr-1 app-scroll pointer-events-auto` 
+          ? `fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 pb-4 rounded-t-3xl shadow-[0_-15px_30px_rgba(0,0,0,0.15)] border-t border-slate-100 dark:border-slate-800 ${isKeyboardVisible ? 'h-[85vh] max-h-[85vh]' : 'h-[62vh] max-h-[62vh]'} flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-auto md:max-h-[480px] md:flex-1 md:pr-1 pointer-events-auto` 
           : 'w-full flex flex-col gap-3.5'
         }
       `}>
@@ -1366,76 +1366,85 @@ if (submitted) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3.5">
+        <form onSubmit={handleSubmit} className={`${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between gap-2.5 md:space-y-3.5 md:block' : 'space-y-3.5'}`}>
         {/* Step 2: Phone Number Verification / App Access */}
         {step === 2 && (
-          <div className="space-y-4 py-3 animate-fade-in flex flex-col items-stretch">
-            <button 
-              type="button"
-              onClick={() => {
-                setStep(1);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-1.5 self-start mb-2"
-            >
-              <ArrowLeft size={14} className="stroke-[3px]" />
-              <span>Change Locations</span>
-            </button>
+          <div className={`${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between' : 'space-y-4 py-3'} animate-fade-in flex flex-col items-stretch`}>
+            {/* Scrollable Body */}
+            <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 space-y-4 app-scroll pb-2' : 'space-y-4'}`}>
+              <button 
+                type="button"
+                onClick={() => {
+                  setStep(1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-1.5 self-start mb-2 mt-2"
+              >
+                <ArrowLeft size={14} className="stroke-[3px]" />
+                <span>Change Locations</span>
+              </button>
 
-            <div className="w-full bg-[#EAB308]/5 dark:bg-[#EAB308]/10 border-2 border-[#EAB308] focus-within:ring-4 focus-within:ring-[#EAB308]/20 rounded-xl p-2.5 px-3.5 flex items-center gap-3 transition-all shadow-md shadow-[#EAB308]/5 relative overflow-hidden text-left mt-2">
-              <span className="text-xs font-black text-[#EAB308] select-none border-r border-[#EAB308]/20 pr-2">
-                +91
-              </span>
-              <div className="flex-1 min-w-0">
-                <span className="block text-[8px] font-black text-[#EAB308] uppercase tracking-widest mb-0.5">Mobile Number</span>
-                <input
-                  type="tel"
-                  placeholder="10-digit number"
-                  value={formData.phone}
-                  onFocus={(e) => {
-                    setIsKeyboardVisible(true);
-                    setTimeout(() => {
-                      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 250);
-                  }}
-                  onBlur={() => {
-                    setIsKeyboardVisible(false);
-                  }}
-                  onChange={(e) => {
-                    const cleaned = e.target.value.replace(/\D/g, "");
-                    const sliced = cleaned.slice(0, 10);
-                    setFormData(prev => ({ ...prev, phone: sliced }));
-                    if (sliced.length === 10) {
-                      e.target.blur();
-                    }
-                  }}
-                  className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-black outline-none text-slate-900 dark:text-white placeholder-[#EAB308]/40"
-                  maxLength={10}
-                  autoFocus
-                />
+              <div className="w-full bg-[#EAB308]/5 dark:bg-[#EAB308]/10 border-2 border-[#EAB308] focus-within:ring-4 focus-within:ring-[#EAB308]/20 rounded-xl p-2.5 px-3.5 flex items-center gap-3 transition-all shadow-md shadow-[#EAB308]/5 relative overflow-hidden text-left mt-2">
+                <span className="text-xs font-black text-[#EAB308] select-none border-r border-[#EAB308]/20 pr-2">
+                  +91
+                </span>
+                <div className="flex-1 min-w-0">
+                  <span className="block text-[8px] font-black text-[#EAB308] uppercase tracking-widest mb-0.5">Mobile Number</span>
+                  <input
+                    type="tel"
+                    placeholder="10-digit number"
+                    value={formData.phone}
+                    onFocus={(e) => {
+                      setIsKeyboardVisible(true);
+                      setTimeout(() => {
+                        e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }, 250);
+                    }}
+                    onBlur={() => {
+                      setIsKeyboardVisible(false);
+                    }}
+                    onChange={(e) => {
+                      const cleaned = e.target.value.replace(/\D/g, "");
+                      const sliced = cleaned.slice(0, 10);
+                      setFormData(prev => ({ ...prev, phone: sliced }));
+                      if (sliced.length === 10) {
+                        e.target.blur();
+                      }
+                    }}
+                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-black outline-none text-slate-900 dark:text-white placeholder-[#EAB308]/40"
+                    maxLength={10}
+                    autoFocus
+                  />
+                </div>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                const phone = formData.phone.trim();
-                const phoneRegex = /^[6-9]\d{9}$/;
-                if (!phoneRegex.test(phone)) {
-                  alert("Please enter a valid 10-digit Indian mobile number.");
-                  return;
-                }
-                setStep(3);
-              }}
-              className="w-full bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-[10px] active:scale-95 transition-all flex items-center justify-center gap-2 mt-2"
-            >
-              Continue to Vehicle Selection <ArrowRight size={14} />
-            </button>
+            {/* Sticky Footer */}
+            <div className={`${isMapActive ? 'pt-3 border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 md:bg-transparent' : ''}`}>
+              <button
+                type="button"
+                onClick={() => {
+                  const phone = formData.phone.trim();
+                  const phoneRegex = /^[6-9]\d{9}$/;
+                  if (!phoneRegex.test(phone)) {
+                    alert("Please enter a valid 10-digit Indian mobile number.");
+                    return;
+                  }
+                  setStep(3);
+                }}
+                className="w-full bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-[10px] active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                Continue to Vehicle Selection <ArrowRight size={14} />
+              </button>
+            </div>
           </div>
         )}
 
         {/* Step 1 */}
-        <div className={`${step === 1 ? 'space-y-3.5' : 'hidden'} animate-fade-in`}>
+        {step === 1 && (
+          <div className={`${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between' : 'space-y-3.5'} animate-fade-in`}>
+            {/* Scrollable Body */}
+            <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 space-y-3.5 app-scroll pb-2' : 'space-y-3.5'}`}>
           {/* Trip Type Category Selector */}
           <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl gap-1 relative overflow-hidden border border-slate-200/10 dark:border-slate-700/20">
             {[
@@ -1722,18 +1731,25 @@ if (submitted) {
             )}
           </div>
 
-          <button 
-            type="button" 
-            id="btn-next-step"
-            onClick={handleNextStep} 
-            className="w-full bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
-          >
-            Continue <ArrowRight size={18} />
-          </button>
-        </div>
+            </div>
+
+            {/* Sticky Footer */}
+            <div className={`${isMapActive ? 'pt-3 border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 md:bg-transparent' : ''}`}>
+              <button 
+                type="button" 
+                id="btn-next-step"
+                onClick={handleNextStep} 
+                className="w-full bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                Continue <ArrowRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Step 3 */}
-        <div className={`${step === 3 ? 'space-y-3.5' : 'hidden'} animate-fade-in`}>
+        {step === 3 && (
+          <div className={`${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between gap-1' : 'space-y-3.5'} animate-fade-in`}>
           <div className="flex justify-between items-center px-1">
             <button 
               type="button"
@@ -1749,8 +1765,8 @@ if (submitted) {
             <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Select Vehicle</span>
           </div>
 
-          <div className="relative group">
-            <div className="space-y-1.5 max-h-[350px] overflow-y-auto pr-1 app-scroll">
+          <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 app-scroll pb-2 min-h-0' : 'relative group'}`}>
+            <div className={`${isMapActive ? 'space-y-1.5' : 'space-y-1.5 max-h-[350px] overflow-y-auto pr-1 app-scroll'}`}>
             {VEHICLE_CONFIG.map((v) => {
               return (
                 <button
@@ -1811,10 +1827,8 @@ if (submitted) {
             </div>
           </div>
 
-
-
-        <div className="flex gap-3">
-          
+          {/* Sticky Footer */}
+          <div className={`${isMapActive ? 'pt-3 border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 md:bg-transparent' : ''} flex gap-3`}>
             <button
               type="button"
               onClick={() => setStep(2)}
@@ -1822,26 +1836,30 @@ if (submitted) {
             >
               <ArrowLeft size={20} />
             </button>
-        <button
-  type="button"
-  disabled={loading}
-  className="flex-1 bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
-  onClick={() => {
-    if (!formData.vehicleType) {
-      alert("Please select a vehicle.");
-      return;
-    }
-    setStep(4);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }}
->
-  Confirm Selection
-</button>
+            <button
+              type="button"
+              disabled={loading}
+              className="flex-1 bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
+              onClick={() => {
+                if (!formData.vehicleType) {
+                  alert("Please select a vehicle.");
+                  return;
+                }
+                setStep(4);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            >
+              Confirm Selection
+            </button>
           </div>
         </div>
+      )}
 
         {/* Step 4: Summary */}
-      <div className={`${step === 4 ? 'space-y-4' : 'hidden'} animate-fade-in`}>
+        {step === 4 && (
+          <div className={`${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between' : 'space-y-4'} animate-fade-in`}>
+            {/* Scrollable Body */}
+            <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 space-y-4 app-scroll pb-2' : 'space-y-4'}`}>
         <div className="bg-slate-50 dark:bg-slate-950 rounded-[2rem] p-5 border border-slate-100 dark:border-slate-800 space-y-4 shadow-sm">
           <div className="space-y-3">
             <div className="flex gap-3">
@@ -1910,30 +1928,34 @@ if (submitted) {
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setStep(3);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl border border-slate-100 dark:border-slate-700 active:scale-95 transition-all"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
-          >
-            {loading ? 'Booking...' : (
-              <>
-                Confirm & Book Now <CheckCircle2 size={18} />
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+            </div>
+
+            {/* Sticky Footer */}
+            <div className={`${isMapActive ? 'pt-3 border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 md:bg-transparent' : ''} flex gap-3`}>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep(3);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl border border-slate-100 dark:border-slate-700 active:scale-95 transition-all"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                {loading ? 'Booking...' : (
+                  <>
+                    Confirm & Book Now <CheckCircle2 size={18} />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </form>
       </div>
       
