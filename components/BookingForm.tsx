@@ -14,9 +14,9 @@ const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const ONE_WAY_PRICING: Record<VehicleType, number> = {
   [VehicleType.MINI]: 23,
   [VehicleType.SEDAN]: 25,
-  [VehicleType.SUV]: 30,
-  [VehicleType.SUV_PLUS]: 32,
-  [VehicleType.INNOVA]: 35,
+  [VehicleType.SUV]: 35,
+  [VehicleType.SUV_PLUS]: 35,
+  [VehicleType.INNOVA]: 40,
   [VehicleType.LUXURY]: 0,
   [VehicleType.TEMPO_TRAVELLER]: 0,
   [VehicleType.TOURIST_BUS]: 0,
@@ -24,11 +24,11 @@ const ONE_WAY_PRICING: Record<VehicleType, number> = {
 };
 
 const ROUND_TRIP_PRICING: Record<VehicleType, number> = {
-  [VehicleType.MINI]: 16.5,
-  [VehicleType.SEDAN]: 17.5,
-  [VehicleType.SUV]: 22,
-  [VehicleType.SUV_PLUS]: 23,
-  [VehicleType.INNOVA]: 25,
+  [VehicleType.MINI]: 14,
+  [VehicleType.SEDAN]: 15,
+  [VehicleType.SUV]: 19.5,
+  [VehicleType.SUV_PLUS]: 22,
+  [VehicleType.INNOVA]: 22.5,
   [VehicleType.LUXURY]: 0,
   [VehicleType.TEMPO_TRAVELLER]: 0,
   [VehicleType.TOURIST_BUS]: 0,
