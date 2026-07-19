@@ -6,9 +6,7 @@ import { ArrowRight, Star, MapPin, CheckCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 export const Home: React.FC = () => {
-  const { state } = useLocation();
-  
-  
+  const { state, pathname } = useLocation();
 
   const scrollToBooking = useCallback(() => {
     const element = document.getElementById('book');
@@ -31,8 +29,14 @@ export const Home: React.FC = () => {
   useEffect(() => {
     if (state && state.scrollToBook) {
       setTimeout(scrollToBooking, 100);
+    } else {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'auto'
+      });
     }
-  }, [state, scrollToBooking]);
+  }, [state, pathname, scrollToBooking]);
 
   const TestimonialCard: React.FC<{ t: any }> = ({ t }) => (
     <div className="w-full bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm mb-4 transition-all hover:shadow-md">
@@ -60,7 +64,7 @@ export const Home: React.FC = () => {
         <link rel="canonical" href="https://www.trustyyellowcabs.in/" />
       </Helmet>
       {/* Hero Section */}
-      <section className="relative min-h-[75vh] flex items-center bg-white dark:bg-slate-950 overflow-hidden pt-1 pb-10 lg:py-0">
+      <section className="relative min-h-[50vh] flex items-start lg:items-center bg-white dark:bg-slate-950 overflow-hidden pt-5 pb-10 lg:py-0">
         <div className="absolute inset-0 z-0">
           <div className="absolute top-[-5%] right-[-5%] w-[600px] h-[600px] bg-brand-yellow/5 rounded-full blur-[120px]"></div>
           <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-slate-50 dark:bg-slate-900/40 rounded-full blur-[100px]"></div>
@@ -101,7 +105,7 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-           <div className="relative flex justify-center lg:justify-end order-1 lg:order-2 w-full lg:w-auto -mt-4 lg:mt-0" id="book">
+           <div className="relative flex justify-center lg:justify-end order-1 lg:order-2 w-full lg:w-auto mt-0 lg:mt-0" id="book">
               <BookingForm />
             </div>
           </div>
@@ -111,10 +115,7 @@ export const Home: React.FC = () => {
       {/* App-Style Quote / Trust Highlights */}
       <section className="bg-slate-50 dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800 py-8 md:py-12 select-none">
         <div className="container mx-auto px-4 max-w-4xl text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-yellow/10 dark:bg-brand-yellow/5 rounded-full mb-6">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-brand-yellow animate-pulse"></span>
-            <span className="text-[10px] font-black uppercase text-brand-yellow tracking-widest">Coimbatore's Smart Choice</span>
-          </div>
+          
           
         <p className="text-base sm:text-lg md:text-3xl font-medium md:font-bold text-slate-900 dark:text-white tracking-normal leading-relaxed md:leading-normal max-w-2xl mx-auto text-center">
   Local ride ah? Outstation ah? Trusty Yellow Cab dhaan — Anytime, Anywhere!

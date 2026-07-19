@@ -12,7 +12,7 @@ export const Contact: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 py-14 md:py-20">
+    <div className="min-h-screen bg-white dark:bg-slate-950 py-8 sm:py-12 md:py-20">
       <div className="container mx-auto px-4">
         {/* Heading */}
         <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
@@ -24,7 +24,7 @@ export const Contact: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 max-w-6xl mx-auto">
           {/* Contact Info */}
           <div className="space-y-8">
             <div className="bg-slate-50 dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 h-full flex flex-col justify-between">

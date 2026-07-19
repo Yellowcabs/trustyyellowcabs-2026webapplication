@@ -1885,11 +1885,8 @@ style.innerHTML = `
             {/* Display Headings */}
             <div className="space-y-1">
               <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white leading-[1.1] tracking-tight">
-                Rides That Move With You.
+                Need a Ride? Book a Taxi Nearby
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
-                Book a ride in seconds, choose from multiple options, and get moving quickly.
-              </p>
             </div>
           </div>
         )}
@@ -2070,7 +2067,7 @@ style.innerHTML = `
                     : 'bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 shadow-lg shadow-[#FACC15]/20 text-[10px] rounded-2xl'}
                 `}
               >
-                Continue to Vehicle Selection <ArrowRight size={14} />
+                Let’s Choose a Vehicle <ArrowRight size={14} />
               </button>
             </div>
           </div>
@@ -2177,31 +2174,7 @@ style.innerHTML = `
             </div>
           )}
 
-          {/* Active Booking Session Badge */}
-          {formData.phone && (
-            <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-2.5 px-3 flex items-center justify-between transition-all shadow-sm">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">
-                  Active Session:
-                </span>
-                <span className="text-xs font-black text-slate-700 dark:text-slate-300">
-                  +91 {formData.phone}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="text-[8px] font-black text-[#EAB308] uppercase tracking-widest hover:underline"
-              >
-                Change
-              </button>
-            </div>
-          )}
-
+  
           {/* Outstation Type Sub-selector (One Way vs Round Trip Toggle Switch) */}
           {(formData.tripType === TripType.ONE_WAY || formData.tripType === TripType.ROUND_TRIP) && (
             <div className="relative flex bg-slate-100 dark:bg-slate-950/60 p-1.5 rounded-xl border border-slate-200/40 dark:border-slate-800/80 gap-1 select-none">
@@ -2244,7 +2217,7 @@ style.innerHTML = `
               {/* Pickup Location Card on Mobile */}
               <div 
                 onClick={() => setMobileSearchType('pickup')}
-                className="relative bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-2 flex items-center gap-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer min-h-[48px]"
+                className="relative bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer min-h-[48px]"
               >
                 <MapPin className="text-brand-yellow shrink-0" size={18} />
                 <div className="flex-1 min-w-0 text-left">
