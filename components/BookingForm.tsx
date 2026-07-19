@@ -1233,76 +1233,9 @@ style.innerHTML = `
   window.open(`https://wa.me/918870088020?text=${message}`, '_blank');
 };
 
-if (submitted) {
-  return (
-    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 text-center max-w-sm mx-auto">
-      <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6 relative">
-        <CheckCircle2 size={40} />
-      </div>
-      <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">Booking Sent!</h2>
-      <p className="text-[11px] text-slate-500 font-bold mb-8 uppercase tracking-widest leading-relaxed">driver will call you shortly.</p>
-
-      {/* WhatsApp Confirm Button */}
-      <button 
-        onClick={handleWhatsAppConfirm} 
-        className="w-full bg-[#25D366] text-white font-black py-4.5 rounded-2xl flex items-center justify-center gap-3 shadow-lg text-[10px] uppercase tracking-widest active:scale-95 transition-all mb-3"
-      >
-        <MessageCircle size={50} /> WhatsApp support
-      </button>
-
-{/* Book Another Ride Button */}
-<button 
-  type="button"   // important to prevent accidental form submission
-  onClick={() => {
-    const verifiedPhone = formData.phone;
-    setSubmitted(false);      // go back to the form
-    setStep(1);               // start from step 1
-    setFormData({             // reset all fields
-      phone: verifiedPhone,
-      pickup: '',
-      drop: '',
-      date: indiaToday,
-      time: '',
-      numberOfDays: '1',
-      waitingHours: '0',
-      vehicleType: VehicleType.MINI,
-      tripType: TripType.LOCAL,
-      localPackage: '8hr80km',
-      distance: '',
-      rawDistance: 0,
-      estimatedFare: '',
-    });
-
-    // Re-initialize map/autocomplete after a short delay
-    setTimeout(() => {
-      if (pickupRef.current) pickupRef.current.value = '';
-      if (dropRef.current) dropRef.current.value = '';
-      
-      // Clear directions if any
-      if (directionsRenderer.current) {
-        directionsRenderer.current.setDirections({ routes: [] });
-      }
-
-      // Reset map center and zoom
-      if (mapInstance.current) {
-        mapInstance.current.setCenter({ lat: 11.0168, lng: 76.9558 });
-        mapInstance.current.setZoom(12);
-      }
-
-      // ✅ Reload page
-      window.location.reload();
-    }, 50);
-  }} 
-  className="w-full text-[10px] font-bold text-slate-900 dark:text-white uppercase border border-slate-300 dark:border-slate-700 rounded-2xl py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
->
-  Book Another Ride
-</button>
-    </div>
-  );
-}
-
 
   const isMapActive = !!(
+    !submitted &&
     formData.pickup && (
       formData.tripType === TripTypeRental ||
       formData.tripType === TripType.ONE_WAY ||
@@ -1333,6 +1266,74 @@ if (submitted) {
   useEffect(() => {
     setIsSheetExpanded(true);
   }, [step, isMapActive]);
+
+  if (submitted) {
+    return (
+      <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 text-center max-w-sm mx-auto animate-fade-in my-10">
+        <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6 relative">
+          <CheckCircle2 size={40} />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">Booking Sent!</h2>
+        <p className="text-[11px] text-slate-500 font-bold mb-8 uppercase tracking-widest leading-relaxed">driver will call you shortly.</p>
+
+        {/* WhatsApp Confirm Button */}
+        <button 
+          onClick={handleWhatsAppConfirm} 
+          className="w-full bg-[#25D366] text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg text-[10px] uppercase tracking-widest active:scale-95 transition-all mb-3 cursor-pointer"
+        >
+          <MessageCircle size={20} /> WhatsApp support
+        </button>
+
+        {/* Book Another Ride Button */}
+        <button 
+          type="button"   // important to prevent accidental form submission
+          onClick={() => {
+            const verifiedPhone = formData.phone;
+            setSubmitted(false);      // go back to the form
+            setStep(1);               // start from step 1
+            setFormData({             // reset all fields
+              phone: verifiedPhone,
+              pickup: '',
+              drop: '',
+              date: indiaToday,
+              time: '',
+              numberOfDays: '1',
+              waitingHours: '0',
+              vehicleType: VehicleType.MINI,
+              tripType: TripType.LOCAL,
+              localPackage: '8hr80km',
+              distance: '',
+              rawDistance: 0,
+              estimatedFare: '',
+            });
+
+            // Re-initialize map/autocomplete after a short delay
+            setTimeout(() => {
+              if (pickupRef.current) pickupRef.current.value = '';
+              if (dropRef.current) dropRef.current.value = '';
+              
+              // Clear directions if any
+              if (directionsRenderer.current) {
+                directionsRenderer.current.setDirections({ routes: [] });
+              }
+
+              // Reset map center and zoom
+              if (mapInstance.current) {
+                mapInstance.current.setCenter({ lat: 11.0168, lng: 76.9558 });
+                mapInstance.current.setZoom(12);
+              }
+
+              // ✅ Reload page
+              window.location.reload();
+            }, 50);
+          }} 
+          className="w-full text-[10px] font-bold text-slate-900 dark:text-white uppercase border border-slate-300 dark:border-slate-700 rounded-2xl py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+        >
+          Book Another Ride
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={`
