@@ -1380,8 +1380,8 @@ if (submitted) {
       )}
 
       <div 
-        onTouchStart={isMapActive ? handleTouchStart : undefined}
-        onTouchEnd={isMapActive ? handleTouchEnd : undefined}
+        onTouchStart={isMapActive && !isSheetExpanded ? handleTouchStart : undefined}
+        onTouchEnd={isMapActive && !isSheetExpanded ? handleTouchEnd : undefined}
         className={`
           transition-all duration-300 ease-in-out
           ${isMapActive 
@@ -1401,6 +1401,8 @@ if (submitted) {
       >
         {isMapActive && (
           <div 
+            onTouchStart={isMapActive && isSheetExpanded ? handleTouchStart : undefined}
+            onTouchEnd={isMapActive && isSheetExpanded ? handleTouchEnd : undefined}
             onClick={(e) => {
               e.stopPropagation();
               setIsSheetExpanded(!isSheetExpanded);
@@ -1878,7 +1880,7 @@ if (submitted) {
                     }));
                   }}
                   className={`
-                    w-full flex items-center gap-0 p-6 rounded-2xl border-2 transition-all text-left
+                    w-full flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left
                     ${formData.vehicleType === v.type 
                       ? 'border-[#EAB308] bg-[#EAB308]/5 dark:bg-[#EAB308]/10' 
                       : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-950'}
