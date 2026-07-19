@@ -1279,7 +1279,14 @@ if (submitted) {
 }
 
 
-  const isMapActive = !!(formData.pickup && (formData.tripType === TripTypeRental || formData.drop));
+  const isMapActive = !!(
+    formData.pickup && (
+      formData.tripType === TripTypeRental ||
+      formData.tripType === TripType.ONE_WAY ||
+      formData.tripType === TripType.ROUND_TRIP ||
+      formData.drop
+    )
+  );
 
   useEffect(() => {
     const checkAndToggleClass = () => {
@@ -1347,7 +1354,7 @@ if (submitted) {
 
       <div className={`
         ${isMapActive 
-          ? `fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 pb-4 rounded-t-3xl shadow-[0_-15px_30px_rgba(0,0,0,0.15)] border-t border-slate-100 dark:border-slate-800 ${isKeyboardVisible ? 'h-[85vh] max-h-[85vh]' : 'h-[62vh] max-h-[62vh]'} flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-auto md:max-h-[480px] md:flex-1 md:pr-1 pointer-events-auto` 
+          ? `fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 pb-4 rounded-t-3xl shadow-[0_-15px_30px_rgba(0,0,0,0.15)] border-t border-slate-100 dark:border-slate-800 ${isKeyboardVisible ? 'h-[85vh] max-h-[85vh]' : 'h-[68vh] max-h-[68vh]'} flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-auto md:max-h-[480px] md:flex-1 md:pr-1 pointer-events-auto` 
           : 'w-full flex flex-col gap-3.5'
         }
       `}>
@@ -1667,7 +1674,7 @@ if (submitted) {
             </div>
           )}
 
-          {/* Compact Date & Time / Duration Grid */}
+          {/* Compact Unified Date, Time & Duration Card */}
           <style>{`
             input[type="date"]::-webkit-calendar-picker-indicator,
             input[type="time"]::-webkit-calendar-picker-indicator {
@@ -1676,10 +1683,10 @@ if (submitted) {
               -webkit-appearance: none;
             }
           `}</style>
-          <div className={`grid gap-1.5 sm:gap-2.5 ${formData.tripType === TripType.ROUND_TRIP ? 'grid-cols-3' : 'grid-cols-2'}`}>
-            {/* Date Picker */}
-            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 focus-within:border-[#EAB308] focus-within:ring-2 focus-within:ring-[#EAB308]/10 rounded-xl p-1.5 px-2.5 sm:p-2 sm:px-3 flex items-center gap-1 sm:gap-2 transition-all shadow-sm min-w-0">
-              <Calendar size={13} className="text-[#EAB308] flex-shrink-0 hidden xs:block" />
+          <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-2xl p-2.5 px-3.5 flex items-center divide-x divide-slate-200/80 dark:divide-slate-800/80 shadow-sm gap-0.5">
+            {/* Date Column */}
+            <div className="flex-1 flex items-center gap-1.5 min-w-0 pr-3">
+              <Calendar size={13} className="text-[#EAB308] shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Date</span>
                 <input
@@ -1693,9 +1700,9 @@ if (submitted) {
               </div>
             </div>
 
-            {/* Time Picker */}
-            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 focus-within:border-[#EAB308] focus-within:ring-2 focus-within:ring-[#EAB308]/10 rounded-xl p-1.5 px-2.5 sm:p-2 sm:px-3 flex items-center gap-1 sm:gap-2 transition-all shadow-sm min-w-0">
-              <Clock size={13} className="text-[#EAB308] flex-shrink-0 hidden xs:block" />
+            {/* Time Column */}
+            <div className={`flex-1 flex items-center gap-1.5 min-w-0 px-3 ${formData.tripType === TripType.ROUND_TRIP ? 'pr-3' : ''}`}>
+              <Clock size={13} className="text-[#EAB308] shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Time</span>
                 <input
@@ -1710,8 +1717,8 @@ if (submitted) {
 
             {/* Duration (Round Trip only) */}
             {formData.tripType === TripType.ROUND_TRIP && (
-              <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 focus-within:border-[#EAB308] focus-within:ring-2 focus-within:ring-[#EAB308]/10 rounded-xl p-1.5 px-2.5 sm:p-2 sm:px-3 flex items-center gap-1 sm:gap-2 transition-all shadow-sm min-w-0">
-                <Clock size={13} className="text-[#EAB308] flex-shrink-0 hidden xs:block" />
+              <div className="flex-1 flex items-center gap-1.5 min-w-0 pl-3">
+                <Clock size={13} className="text-[#EAB308] shrink-0" />
                 <div className="flex-1 min-w-0">
                   <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Duration</span>
                   <select
@@ -1859,23 +1866,39 @@ if (submitted) {
         {step === 4 && (
           <div className={`${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between' : 'space-y-4'} animate-fade-in`}>
             {/* Scrollable Body */}
-            <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 space-y-4 app-scroll pb-2' : 'space-y-4'}`}>
-        <div className="bg-slate-50 dark:bg-slate-950 rounded-[2rem] p-5 border border-slate-100 dark:border-slate-800 space-y-4 shadow-sm">
-          <div className="space-y-3">
+            <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 space-y-2.5 app-scroll pb-2' : 'space-y-4'}`}>
+        <div className={`bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-sm transition-all
+          ${isMapActive 
+            ? 'rounded-2xl p-3.5 sm:p-5 space-y-2.5 sm:space-y-4' 
+            : 'rounded-[2rem] p-5 space-y-4'
+          }
+        `}>
+          <div className={isMapActive ? 'space-y-2' : 'space-y-3'}>
             <div className="flex gap-3">
-              <div className="w-10 h-10 flex flex-col items-center gap-1.5 py-1">
-                <div className="w-2 h-2 rounded-full border-2 border-[#EAB308]" />
+              <div className={`flex flex-col items-center shrink-0
+                ${isMapActive 
+                  ? 'w-5 h-8 gap-0.5 py-0.5' 
+                  : 'w-10 h-10 gap-1.5 py-1'
+                }
+              `}>
+                <div className={`rounded-full border-2 border-[#EAB308]
+                  ${isMapActive ? 'w-1.5 h-1.5' : 'w-2 h-2'}
+                `} />
                 <div className="w-0.5 flex-1 bg-slate-200 dark:bg-slate-700" />
-                <div className="w-2 h-2 rounded-full bg-[#EAB308]" />
+                <div className={`rounded-full bg-[#EAB308]
+                  ${isMapActive ? 'w-1.5 h-1.5' : 'w-2 h-2'}
+                `} />
               </div>
-              <div className="flex-1 space-y-4 pt-0.5">
+              <div className={`flex-1 pt-0.5 min-w-0
+                ${isMapActive ? 'space-y-2' : 'space-y-4'}
+              `}>
                 <div>
                   <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Pickup</span>
-                  <p className="text-[10px] font-bold text-slate-900 dark:text-white leading-tight">{formData.pickup}</p>
+                  <p className={`text-[10px] font-bold text-slate-900 dark:text-white leading-tight ${isMapActive ? 'line-clamp-2' : ''}`}>{formData.pickup}</p>
                 </div>
                 <div>
                   <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Destination</span>
-                  <p className="text-[10px] font-bold text-slate-900 dark:text-white leading-tight">
+                  <p className={`text-[10px] font-bold text-slate-900 dark:text-white leading-tight ${isMapActive ? 'line-clamp-2' : ''}`}>
                     {formData.tripType === TripTypeRental
                       ? LOCAL_PACKAGES.find(p => p.id === formData.localPackage)?.label
                       : formData.drop}
@@ -1885,44 +1908,52 @@ if (submitted) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className={`grid grid-cols-2 border-t border-slate-100 dark:border-slate-800
+            ${isMapActive ? 'gap-2 pt-2' : 'gap-4 pt-2'}
+          `}>
             <div>
               <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Departure</span>
               <div className="flex items-center gap-1.5">
-                <Calendar size={12} className="text-[#EAB308]" />
+                <Calendar size={isMapActive ? 10 : 12} className="text-[#EAB308]" />
                 <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.date}</p>
               </div>
-              <div className="flex items-center gap-1.5 mt-1">
-                <Clock size={12} className="text-[#EAB308]" />
+              <div className={`flex items-center gap-1.5 ${isMapActive ? 'mt-0.5' : 'mt-1'}`}>
+                <Clock size={isMapActive ? 10 : 12} className="text-[#EAB308]" />
                 <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.time}</p>
               </div>
             </div>
             <div>
               <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Vehicle</span>
               <div className="flex items-center gap-1.5">
-                <Car size={12} className="text-[#EAB308]" />
+                <Car size={isMapActive ? 10 : 12} className="text-[#EAB308]" />
                 <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase truncate">{formData.vehicleType}</p>
               </div>
-              <div className="flex items-center gap-1.5 mt-1">
-                <Phone size={12} className="text-[#EAB308]" />
+              <div className={`flex items-center gap-1.5 ${isMapActive ? 'mt-0.5' : 'mt-1'}`}>
+                <Phone size={isMapActive ? 10 : 12} className="text-[#EAB308]" />
                 <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.phone}</p>
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-end">
+          <div className={`border-t border-slate-100 dark:border-slate-800 flex justify-between items-end
+            ${isMapActive ? 'pt-2.5' : 'pt-4'}
+          `}>
             <div>
               <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Estimated Distance</span>
               <span className="text-xs font-black text-[#EAB308]">{formData.distance}</span>
             </div>
             <div className="text-right">
               <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Total Fare</span>
-              <span className="text-2xl font-black text-slate-900 dark:text-white">{formData.estimatedFare}</span>
+              <span className={`font-black text-slate-900 dark:text-white ${isMapActive ? 'text-xl' : 'text-2xl'}`}>{formData.estimatedFare}</span>
             </div>
           </div>
 
-          <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 text-center">
-            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+          <div className={`border-t border-slate-100 dark:border-slate-800 text-center
+            ${isMapActive ? 'pt-1.5' : 'pt-2.5'}
+          `}>
+            <p className={`font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest
+              ${isMapActive ? 'text-[7.5px]' : 'text-[9px]'}
+            `}>
               * Tolls, state permit & parking extra
             </p>
           </div>
