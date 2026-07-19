@@ -1880,16 +1880,16 @@ style.innerHTML = `
           </div>
         )}
 
-        {isMobileScreen && step === 1 && !isMapActive && (
-          <div className="flex flex-col text-left space-y-2 mb-3 select-none animate-fade-in px-1">
-            {/* Display Headings */}
-            <div className="space-y-1">
-              <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white leading-[1.1] tracking-tight">
-                Need a Ride? Book a Taxi Nearby
-              </h1>
-            </div>
-          </div>
-        )}
+      {isMobileScreen === true && step === 1 && !isMapActive && (
+  <div className="flex flex-col text-left space-y-2 mb-3 select-none animate-fade-in px-1">
+    {/* Display Headings */}
+    <div className="space-y-1">
+      <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white leading-[1.1] tracking-tight">
+        Need a Ride? Book a Taxi Nearby
+      </h1>
+    </div>
+  </div>
+)}
 
         {isMapActive && !isSheetExpanded ? (
           <div className="flex items-center justify-between mt-1 md:hidden animate-fade-in w-full">
