@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { BookingDetails, VehicleType, TripType, FareBreakdown } from '../types';
-import { MapPin, User, Phone, Smartphone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Repeat, Navigation, Package, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { BookingDetails, VehicleType, TripType, FareBreakdown, PlaceData } from '../types';
+import { MapPin, User, Phone, Smartphone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Repeat, Navigation, Package, X, ChevronUp, ChevronDown, Locate } from 'lucide-react';
 import { sendBookingEmail } from '../services/emailService';
 import { appendBookingToSheet } from '../services/googleSheets';
 import { motion } from 'framer-motion';
@@ -133,46 +133,53 @@ const calculateHaversineDistance = (lat1: number, lon1: number, lat2: number, lo
   return R * c;
 };
 
-const checkIsHillStation = async (address: string): Promise<boolean> => {
-  if (!address) return false;
+const checkIsHillStation = async (address: string, coords?: { lat: number; lng: number }): Promise<boolean> => {
+  if (!address && !coords) return false;
 
-  const lower = address.toLowerCase();
+  const lower = address ? address.toLowerCase() : '';
 
   // ❌ 1. EXCLUSION CHECK FIRST (VERY IMPORTANT)
-  if (HILL_EXCLUSION_KEYWORDS.some(word => lower.includes(word))) {
+  if (lower && HILL_EXCLUSION_KEYWORDS.some(word => lower.includes(word))) {
     return false;
   }
 
   // ✅ 2. FAST KEYWORD CHECK
-  if (HILL_STATIONS.some(hs => lower.includes(hs))) {
+  if (lower && HILL_STATIONS.some(hs => lower.includes(hs))) {
     return true;
   }
 
-  // 3. GEOCODING CHECK (ACCURATE)
+  // 3. COORDINATES CHECK (ACCURATE)
   try {
-    if (!(window as any).google?.maps?.Geocoder) return false;
+    let lat = coords?.lat;
+    let lng = coords?.lng;
 
-    const geocoder = new (window as any).google.maps.Geocoder();
+    if (typeof lat !== 'number' || typeof lng !== 'number') {
+      if (!(window as any).google?.maps?.Geocoder) return false;
 
-    const result = await new Promise<any[]>((resolve, reject) => {
-      geocoder.geocode({ address }, (results: any, status: string) => {
-        if (status === 'OK' && results) resolve(results);
-        else reject(status);
+      const geocoder = new (window as any).google.maps.Geocoder();
+
+      const result = await new Promise<any[]>((resolve, reject) => {
+        geocoder.geocode({ address }, (results: any, status: string) => {
+          if (status === 'OK' && results) resolve(results);
+          else reject(status);
+        });
       });
-    });
 
-    if (result && result[0]) {
-      const loc = result[0].geometry.location;
-      const lat = loc.lat();
-      const lng = loc.lng();
+      if (result && result[0]) {
+        const loc = result[0].geometry.location;
+        lat = loc.lat();
+        lng = loc.lng();
+      }
+    }
 
+    if (typeof lat === 'number' && typeof lng === 'number') {
       return HILL_STATION_ZONES.some(zone => {
-        const dist = calculateHaversineDistance(lat, lng, zone.lat, zone.lng);
+        const dist = calculateHaversineDistance(lat!, lng!, zone.lat, zone.lng);
         return dist <= zone.radius;
       });
     }
   } catch (e) {
-    console.error('Hill station detection geocode failed:', e);
+    console.error('Hill station detection geocode/coords check failed:', e);
   }
 
   return false;
@@ -440,7 +447,7 @@ const POPULAR_LOCATIONS = [
 
 const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialValue }: { 
   type: 'pickup' | 'drop', 
-  onSelect: (address: string) => void, 
+  onSelect: (address: string, placeData?: PlaceData) => void, 
   onClose: () => void,
   googleLoaded: boolean,
   initialValue: string
@@ -451,6 +458,27 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
   const [locating, setLocating] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [clickedToType, setClickedToType] = useState(false);
+
+  const fetchPlaceDetails = (placeId: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const dummyNode = document.createElement('div');
+        const s = new (window as any).google.maps.places.PlacesService(dummyNode);
+        s.getDetails({
+          placeId,
+          fields: ['formatted_address', 'geometry', 'place_id']
+        }, (place: any, status: string) => {
+          if (status === 'OK' && place) {
+            resolve(place);
+          } else {
+            reject(status);
+          }
+        });
+      } catch (err) {
+        reject(err);
+      }
+    });
+  };
 
   const handleUseGPS = () => {
     if (!navigator.geolocation) {
@@ -474,15 +502,28 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
             setLocating(false);
             if (status === 'OK' && results && results[0]) {
               const formattedAddress = results[0].formatted_address;
-              onSelect(formattedAddress);
+              onSelect(formattedAddress, {
+                address: formattedAddress,
+                placeId: results[0].place_id,
+                lat,
+                lng
+              });
             } else {
               setGpsError("Failed to resolve address. Using coordinates.");
-              onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+              onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
+                address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+                lat,
+                lng
+              });
             }
           });
         } else {
           setLocating(false);
-          onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
+            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+            lat,
+            lng
+          });
         }
       },
       (error) => {
@@ -613,25 +654,41 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
             onClick={() => setClickedToType(true)}
             onFocus={() => setClickedToType(true)}
             placeholder={type === 'pickup' ? "Enter pickup location..." : "Enter destination..."}
-            className="w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-[#EAB308]/20 rounded-2xl px-12 py-4 text-[13px] font-bold outline-none dark:text-white transition-all shadow-inner"
+            className={`w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-[#EAB308]/20 rounded-2xl pl-12 ${type === 'pickup' ? 'pr-24' : 'pr-12'} py-4 text-[13px] font-bold outline-none dark:text-white transition-all shadow-inner`}
           />
           <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#EAB308]" size={18} />
-          {query && (
-            <button 
-              onClick={() => {
-                setQuery('');
-                setClickedToType(true);
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-500"
-            >
-              ✕
-            </button>
-          )}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
+            {type === 'pickup' && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleUseGPS();
+                }}
+                disabled={locating}
+                className="w-8 h-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center transition-all shadow-md hover:scale-110 active:scale-95 cursor-pointer animate-fade-in"
+                title="Use current GPS location (99% accuracy)"
+              >
+                <Locate size={14} className={`stroke-[3px] ${locating ? 'animate-spin' : ''}`} />
+              </button>
+            )}
+            {query && (
+              <button 
+                onClick={() => {
+                  setQuery('');
+                  setClickedToType(true);
+                }}
+                className="w-7 h-7 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-500 hover:text-rose-500 cursor-pointer"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1 pb-[500px] overscroll-contain">
-        {type === 'pickup' && !query && !clickedToType && (
+        {type === 'pickup' && !query && (
           <div className="mb-4">
             {gpsError && (
               <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl flex items-center gap-2 mb-2 text-rose-800 dark:text-rose-200 text-[11px] font-semibold">
@@ -643,10 +700,10 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
               type="button"
               onClick={handleUseGPS}
               disabled={locating}
-              className="w-full flex items-center gap-3.5 p-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/5 dark:hover:bg-emerald-500/10 rounded-2xl transition-all text-left border border-emerald-500/20 cursor-pointer"
+              className="w-full flex items-center gap-3.5 p-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/5 dark:hover:bg-emerald-500/10 rounded-2xl transition-all text-left border border-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
             >
-              <div className="bg-emerald-500 text-white p-2.5 rounded-xl flex items-center justify-center shrink-0">
-                <Navigation size={16} className={`rotate-45 ${locating ? 'animate-spin' : ''}`} />
+              <div className="bg-emerald-500 text-white p-2.5 rounded-xl flex items-center justify-center shrink-0 shadow-md">
+                <Locate size={16} className={`stroke-[3px] ${locating ? 'animate-spin' : ''}`} />
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 block uppercase tracking-wider">
@@ -663,7 +720,34 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
           predictions.map((p) => (
             <button 
               key={p.place_id}
-              onClick={() => onSelect(p.description)}
+              disabled={locating}
+              onClick={async () => {
+                setLocating(true);
+                try {
+                  const placeDetails = await fetchPlaceDetails(p.place_id);
+                  const lat = typeof placeDetails.geometry?.location?.lat === 'function' ? placeDetails.geometry.location.lat() : placeDetails.geometry?.location?.lat;
+                  const lng = typeof placeDetails.geometry?.location?.lng === 'function' ? placeDetails.geometry.location.lng() : placeDetails.geometry?.location?.lng;
+                  
+                  if (!placeDetails.geometry || !placeDetails.place_id || typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) {
+                    alert("Selected location details are incomplete or invalid. Please select a specific address.");
+                    setLocating(false);
+                    return;
+                  }
+
+                  const pData = {
+                    address: placeDetails.formatted_address || p.description,
+                    placeId: placeDetails.place_id,
+                    lat,
+                    lng
+                  };
+                  setLocating(false);
+                  onSelect(pData.address, pData);
+                } catch (err) {
+                  console.error("Failed to fetch place details:", err);
+                  setLocating(false);
+                  onSelect(p.description);
+                }
+              }}
               className="w-full flex items-start gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors text-left group border-b border-slate-50 dark:border-slate-800 last:border-none"
             >
               <div className="bg-slate-100 p-2.5 rounded-xl text-slate-400">
@@ -690,7 +774,40 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
               <button
                 key={loc}
                 type="button"
-                onClick={() => onSelect(loc)}
+                disabled={locating}
+                onClick={async () => {
+                  setLocating(true);
+                  try {
+                    const geocoder = new (window as any).google.maps.Geocoder();
+                    const results = await new Promise<any[]>((resolve, reject) => {
+                      geocoder.geocode({ address: loc }, (results: any, status: string) => {
+                        if (status === 'OK' && results) resolve(results);
+                        else reject(status);
+                      });
+                    });
+
+                    if (results && results[0]) {
+                      const res = results[0];
+                      const lat = res.geometry.location.lat();
+                      const lng = res.geometry.location.lng();
+                      const pData = {
+                        address: res.formatted_address || loc,
+                        placeId: res.place_id,
+                        lat,
+                        lng
+                      };
+                      setLocating(false);
+                      onSelect(pData.address, pData);
+                    } else {
+                      setLocating(false);
+                      onSelect(loc);
+                    }
+                  } catch (err) {
+                    console.error("Geocoding popular location failed:", err);
+                    setLocating(false);
+                    onSelect(loc);
+                  }
+                }}
                 className="w-full flex items-center gap-3.5 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all text-left border-b border-slate-100 dark:border-slate-800/40 last:border-none"
               >
                 <div className="bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl text-emerald-500">
@@ -817,11 +934,22 @@ export const BookingForm: React.FC = () => {
             setLocatingPickup(false);
             if (status === 'OK' && results && results[0]) {
               const formattedAddress = results[0].formatted_address;
-              setFormData(prev => ({ ...prev, pickup: formattedAddress }));
+              const pData = {
+                address: formattedAddress,
+                placeId: results[0].place_id,
+                lat,
+                lng
+              };
+              setFormData(prev => ({ ...prev, pickup: formattedAddress, pickupData: pData }));
               if (pickupRef.current) pickupRef.current.value = formattedAddress;
             } else {
               const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-              setFormData(prev => ({ ...prev, pickup: coords }));
+              const pData = {
+                address: coords,
+                lat,
+                lng
+              };
+              setFormData(prev => ({ ...prev, pickup: coords, pickupData: pData }));
               if (pickupRef.current) pickupRef.current.value = coords;
               setGpsErrorPickup("Failed to resolve address. Using coordinates.");
             }
@@ -829,7 +957,12 @@ export const BookingForm: React.FC = () => {
         } else {
           setLocatingPickup(false);
           const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-          setFormData(prev => ({ ...prev, pickup: coords }));
+          const pData = {
+            address: coords,
+            lat,
+            lng
+          };
+          setFormData(prev => ({ ...prev, pickup: coords, pickupData: pData }));
           if (pickupRef.current) pickupRef.current.value = coords;
         }
       },
@@ -978,7 +1111,7 @@ style.innerHTML = `
         strictBounds: false,
         componentRestrictions: { country: "in" },
         locationBias: COIMBATORE_BOUNDS,
-        fields: ["formatted_address", "geometry"],
+        fields: ["formatted_address", "geometry", "place_id"],
       };
 
       if (pickupRef.current && !(pickupRef.current as any).__autocompleteInitialized) {
@@ -986,8 +1119,24 @@ style.innerHTML = `
         pickupAutocomplete.current = new google.maps.places.Autocomplete(pickupRef.current, options);
         pickupAutocomplete.current.addListener('place_changed', () => {
           const place = pickupAutocomplete.current.getPlace();
-          if (place.formatted_address) {
-            setFormData(prev => ({ ...prev, pickup: place.formatted_address }));
+          if (place) {
+            const lat = typeof place.geometry?.location?.lat === 'function' ? place.geometry.location.lat() : place.geometry?.location?.lat;
+            const lng = typeof place.geometry?.location?.lng === 'function' ? place.geometry.location.lng() : place.geometry?.location?.lng;
+
+            if (!place.geometry || !place.place_id || typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) {
+              alert("Selected location details are incomplete or invalid. Please select a specific address.");
+              if (pickupRef.current) pickupRef.current.value = '';
+              setFormData(prev => ({ ...prev, pickup: '', pickupData: undefined }));
+              return;
+            }
+
+            const pData = {
+              address: place.formatted_address || place.name || '',
+              placeId: place.place_id,
+              lat,
+              lng
+            };
+            setFormData(prev => ({ ...prev, pickup: pData.address, pickupData: pData }));
           }
         });
       }
@@ -997,8 +1146,24 @@ style.innerHTML = `
         dropAutocomplete.current = new google.maps.places.Autocomplete(dropRef.current, options);
         dropAutocomplete.current.addListener('place_changed', () => {
           const place = dropAutocomplete.current.getPlace();
-          if (place.formatted_address) {
-            setFormData(prev => ({ ...prev, drop: place.formatted_address }));
+          if (place) {
+            const lat = typeof place.geometry?.location?.lat === 'function' ? place.geometry.location.lat() : place.geometry?.location?.lat;
+            const lng = typeof place.geometry?.location?.lng === 'function' ? place.geometry.location.lng() : place.geometry?.location?.lng;
+
+            if (!place.geometry || !place.place_id || typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) {
+              alert("Selected location details are incomplete or invalid. Please select a specific address.");
+              if (dropRef.current) dropRef.current.value = '';
+              setFormData(prev => ({ ...prev, drop: '', dropData: undefined }));
+              return;
+            }
+
+            const pData = {
+              address: place.formatted_address || place.name || '',
+              placeId: place.place_id,
+              lat,
+              lng
+            };
+            setFormData(prev => ({ ...prev, drop: pData.address, dropData: pData }));
           }
         });
       }
@@ -1048,8 +1213,8 @@ style.innerHTML = `
 
   const pickupMarker = useRef<any>(null);
 
-  const updateMapRoute = useCallback((origin: string, destination: string) => {
-    if (!googleLoaded || !origin || !directionsRenderer.current) return;
+  const updateMapRoute = useCallback((originStr: string, destinationStr: string, pickupData?: PlaceData, dropData?: PlaceData) => {
+    if (!googleLoaded || !originStr || !directionsRenderer.current) return;
 
     // Clear previous marker if any
     if (pickupMarker.current) {
@@ -1057,23 +1222,24 @@ style.innerHTML = `
       pickupMarker.current = null;
     }
 
-    if (formData.tripType === TripTypeRental || !destination) {
+    const hasPickupCoords = typeof pickupData?.lat === 'number' && typeof pickupData?.lng === 'number';
+    const hasDropCoords = typeof dropData?.lat === 'number' && typeof dropData?.lng === 'number';
+
+    if (formData.tripType === TripTypeRental || !destinationStr) {
       // For local or single point, just center and mark
-      const geocoder = new google.maps.Geocoder();
-      geocoder.geocode({ address: origin }, (results: any, status: string) => {
-        if (status === 'OK' && results[0] && mapInstance.current) {
-          const location = results[0].geometry.location;
-          mapInstance.current.setCenter(location);
+      const renderPickupMarker = (position: any | { lat: number; lng: number }) => {
+        if (mapInstance.current) {
+          mapInstance.current.setCenter(position);
           mapInstance.current.setZoom(15);
           
           if (pickupMarker.current) {
             pickupMarker.current.setMap(null);
           }
           pickupMarker.current = new google.maps.Marker({
-            position: location,
+            position,
             map: mapInstance.current,
             title: 'Pickup Location',
-            animation: google.maps.Animation.DROP
+            animation: (window as any).google.maps.Animation.DROP
           });
           
           // Clear any existing route
@@ -1091,7 +1257,18 @@ style.innerHTML = `
             }, 150);
           }
         }
-      });
+      };
+
+      if (hasPickupCoords) {
+        renderPickupMarker({ lat: pickupData!.lat, lng: pickupData!.lng });
+      } else {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: originStr }, (results: any, status: string) => {
+          if (status === 'OK' && results[0] && mapInstance.current) {
+            renderPickupMarker(results[0].geometry.location);
+          }
+        });
+      }
       return;
     }
 
@@ -1100,6 +1277,10 @@ style.innerHTML = `
       pickupMarker.current.setMap(null);
       pickupMarker.current = null;
     }
+
+    const origin = hasPickupCoords ? { lat: pickupData!.lat, lng: pickupData!.lng } : originStr;
+    const destination = hasDropCoords ? { lat: dropData!.lat, lng: dropData!.lng } : destinationStr;
+
     directionsService.current.route(
       { origin, destination, travelMode: google.maps.TravelMode.DRIVING },
       (result: any, status: string) => {
@@ -1140,7 +1321,7 @@ style.innerHTML = `
         google.maps.event.trigger(mapInstance.current, 'resize');
 
         if (formData.pickup && (formData.tripType === TripTypeRental || formData.drop)) {
-          updateMapRoute(formData.pickup, formData.drop);
+          updateMapRoute(formData.pickup, formData.drop, formData.pickupData, formData.dropData);
         } else {
           mapInstance.current.setCenter({ lat: 11.0168, lng: 76.9558 });
           mapInstance.current.setZoom(12);
@@ -1158,8 +1339,14 @@ style.innerHTML = `
     return () => clearTimeout(timer);
   }, [step, formData.pickup, formData.drop, formData.tripType, googleLoaded, updateMapRoute, mapReady]);
 
-  const calculateFare = useCallback(async (origin: string, destination: string, vehicle: VehicleType, tripType: TripType) => {
-    const isHill = false;
+  const calculateFare = useCallback(async (originStr: string, destinationStr: string, vehicle: VehicleType, tripType: TripType, pickupData?: PlaceData, dropData?: PlaceData) => {
+    // Step 4: check hill station using coordinates when available to avoid geocoding
+    const isHill = await checkIsHillStation(
+      originStr,
+      (pickupData && typeof pickupData.lat === 'number' && typeof pickupData.lng === 'number')
+        ? { lat: pickupData.lat, lng: pickupData.lng }
+        : undefined
+    );
     
     if (tripType === TripTypeRental) {
       if (!formData.localPackage) {
@@ -1191,12 +1378,56 @@ style.innerHTML = `
       return;
     }
 
-    if (!origin || !destination || !(window as any).google?.maps) return;
+    if (!originStr || !destinationStr || !(window as any).google?.maps) return;
 
     setLoadingFare(true);
-    const service = new google.maps.DistanceMatrixService();
 
-    service.getDistanceMatrix(
+    const hasPickupCoords = typeof pickupData?.lat === 'number' && typeof pickupData?.lng === 'number';
+    const hasDropCoords = typeof dropData?.lat === 'number' && typeof dropData?.lng === 'number';
+
+    const origin = hasPickupCoords ? { lat: pickupData!.lat, lng: pickupData!.lng } : originStr;
+    const destination = hasDropCoords ? { lat: dropData!.lat, lng: dropData!.lng } : destinationStr;
+
+    try {
+      // Step 8: Use Google Directions Route distance as primary source
+      const directionsServiceInstance = new google.maps.DirectionsService();
+      const result = await new Promise<any>((resolve, reject) => {
+        directionsServiceInstance.route(
+          { origin, destination, travelMode: google.maps.TravelMode.DRIVING },
+          (res: any, status: string) => {
+            if (status === 'OK' && res) resolve(res);
+            else reject(status);
+          }
+        );
+      }).catch(() => null);
+
+      if (result && result.routes && result.routes[0] && result.routes[0].legs && result.routes[0].legs[0]) {
+        const leg = result.routes[0].legs[0];
+        const distanceText = leg.distance.text;
+        const distanceValue = leg.distance.value / 1000;
+        
+        const dayCount = parseInt(formData.numberOfDays || '1', 10) || 1;
+        const waitHrs = parseInt(formData.waitingHours || '0', 10) || 0;
+        const fareInfo = calculateFareDetails(distanceValue, vehicle, tripType, undefined, dayCount, waitHrs, isHill);
+
+        setFormData(prev => ({
+          ...prev,
+          isHillStation: isHill,
+          distance: tripType === TripType.ROUND_TRIP ? `${(distanceValue * 2).toFixed(1)} km` : distanceText,
+          rawDistance: distanceValue,
+          estimatedFare: fareInfo.displayTotal,
+          fareBreakdown: { ...fareInfo.breakdown, total: fareInfo.total }
+        }));
+        setLoadingFare(false);
+        return;
+      }
+    } catch (err) {
+      console.warn("Directions Route distance lookup failed, falling back to Distance Matrix:", err);
+    }
+
+    // Step 3: Coordinate-Based Distance Matrix fallback
+    const matrixService = new google.maps.DistanceMatrixService();
+    matrixService.getDistanceMatrix(
       {
         origins: [origin],
         destinations: [destination],
@@ -1224,18 +1455,18 @@ style.innerHTML = `
         }
       }
     );
-  }, [formData.localPackage, formData.vehicleType, formData.numberOfDays, formData.waitingHours]); 
+  }, [formData.localPackage, formData.vehicleType, formData.numberOfDays, formData.waitingHours, formData.pickupData, formData.dropData]); 
 
   useEffect(() => {
     const runCalculation = async () => {
       if (formData.tripType === TripTypeRental) {
         await calculateFare('', '', formData.vehicleType, formData.tripType);
       } else if (formData.pickup && formData.drop) {
-        await calculateFare(formData.pickup, formData.drop, formData.vehicleType, formData.tripType);
+        await calculateFare(formData.pickup, formData.drop, formData.vehicleType, formData.tripType, formData.pickupData, formData.dropData);
       }
     };
     runCalculation();
-  }, [formData.pickup, formData.drop, formData.vehicleType, formData.tripType, formData.localPackage, formData.numberOfDays, formData.waitingHours, formData.isHillStation, calculateFare]);
+  }, [formData.pickup, formData.drop, formData.pickupData, formData.dropData, formData.vehicleType, formData.tripType, formData.localPackage, formData.numberOfDays, formData.waitingHours, formData.isHillStation, calculateFare]);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -1257,10 +1488,73 @@ style.innerHTML = `
       return;
     }
 
-    const updatedData = { ...formData, pickup: p, drop: d };
+    setLoadingFare(true);
+
+    // Geocoding manual input if coordinates are missing:
+    let pickupData = formData.pickupData;
+    let dropData = formData.dropData;
+
+    try {
+      if (!pickupData || pickupData.address !== p) {
+        // Geocode pickup address
+        const geocoder = new google.maps.Geocoder();
+        const results = await new Promise<any[]>((resolve, reject) => {
+          geocoder.geocode({ address: p }, (results: any, status: string) => {
+            if (status === 'OK' && results) resolve(results);
+            else reject(status);
+          });
+        }).catch(() => null);
+
+        if (results && results[0]) {
+          const res = results[0];
+          const lat = res.geometry.location.lat();
+          const lng = res.geometry.location.lng();
+          pickupData = {
+            address: res.formatted_address || p,
+            placeId: res.place_id,
+            lat,
+            lng
+          };
+        }
+      }
+
+      if (!isRental && (!dropData || dropData.address !== d)) {
+        // Geocode drop address
+        const geocoder = new google.maps.Geocoder();
+        const results = await new Promise<any[]>((resolve, reject) => {
+          geocoder.geocode({ address: d }, (results: any, status: string) => {
+            if (status === 'OK' && results) resolve(results);
+            else reject(status);
+          });
+        }).catch(() => null);
+
+        if (results && results[0]) {
+          const res = results[0];
+          const lat = res.geometry.location.lat();
+          const lng = res.geometry.location.lng();
+          dropData = {
+            address: res.formatted_address || d,
+            placeId: res.place_id,
+            lat,
+            lng
+          };
+        }
+      }
+    } catch (err) {
+      console.error("Geocoding manual input failed:", err);
+    }
+
+    const updatedData = { 
+      ...formData, 
+      pickup: p, 
+      drop: isRental ? '' : d,
+      pickupData,
+      dropData
+    };
     setFormData(updatedData);
-    await calculateFare(p, d, formData.vehicleType, formData.tripType);
+    await calculateFare(p, isRental ? '' : d, formData.vehicleType, formData.tripType, pickupData, dropData);
     
+    setLoadingFare(false);
     setStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -1844,27 +2138,32 @@ style.innerHTML = `
                   placeholder="Enter Pickup Location"
                   value={formData.pickup}
                   onChange={(e) => setFormData(prev => ({ ...prev, pickup: e.target.value }))}
-                  className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-bold outline-none dark:text-white placeholder-slate-400 pr-14"
+                  className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-bold outline-none dark:text-white placeholder-slate-400 pr-16"
                 />
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-10">
                   {locatingPickup && (
                     <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin shrink-0" />
                   )}
-                  {!locatingPickup && !formData.pickup && (
+                  {!locatingPickup && (
                     <button
                       type="button"
-                      onClick={handleDesktopUseGPS}
-                      className="w-6 h-6 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center transition-all shadow-sm border border-emerald-200/50 dark:border-emerald-800/50 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDesktopUseGPS();
+                      }}
+                      className="w-6 h-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center transition-all shadow-md hover:scale-110 active:scale-95 cursor-pointer animate-fade-in"
                       title="Use current GPS location (99% accuracy)"
                     >
-                      <Navigation size={12} className="stroke-[3px] rotate-45" />
+                      <Locate size={12} className="stroke-[3px]" />
                     </button>
                   )}
                   {formData.pickup && (
                     <button
                       type="button"
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, pickup: '' }));
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFormData(prev => ({ ...prev, pickup: '', pickupData: undefined }));
+                        if (pickupRef.current) pickupRef.current.value = '';
                       }}
                       className="w-6 h-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-[#EAB308] rounded-full flex items-center justify-center transition-all shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer"
                       title="Clear pickup"
@@ -2259,12 +2558,12 @@ style.innerHTML = `
           googleLoaded={googleLoaded}
           initialValue={mobileSearchType === 'pickup' ? formData.pickup : formData.drop}
           onClose={() => setMobileSearchType(null)}
-          onSelect={async (address) => {
+          onSelect={async (address, placeData) => {
             if (mobileSearchType === 'pickup') {
-              setFormData(prev => ({ ...prev, pickup: address }));
+              setFormData(prev => ({ ...prev, pickup: address, pickupData: placeData }));
               if (pickupRef.current) pickupRef.current.value = address;
             } else {
-              setFormData(prev => ({ ...prev, drop: address }));
+              setFormData(prev => ({ ...prev, drop: address, dropData: placeData }));
               if (dropRef.current) dropRef.current.value = address;
             }
             setMobileSearchType(null);

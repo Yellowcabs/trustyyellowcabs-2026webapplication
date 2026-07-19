@@ -52,11 +52,20 @@ export interface FareBreakdown {
   extraCharges?: number;
 }
 
+export interface PlaceData {
+  address: string;
+  placeId?: string;
+  lat?: number;
+  lng?: number;
+}
+
 export interface BookingDetails {
   email?: string;
   phone: string;
   pickup: string;
   drop: string;
+  pickupData?: PlaceData;
+  dropData?: PlaceData;
   date?: string;
   time?: string;
   numberOfDays?: string;
