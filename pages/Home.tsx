@@ -7,6 +7,8 @@ import { Link, useLocation } from 'react-router-dom';
 
 export const Home: React.FC = () => {
   const { state } = useLocation();
+  
+  
 
   const scrollToBooking = useCallback(() => {
     const element = document.getElementById('book');
@@ -58,7 +60,7 @@ export const Home: React.FC = () => {
         <link rel="canonical" href="https://www.trustyyellowcabs.in/" />
       </Helmet>
       {/* Hero Section */}
-      <section className="relative min-h-[85vh] flex items-center bg-white dark:bg-slate-950 overflow-hidden py-16 lg:py-0">
+      <section className="relative min-h-[75vh] flex items-center bg-white dark:bg-slate-950 overflow-hidden pt-1 pb-10 lg:py-0">
         <div className="absolute inset-0 z-0">
           <div className="absolute top-[-5%] right-[-5%] w-[600px] h-[600px] bg-brand-yellow/5 rounded-full blur-[120px]"></div>
           <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-slate-50 dark:bg-slate-900/40 rounded-full blur-[100px]"></div>
@@ -66,7 +68,7 @@ export const Home: React.FC = () => {
 
         <div className="relative z-10 container mx-auto px-4 lg:px-12">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="flex flex-col space-y-10 text-center lg:text-left order-2 lg:order-1">
+            <div className="hidden lg:flex flex-col space-y-10 text-center lg:text-left order-2 lg:order-1">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-lg w-fit mx-auto lg:mx-0 shadow-sm">
                 <span className="flex h-1.5 w-1.5 rounded-full bg-brand-yellow"></span>
                 <span className="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">Trustyyellowcabs</span>
@@ -99,15 +101,40 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-           <div className="relative flex justify-center lg:justify-end order-1 lg:order-2 -mt-14 lg:mt-0" id="book">
+           <div className="relative flex justify-center lg:justify-end order-1 lg:order-2 w-full lg:w-auto -mt-4 lg:mt-0" id="book">
               <BookingForm />
             </div>
           </div>
         </div>
       </section>
 
+      {/* App-Style Quote / Trust Highlights */}
+      <section className="bg-slate-50 dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800 py-8 md:py-12 select-none">
+        <div className="container mx-auto px-4 max-w-4xl text-center">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-yellow/10 dark:bg-brand-yellow/5 rounded-full mb-6">
+            <span className="flex h-1.5 w-1.5 rounded-full bg-brand-yellow animate-pulse"></span>
+            <span className="text-[10px] font-black uppercase text-brand-yellow tracking-widest">Coimbatore's Smart Choice</span>
+          </div>
+          
+        <p className="text-base sm:text-lg md:text-3xl font-medium md:font-bold text-slate-900 dark:text-white tracking-normal leading-relaxed md:leading-normal max-w-2xl mx-auto text-center">
+  Local ride ah? Outstation ah? Trusty Yellow Cab dhaan — Anytime, Anywhere!
+</p>
+          
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+            <div className="flex items-center gap-2">
+              <div className="flex text-brand-yellow">
+                {"★"}{"★"}{"★"}{"★"}{"★"}
+              </div>
+              <span className="text-xs font-black text-slate-700 dark:text-slate-300">4.9/5 Rating</span>
+            </div>
+            <div className="hidden sm:block text-slate-300 dark:text-slate-700">|</div>
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">10,000+ Happy Rides Completed</span>
+          </div>
+        </div>
+      </section>
+
       {/* Services Grid */}
-      <section className="py-24 bg-slate-50 dark:bg-slate-900/40">
+      <section className="py-24 bg-white dark:bg-slate-950">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">Our Services</h2>

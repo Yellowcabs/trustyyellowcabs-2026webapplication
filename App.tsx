@@ -24,6 +24,7 @@ const ScrollToTop = () => {
   return null;
 };
 
+
 const App: React.FC = () => {
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark';
