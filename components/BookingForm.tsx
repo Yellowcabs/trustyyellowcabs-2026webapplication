@@ -1880,7 +1880,7 @@ if (submitted) {
                     }));
                   }}
                   className={`
-                    w-full flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left
+                    w-full flex items-center gap-3 p-2 rounded-2xl border-2 transition-all text-left
                     ${formData.vehicleType === v.type 
                       ? 'border-[#EAB308] bg-[#EAB308]/5 dark:bg-[#EAB308]/10' 
                       : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-950'}
