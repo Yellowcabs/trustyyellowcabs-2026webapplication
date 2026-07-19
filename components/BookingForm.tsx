@@ -448,6 +448,63 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
   const [query, setQuery] = useState(initialValue);
   const [predictions, setPredictions] = useState<any[]>([]);
   const service = useRef<any>(null);
+  const [locating, setLocating] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [clickedToType, setClickedToType] = useState(false);
+
+  const handleUseGPS = () => {
+    if (!navigator.geolocation) {
+      setGpsError("GPS is not supported by your browser.");
+      return;
+    }
+
+    setLocating(true);
+    setGpsError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const accuracy = position.coords.accuracy;
+        console.log(`High Accuracy GPS: Lat=${lat}, Lng=${lng}, Accuracy=${accuracy}m`);
+
+        if (googleLoaded && (window as any).google?.maps?.Geocoder) {
+          const geocoder = new (window as any).google.maps.Geocoder();
+          geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
+            setLocating(false);
+            if (status === 'OK' && results && results[0]) {
+              const formattedAddress = results[0].formatted_address;
+              onSelect(formattedAddress);
+            } else {
+              setGpsError("Failed to resolve address. Using coordinates.");
+              onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+            }
+          });
+        } else {
+          setLocating(false);
+          onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        }
+      },
+      (error) => {
+        setLocating(false);
+        console.error("GPS Error Code:", error.code, "Message:", error.message);
+        let errorMsg = "Unable to get your GPS location.";
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMsg = "Location access was denied. Please allow location permissions in your browser/device settings.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          errorMsg = "Location info is unavailable. Ensure GPS is enabled on your device.";
+        } else if (error.code === error.TIMEOUT) {
+          errorMsg = "GPS location request timed out. Please try again.";
+        }
+        setGpsError(errorMsg);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
 
   useEffect(() => {
     if (googleLoaded && (window as any).google?.maps?.places) {
@@ -549,14 +606,22 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
             autoFocus
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setClickedToType(true);
+            }}
+            onClick={() => setClickedToType(true)}
+            onFocus={() => setClickedToType(true)}
             placeholder={type === 'pickup' ? "Enter pickup location..." : "Enter destination..."}
             className="w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-[#EAB308]/20 rounded-2xl px-12 py-4 text-[13px] font-bold outline-none dark:text-white transition-all shadow-inner"
           />
           <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#EAB308]" size={18} />
           {query && (
             <button 
-              onClick={() => setQuery('')}
+              onClick={() => {
+                setQuery('');
+                setClickedToType(true);
+              }}
               className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-500"
             >
               ✕
@@ -566,6 +631,34 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1 pb-[500px] overscroll-contain">
+        {type === 'pickup' && !query && !clickedToType && (
+          <div className="mb-4">
+            {gpsError && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl flex items-center gap-2 mb-2 text-rose-800 dark:text-rose-200 text-[11px] font-semibold">
+                <AlertTriangle size={14} className="shrink-0 text-[#FF6467]" />
+                <span>{gpsError}</span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleUseGPS}
+              disabled={locating}
+              className="w-full flex items-center gap-3.5 p-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/5 dark:hover:bg-emerald-500/10 rounded-2xl transition-all text-left border border-emerald-500/20 cursor-pointer"
+            >
+              <div className="bg-emerald-500 text-white p-2.5 rounded-xl flex items-center justify-center shrink-0">
+                <Navigation size={16} className={`rotate-45 ${locating ? 'animate-spin' : ''}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 block uppercase tracking-wider">
+                  {locating ? 'Acquiring GPS Location...' : 'Use Current GPS Location'}
+                </span>
+                <span className="text-[9px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                  {locating ? 'Pinging satellites for maximum accuracy (99%)...' : 'Detects your work, home or current location with high precision'}
+                </span>
+              </div>
+            </button>
+          </div>
+        )}
         {predictions.length > 0 ? (
           predictions.map((p) => (
             <button 
@@ -698,6 +791,69 @@ export const BookingForm: React.FC = () => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  const [locatingPickup, setLocatingPickup] = useState(false);
+  const [gpsErrorPickup, setGpsErrorPickup] = useState<string | null>(null);
+
+  const handleDesktopUseGPS = () => {
+    if (!navigator.geolocation) {
+      setGpsErrorPickup("GPS is not supported by your browser.");
+      return;
+    }
+
+    setLocatingPickup(true);
+    setGpsErrorPickup(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const accuracy = position.coords.accuracy;
+        console.log(`High Accuracy Desktop GPS: Lat=${lat}, Lng=${lng}, Accuracy=${accuracy}m`);
+
+        if (googleLoaded && (window as any).google?.maps?.Geocoder) {
+          const geocoder = new (window as any).google.maps.Geocoder();
+          geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
+            setLocatingPickup(false);
+            if (status === 'OK' && results && results[0]) {
+              const formattedAddress = results[0].formatted_address;
+              setFormData(prev => ({ ...prev, pickup: formattedAddress }));
+              if (pickupRef.current) pickupRef.current.value = formattedAddress;
+            } else {
+              const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+              setFormData(prev => ({ ...prev, pickup: coords }));
+              if (pickupRef.current) pickupRef.current.value = coords;
+              setGpsErrorPickup("Failed to resolve address. Using coordinates.");
+            }
+          });
+        } else {
+          setLocatingPickup(false);
+          const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          setFormData(prev => ({ ...prev, pickup: coords }));
+          if (pickupRef.current) pickupRef.current.value = coords;
+        }
+      },
+      (error) => {
+        setLocatingPickup(false);
+        console.error("GPS Error Code:", error.code, "Message:", error.message);
+        let errorMsg = "Unable to get your GPS location.";
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMsg = "Location access was denied. Please allow location permissions in your browser/device settings.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          errorMsg = "Location info is unavailable. Ensure GPS is enabled on your device.";
+        } else if (error.code === error.TIMEOUT) {
+          errorMsg = "GPS location request timed out. Please try again.";
+        }
+        setGpsErrorPickup(errorMsg);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
+
   const sessionLeadId = useRef(`lead_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`);
   const isSubmittingRef = useRef(false);
 
@@ -1688,19 +1844,39 @@ style.innerHTML = `
                   placeholder="Enter Pickup Location"
                   value={formData.pickup}
                   onChange={(e) => setFormData(prev => ({ ...prev, pickup: e.target.value }))}
-                  className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-bold outline-none dark:text-white placeholder-slate-400 pr-8"
+                  className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-bold outline-none dark:text-white placeholder-slate-400 pr-14"
                 />
-                {formData.pickup && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, pickup: '' }));
-                    }}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-[#EAB308] rounded-full flex items-center justify-center transition-all shadow-sm border border-slate-200 dark:border-slate-700"
-                    title="Clear pickup"
-                  >
-                    <X size={12} className="stroke-[3px]" />
-                  </button>
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+                  {locatingPickup && (
+                    <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin shrink-0" />
+                  )}
+                  {!locatingPickup && !formData.pickup && (
+                    <button
+                      type="button"
+                      onClick={handleDesktopUseGPS}
+                      className="w-6 h-6 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center transition-all shadow-sm border border-emerald-200/50 dark:border-emerald-800/50 cursor-pointer"
+                      title="Use current GPS location (99% accuracy)"
+                    >
+                      <Navigation size={12} className="stroke-[3px] rotate-45" />
+                    </button>
+                  )}
+                  {formData.pickup && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, pickup: '' }));
+                      }}
+                      className="w-6 h-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-[#EAB308] rounded-full flex items-center justify-center transition-all shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer"
+                      title="Clear pickup"
+                    >
+                      <X size={12} className="stroke-[3px]" />
+                    </button>
+                  )}
+                </div>
+                {gpsErrorPickup && (
+                  <p className="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-wide leading-tight animate-fade-in">
+                    {gpsErrorPickup}
+                  </p>
                 )}
               </div>
 
