@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { BookingDetails, VehicleType, TripType, FareBreakdown } from '../types';
-import { MapPin, User, Phone, Smartphone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Repeat, Navigation, Package, X } from 'lucide-react';
+import { MapPin, User, Phone, Smartphone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Repeat, Navigation, Package, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { sendBookingEmail } from '../services/emailService';
 import { appendBookingToSheet } from '../services/googleSheets';
 import { motion } from 'framer-motion';
@@ -624,6 +624,29 @@ export const BookingForm: React.FC = () => {
   const [step, setStep] = useState(1);
   const stepRef = useRef(1);
   useEffect(() => { stepRef.current = step; }, [step]);
+
+  const [isSheetExpanded, setIsSheetExpanded] = useState(true);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const touchEndY = e.changedTouches[0].clientY;
+    const diff = touchEndY - touchStartY.current;
+    
+    // Swipe down (diff > 40) means collapse the sheet
+    if (diff > 40) {
+      setIsSheetExpanded(false);
+    }
+    // Swipe up (diff < -40) means expand the sheet
+    else if (diff < -40) {
+      setIsSheetExpanded(true);
+    }
+    touchStartY.current = null;
+  };
 
   const [mapNode, setMapNode] = useState<HTMLDivElement | null>(null);
   const pickupRef = useRef<HTMLInputElement>(null);
@@ -1307,6 +1330,10 @@ if (submitted) {
     };
   }, [isMapActive]);
 
+  useEffect(() => {
+    setIsSheetExpanded(true);
+  }, [step, isMapActive]);
+
   return (
     <div className={`
       transition-all duration-500 relative
@@ -1352,28 +1379,85 @@ if (submitted) {
         </button>
       )}
 
-      <div className={`
-        ${isMapActive 
-          ? `fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 pb-4 rounded-t-3xl shadow-[0_-15px_30px_rgba(0,0,0,0.15)] border-t border-slate-100 dark:border-slate-800 ${isKeyboardVisible ? 'h-[85vh] max-h-[85vh]' : 'h-[68vh] max-h-[68vh]'} flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-auto md:max-h-[480px] md:flex-1 md:pr-1 pointer-events-auto` 
-          : 'w-full flex flex-col gap-3.5'
-        }
-      `}>
+      <div 
+        onTouchStart={isMapActive ? handleTouchStart : undefined}
+        onTouchEnd={isMapActive ? handleTouchEnd : undefined}
+        className={`
+          transition-all duration-300 ease-in-out
+          ${isMapActive 
+            ? `fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-auto md:max-h-[480px] md:flex-1 md:pr-1 pointer-events-auto
+               ${isSheetExpanded 
+                 ? `shadow-[0_-15px_30px_rgba(0,0,0,0.15)] p-4 pb-4 rounded-t-[2rem] ${isKeyboardVisible ? 'h-[85vh] max-h-[85vh]' : 'h-[68vh] max-h-[68vh]'}` 
+                 : 'shadow-[0_-5px_15px_rgba(0,0,0,0.08)] p-3 pt-2 pb-4 rounded-t-2xl h-[72px] max-h-[72px] overflow-hidden cursor-pointer'
+               }` 
+            : 'w-full flex flex-col gap-3.5'
+          }
+        `}
+        onClick={(e) => {
+          if (isMapActive && !isSheetExpanded) {
+            setIsSheetExpanded(true);
+          }
+        }}
+      >
         {isMapActive && (
-          <div className="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-2 md:hidden" />
-        )}
-        <div className="flex justify-between items-center mb-1">
-          <h3 className="text-md font-black text-slate-900 dark:text-white uppercase tracking-tight">
-            {step === 1 ? 'Enter Locations' : step === 2 ? 'Enter Mobile' : step === 3 ? 'Select Vehicle' : 'Trip Summary'}
-          </h3>
-          <div className="flex gap-1.5">
-            <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-            <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-            <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-            <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsSheetExpanded(!isSheetExpanded);
+            }}
+            className="w-full flex flex-col items-center py-0.5 cursor-pointer md:hidden group"
+          >
+            <div className="w-12 h-1 bg-slate-300 dark:bg-slate-700 rounded-full group-hover:bg-slate-400 dark:group-hover:bg-slate-500 transition-colors" />
+            <span className="text-[7px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest mt-1">
+              {isSheetExpanded ? 'Swipe Down / Click to View Map' : 'Swipe Up / Click to Book'}
+            </span>
           </div>
-        </div>
+        )}
 
-        <form onSubmit={handleSubmit} className={`${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between gap-2.5 md:space-y-3.5 md:block' : 'space-y-3.5'}`}>
+        {isMapActive && !isSheetExpanded ? (
+          <div className="flex items-center justify-between mt-1 md:hidden animate-fade-in w-full">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="p-1.5 bg-[#EAB308]/10 text-[#EAB308] rounded-xl shrink-0">
+                <Car size={15} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">
+                  Booking in Progress...
+                </p>
+                <p className="text-[8.5px] font-medium text-slate-500 uppercase tracking-wider truncate">
+                  {formData.pickup ? `From: ${formData.pickup.split(',')[0]}` : 'Set locations'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsSheetExpanded(true);
+              }}
+              className="bg-[#EAB308] text-slate-950 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-md flex items-center gap-2 hover:bg-[#FACC15] active:scale-95 transition-all"
+            >
+              <span>Book</span>
+              <ChevronUp size={15} className="stroke-[4px]" />
+            </button>
+          </div>
+        ) : (
+          <div className={`flex justify-between items-center mb-1 ${isMapActive && !isSheetExpanded ? 'hidden md:flex' : ''}`}>
+            <h3 className="text-md font-black text-slate-900 dark:text-white uppercase tracking-tight">
+              {step === 1 ? 'Enter Locations' : step === 2 ? 'Enter Mobile' : step === 3 ? 'Select Vehicle' : 'Trip Summary'}
+            </h3>
+            <div className="flex gap-1.5">
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className={`
+          ${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between gap-2.5 md:space-y-3.5 md:block' : 'space-y-3.5'}
+          ${isMapActive && !isSheetExpanded ? 'hidden md:flex' : ''}
+        `}>
         {/* Step 2: Phone Number Verification / App Access */}
         {step === 2 && (
           <div className={`${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between' : 'space-y-4 py-3'} animate-fade-in flex flex-col items-stretch`}>
@@ -1769,7 +1853,7 @@ if (submitted) {
               <ArrowLeft size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
             </button>
-            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Select Vehicle</span>
+            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Scroll to Select Vehicle</span>
           </div>
 
           <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 app-scroll pb-2 min-h-0' : 'relative group'}`}>
