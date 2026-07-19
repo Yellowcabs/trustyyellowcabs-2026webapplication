@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Sun, Moon } from 'lucide-react';
+import { useMobileView } from './MobileViewContext';
 
 interface NavbarProps {
   darkMode: boolean;
@@ -9,7 +10,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isNavbarOpen, setIsNavbarOpen, setMobileViewMode } = useMobileView();
   const location = useLocation();
 
   const links = [
@@ -28,7 +29,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           
-<Link to="/" className="flex items-center gap-2">
+<Link to="/" onClick={() => setMobileViewMode('map')} className="flex items-center gap-2">
   <img
     src="/images/taxi-icon-512.png"
     alt="TrustyYellowCabs"
@@ -50,6 +51,13 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
               <Link
                 key={link.path}
                 to={link.path}
+                onClick={() => {
+                  if (link.path === '/') {
+                    setMobileViewMode('map');
+                  } else {
+                    setMobileViewMode('explore');
+                  }
+                }}
                 className={`text-[11px] font-bold uppercase tracking-widest transition-all ${
                   isActive(link.path) 
                     ? 'text-brand-yellow' 
@@ -70,6 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
             <Link 
               to="/" 
               state={{ scrollToBook: true }}
+              onClick={() => setMobileViewMode('map')}
               className="bg-brand-yellow hover:bg-yellow-400 text-slate-950 px-8 py-3.5 rounded-lg font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
             >
               Book Now
@@ -87,20 +96,20 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
             </button>
             
             <button
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={() => setIsNavbarOpen(!isNavbarOpen)}
               className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all duration-300 active:scale-95 ${
-                isOpen 
+                isNavbarOpen 
                   ? 'bg-brand-yellow border-brand-yellow text-slate-950 shadow-lg shadow-brand-yellow/20' 
                   : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white'
               }`}
-              aria-expanded={isOpen}
+              aria-expanded={isNavbarOpen}
               aria-label="Toggle navigation menu"
             >
               <span className="text-[10px] font-extrabold uppercase tracking-tighter">
-                {isOpen ? 'Close' : 'Menu'}
+                {isNavbarOpen ? 'Close' : 'Menu'}
               </span>
               <div className="relative w-5 h-5 flex items-center justify-center">
-                {isOpen ? <X size={20} /> : <Menu size={20} />}
+                {isNavbarOpen ? <X size={20} /> : <Menu size={20} />}
               </div>
             </button>
           </div>
@@ -108,14 +117,21 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
       </div>
 
       {/* Mobile Nav Drawer */}
-      {isOpen && (
+      {isNavbarOpen && (
         <div className="md:hidden bg-white dark:bg-slate-950 border-b border-slate-50 dark:border-slate-900 pb-12 transition-all animate-fade-in">
           <div className="px-4 pt-6 space-y-2">
             {links.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsNavbarOpen(false);
+                  if (link.path === '/') {
+                    setMobileViewMode('map');
+                  } else {
+                    setMobileViewMode('explore');
+                  }
+                }}
                 className={`block px-5 py-4 rounded-xl text-sm font-bold uppercase tracking-widest ${
                   isActive(link.path)
                     ? 'bg-slate-50 dark:bg-slate-900 text-brand-yellow'
@@ -129,7 +145,10 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
               <Link
                 to="/"
                 state={{ scrollToBook: true }}
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsNavbarOpen(false);
+                  setMobileViewMode('map');
+                }}
                 className="block w-full text-center bg-brand-yellow text-slate-950 px-6 py-5 rounded-xl font-extrabold uppercase tracking-widest shadow-lg shadow-brand-yellow/20 transition-transform active:scale-[0.98]"
               >
                 Book Your Ride
