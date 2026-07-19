@@ -1,25 +1,14 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Car, Phone, Calendar, Mail } from 'lucide-react';
-import { useMobileView } from './MobileViewContext';
 
 export const MobileTabBar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { setMobileViewMode } = useMobileView();
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { 
-      path: '/', 
-      label: 'Home', 
-      icon: Home,
-      isAction: true,
-      action: () => {
-        setMobileViewMode('map');
-        navigate('/');
-      }
-    },
+    { path: '/', label: 'Home', icon: Home },
     { path: '/fleet', label: 'Fleet', icon: Car },
     { 
       path: '/', 
@@ -27,10 +16,7 @@ export const MobileTabBar: React.FC = () => {
       icon: Calendar, 
       isAction: true, 
       isPrimary: true,
-      action: () => {
-        setMobileViewMode('map');
-        navigate('/');
-      }
+      action: () => navigate('/', { state: { scrollToBook: true } }) 
     },
     { 
       path: 'tel:+918870088020', 
@@ -49,30 +35,19 @@ export const MobileTabBar: React.FC = () => {
           const Icon = item.icon;
           const active = isActive(item.path) && !item.isAction && !item.isExternal;
 
-          // Action Style (Home, Book)
-          if (item.isAction) {
+          // Primary CTA Style (Book)
+               if (item.isPrimary) {
             return (
               <button
-                key={item.label}
-                onClick={item.action}
-                className={`flex-grow flex-1 flex flex-col items-center justify-center transition-all relative group active:scale-95 ${
-                  item.isPrimary
-                    ? 'text-slate-950 dark:text-white group'
-                    : (isActive('/') ? 'text-brand-yellow' : 'text-slate-400 dark:text-slate-500')
-                }`}
-              >
-                {isActive('/') && !item.isPrimary && (
-                  <div className="absolute top-0 left-1/4 right-1/4 h-1 bg-brand-yellow rounded-b-full shadow-[0_2px_10px_rgba(253,184,19,0.5)]" />
-                )}
-                <Icon size={20} strokeWidth={item.isPrimary ? 3 : (isActive('/') ? 2.5 : 2)} className="group-active:scale-110 transition-transform" />
-                <span className={`text-[9px] mt-1 uppercase tracking-tighter ${
-                  item.isPrimary 
-                    ? 'font-black' 
-                    : (isActive('/') ? 'font-bold opacity-100' : 'font-medium opacity-60')
-                }`}>
-                  {item.label}
-                </span>
-              </button>
+    key={item.label}
+    onClick={item.action}
+    className="flex-1 flex flex-col items-center justify-center text-slate-950 dark:text-white transition-all active:scale-95 group"
+  >
+    <Icon size={20} strokeWidth={3} className="group-active:scale-110 transition-transform" />
+    <span className="text-[9px] font-black mt-1 uppercase tracking-tighter">
+      {item.label}
+    </span>
+  </button>
             );
           }
           // Urgent Action Style (Call)
@@ -93,12 +68,11 @@ export const MobileTabBar: React.FC = () => {
             );
           }
 
-          // Standard Nav Items (Fleet, Contact)
+          // Standard Nav Items (Home, Fleet, Contact)
           return (
             <Link
               key={item.path}
               to={item.path}
-              onClick={() => setMobileViewMode('explore')}
               className={`flex-1 flex flex-col items-center justify-center transition-all relative group active:scale-95 ${
                 active 
                   ? 'text-brand-yellow' 

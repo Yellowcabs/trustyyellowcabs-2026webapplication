@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { BookingDetails, VehicleType, TripType, FareBreakdown } from '../types';
-import { MapPin, User, Phone, Smartphone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Repeat, Navigation, Package, X, ChevronUp, ChevronDown, Menu } from 'lucide-react';
+import { MapPin, User, Phone, Smartphone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Repeat, Navigation, Package, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { sendBookingEmail } from '../services/emailService';
 import { appendBookingToSheet } from '../services/googleSheets';
 import { motion } from 'framer-motion';
-import { useMobileView } from './MobileViewContext';
 
 declare const google: any;
 
@@ -594,111 +593,6 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
             <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-2">
               {query ? 'Matching Locations' : 'Popular Locations Coimbatore'}
             </h3>
-            {type === 'pickup' && (
-              <button
-                type="button"
-                onClick={() => {
-                  setQuery("Detecting current location...");
-                  
-                  const handleAddressSuccess = (coords: { lat: number; lng: number }) => {
-                    if ((window as any).google?.maps?.Geocoder) {
-                      const geocoder = new (window as any).google.maps.Geocoder();
-                      geocoder.geocode({ location: coords }, (results: any, status: string) => {
-                        if (status === 'OK' && results && results[0]) {
-                          onSelect(results[0].formatted_address);
-                        } else {
-                          alert("Location detected, but failed to resolve postal address. Please enter it manually.");
-                          setQuery("");
-                        }
-                      });
-                    } else {
-                      alert("Google Maps is not fully loaded. Please try again.");
-                      setQuery("");
-                    }
-                  };
-
-                  const handleIPFallback = async () => {
-                    try {
-                      let lat = 11.0168; // Coimbatore default
-                      let lng = 76.9558;
-                      let success = false;
-                      try {
-                        const res = await fetch('https://ipapi.co/json/');
-                        const data = await res.json();
-                        if (data && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
-                          lat = data.latitude;
-                          lng = data.longitude;
-                          success = true;
-                        }
-                      } catch (e) {
-                        console.warn("ipapi fallback error", e);
-                      }
-                      if (!success) {
-                        try {
-                          const res = await fetch('https://freeipapi.com/api/json');
-                          const data = await res.json();
-                          if (data && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
-                            lat = data.latitude;
-                            lng = data.longitude;
-                          }
-                        } catch (e) {
-                          console.warn("freeipapi fallback error", e);
-                        }
-                      }
-                      handleAddressSuccess({ lat, lng });
-                    } catch (e) {
-                      setQuery("");
-                    }
-                  };
-
-                  if (!navigator.geolocation) {
-                    handleIPFallback();
-                    return;
-                  }
-
-                  // Attempt 1: High Accuracy (GPS), 12 seconds timeout
-                  navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                      handleAddressSuccess({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                      });
-                    },
-                    (error1) => {
-                      console.warn("High accuracy geolocation failed on click, trying standard network...", error1.message);
-                      // Attempt 2: Low Accuracy (Network based)
-                      navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                          handleAddressSuccess({
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                          });
-                        },
-                        (error2) => {
-                          console.warn("Standard network geolocation failed on click, using IP fallback...", error2.message);
-                          handleIPFallback();
-                        },
-                        { enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 }
-                      );
-                    },
-                    { enableHighAccuracy: true, timeout: 12000, maximumAge: 10000 }
-                  );
-                }}
-                className="w-full flex items-center gap-3.5 p-4 bg-amber-500/5 dark:bg-amber-500/10 hover:bg-amber-500/10 dark:hover:bg-amber-500/15 border border-amber-500/20 rounded-2xl transition-all text-left mb-3 cursor-pointer"
-              >
-                <div className="bg-amber-500 text-white p-2.5 rounded-xl animate-pulse">
-                  <Navigation size={16} className="fill-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-xs font-black text-[#EAB308] dark:text-[#EAB308] block uppercase tracking-wider">
-                    Use Current Location
-                  </span>
-                  <span className="text-[9px] text-slate-400 dark:text-slate-500 block font-bold uppercase tracking-widest mt-0.5">
-                    Detect via GPS & Reverse Geocode
-                  </span>
-                </div>
-              </button>
-            )}
             {(query ? POPULAR_LOCATIONS.filter(l => l.toLowerCase().includes(query.toLowerCase())) : POPULAR_LOCATIONS).map((loc) => (
               <button
                 key={loc}
@@ -799,115 +693,6 @@ export const BookingForm: React.FC = () => {
     rawDistance: 0,
     estimatedFare: '',
   });
-
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [detectingLocation, setDetectingLocation] = useState(false);
-
-  const detectAndSetUserLocation = useCallback((autoFillPickup: boolean = false, isSilent: boolean = false) => {
-    setDetectingLocation(true);
-
-    const handleSuccess = (coords: { lat: number; lng: number }) => {
-      setUserLocation(coords);
-
-      if (mapInstance.current) {
-        mapInstance.current.setCenter(coords);
-        mapInstance.current.setZoom(15);
-      }
-
-      if ((window as any).google?.maps?.Geocoder) {
-        const geocoder = new (window as any).google.maps.Geocoder();
-        geocoder.geocode({ location: coords }, (results: any, status: string) => {
-          setDetectingLocation(false);
-          if (status === 'OK' && results && results[0]) {
-            const formattedAddress = results[0].formatted_address;
-            if (autoFillPickup) {
-              setFormData(prev => ({ ...prev, pickup: formattedAddress }));
-              if (pickupRef.current) {
-                pickupRef.current.value = formattedAddress;
-              }
-            }
-          } else if (!isSilent) {
-            alert("Location detected, but failed to resolve postal address. Please enter it manually.");
-          }
-        });
-      } else {
-        setDetectingLocation(false);
-      }
-    };
-
-    const handleIPFallback = async () => {
-      try {
-        let lat = 11.0168; // Coimbatore default backup
-        let lng = 76.9558;
-        let success = false;
-
-        try {
-          const res = await fetch('https://ipapi.co/json/');
-          const data = await res.json();
-          if (data && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
-            lat = data.latitude;
-            lng = data.longitude;
-            success = true;
-          }
-        } catch (e) {
-          console.warn("ipapi.co failed, trying freeipapi.com...", e);
-        }
-
-        if (!success) {
-          try {
-            const res = await fetch('https://freeipapi.com/api/json');
-            const data = await res.json();
-            if (data && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
-              lat = data.latitude;
-              lng = data.longitude;
-              success = true;
-            }
-          } catch (e) {
-            console.warn("freeipapi.com failed too", e);
-          }
-        }
-
-        handleSuccess({ lat, lng });
-      } catch (err) {
-        console.error("IP fallback error:", err);
-        setDetectingLocation(false);
-      }
-    };
-
-    if (!navigator.geolocation) {
-      handleIPFallback();
-      return;
-    }
-
-    // Attempt 1: High Accuracy, 12 seconds timeout (generous for mobile hardware to lock GPS)
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        handleSuccess({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        });
-      },
-      (error1) => {
-        console.warn("High accuracy geolocation failed, trying standard network...", error1.message);
-        // Attempt 2: Low Accuracy (WiFi/Cell network based), fast and reliable indoors
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            handleSuccess({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            });
-          },
-          (error2) => {
-            console.warn("Standard network geolocation failed, using IP fallback...", error2.message);
-            // Attempt 3: IP Geolocation API (Works without any permissions or hardware)
-            handleIPFallback();
-          },
-          { enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 }
-        );
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 10000 }
-    );
-  }, []);
 
   const [mobileSearchType, setMobileSearchType] = useState<null | 'pickup' | 'drop'>(null);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -1449,22 +1234,15 @@ style.innerHTML = `
 };
 
 
-  const { mobileViewMode, setMobileViewMode, setIsNavbarOpen } = useMobileView();
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
   const isMapActive = !!(
     !submitted &&
-    (
-      (isMobile && mobileViewMode === 'map') ||
-      (formData.pickup && (
-        formData.tripType === TripTypeRental ||
-        formData.tripType === TripType.ONE_WAY ||
-        formData.tripType === TripType.ROUND_TRIP ||
-        formData.drop
-      ))
+    formData.pickup && (
+      formData.tripType === TripTypeRental ||
+      formData.tripType === TripType.ONE_WAY ||
+      formData.tripType === TripType.ROUND_TRIP ||
+      formData.drop
     )
   );
-
 
   useEffect(() => {
     const checkAndToggleClass = () => {
@@ -1577,7 +1355,7 @@ style.innerHTML = `
         </div>
       )}
 
-      {isMapActive && (step > 1 || formData.pickup) && (
+      {isMapActive && (
         <button
           type="button"
           onClick={() => {
@@ -1585,53 +1363,21 @@ style.innerHTML = `
             handleAbandonment();
             leadSentRef.current = false; // Reset tracker for future attempts
             
-            if (step > 1) {
-              setStep(step - 1);
-            } else {
-              // Fall back to home screen by resetting locations and step
-              setFormData(prev => ({ 
-                ...prev, 
-                pickup: '', 
-                drop: '', 
-                distance: '', 
-                estimatedFare: '' 
-              }));
-              setStep(1);
-            }
+            // Fall back to home screen by resetting locations and step
+            setFormData(prev => ({ 
+              ...prev, 
+              pickup: '', 
+              drop: '', 
+              distance: '', 
+              estimatedFare: '' 
+            }));
+            setStep(1);
           }}
           className="md:hidden fixed top-4 left-4 z-50 bg-white/95 dark:bg-slate-900/95 p-3 rounded-full shadow-xl border border-slate-200 dark:border-slate-800 flex items-center justify-center active:scale-95 transition-all pointer-events-auto"
           title="Back"
         >
           <ArrowLeft size={18} className="text-slate-700 dark:text-slate-300 stroke-[3px]" />
         </button>
-      )}
-
-      {isMobile && isMapActive && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 pointer-events-auto">
-          {/* Call Button - Positioned horizontally near Menu Button */}
-          <button
-            type="button"
-            onClick={() => window.location.href = 'tel:+918870088020'}
-            className="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white p-2.5 px-4 rounded-full shadow-xl flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer border border-emerald-400/20 font-black text-[10px] uppercase tracking-wider"
-            aria-label="Call Us"
-          >
-            <Phone size={14} className="stroke-[3px]" />
-            <span>Call</span>
-          </button>
-
-          {/* Menu Button */}
-          <button
-            type="button"
-            onClick={() => {
-              setMobileViewMode('explore');
-              setIsNavbarOpen(true);
-            }}
-            className="bg-white/95 dark:bg-slate-900/95 p-2.5 px-4 rounded-full shadow-xl border border-slate-200 dark:border-slate-800 flex items-center gap-2 active:scale-95 transition-all font-black text-[10px] uppercase tracking-wider text-slate-800 dark:text-slate-200"
-          >
-            <Menu size={14} className="text-brand-yellow stroke-[3px]" />
-            <span>Menu</span>
-          </button>
-        </div>
       )}
 
       <div 
@@ -1944,36 +1690,18 @@ style.innerHTML = `
                   onChange={(e) => setFormData(prev => ({ ...prev, pickup: e.target.value }))}
                   className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-bold outline-none dark:text-white placeholder-slate-400 pr-8"
                 />
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-10">
-                  {detectingLocation && (
-                    <span className="w-3.5 h-3.5 rounded-full border-2 border-[#EAB308] border-t-transparent animate-spin shrink-0" />
-                  )}
-                  {!detectingLocation && !formData.pickup && (
-                    <button
-                      type="button"
-                      onClick={() => detectAndSetUserLocation(true)}
-                      className="w-6 h-6 bg-amber-500/10 hover:bg-amber-500/20 text-[#EAB308] rounded-full flex items-center justify-center transition-all border border-amber-500/20 shadow-sm cursor-pointer"
-                      title="Use current location"
-                    >
-                      <Navigation size={10} className="stroke-[3px] fill-[#EAB308]/40" />
-                    </button>
-                  )}
-                  {formData.pickup && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, pickup: '' }));
-                        if (pickupRef.current) {
-                          pickupRef.current.value = '';
-                        }
-                      }}
-                      className="w-6 h-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-[#EAB308] rounded-full flex items-center justify-center transition-all shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer"
-                      title="Clear pickup"
-                    >
-                      <X size={12} className="stroke-[3px]" />
-                    </button>
-                  )}
-                </div>
+                {formData.pickup && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, pickup: '' }));
+                    }}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-[#EAB308] rounded-full flex items-center justify-center transition-all shadow-sm border border-slate-200 dark:border-slate-700"
+                    title="Clear pickup"
+                  >
+                    <X size={12} className="stroke-[3px]" />
+                  </button>
+                )}
               </div>
 
               {formData.tripType !== TripTypeRental && (

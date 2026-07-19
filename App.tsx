@@ -13,7 +13,6 @@ import { MobileTabBar } from './components/MobileTabBar';
 import KovaiTaxiPage from './pages/KovaiTaxiPage';
 import { LocationPage } from './pages/LocationPage';
 import { Locations } from './pages/Locations';
-import { MobileViewProvider } from './components/MobileViewContext';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -43,7 +42,7 @@ const App: React.FC = () => {
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
   return (
-    <MobileViewProvider>
+    <>
       <ScrollToTop />
       <div className={`min-h-screen flex flex-col transition-colors duration-300 ${darkMode ? 'dark bg-slate-900' : 'bg-white'}`}>
         <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
@@ -68,7 +67,7 @@ const App: React.FC = () => {
         <FloatingCallButton />
         <MobileTabBar />
       </div>
-    </MobileViewProvider>
+    </>
   );
 };
 
