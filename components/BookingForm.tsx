@@ -414,7 +414,7 @@ const InputWrapper = memo(({ children, icon: Icon, label }: { children: React.Re
   <div className="relative group w-full">
     {label && <label className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">{label}</label>}
     <div className="relative">
-      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#EAB308] transition-colors duration-300 pointer-events-none z-10">
+      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#FDB813] transition-colors duration-300 pointer-events-none z-10">
         <Icon size={16} />
       </div>
       {children}
@@ -626,7 +626,7 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
         <div className="flex items-center justify-between mb-4">
           <button 
             onClick={onClose} 
-            className="flex items-center gap-1 text-[#EAB308] hover:bg-slate-50 dark:hover:bg-slate-800 p-2 -ml-2 rounded-xl transition-all min-h-[44px]"
+            className="flex items-center gap-1 text-[#CA8A04] dark:text-[#FDB813] hover:bg-slate-50 dark:hover:bg-slate-800 p-2 -ml-2 rounded-xl transition-all min-h-[44px]"
           >
             <ArrowLeft size={20} />
             <span className="text-[11px] font-black uppercase tracking-widest">Back</span>
@@ -654,9 +654,9 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
             onClick={() => setClickedToType(true)}
             onFocus={() => setClickedToType(true)}
             placeholder={type === 'pickup' ? "Enter pickup location..." : "Enter destination..."}
-            className={`w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-[#EAB308]/20 rounded-2xl pl-12 ${type === 'pickup' ? 'pr-24' : 'pr-12'} py-4 min-h-[48px] text-[13px] font-bold outline-none dark:text-white transition-all shadow-inner`}
+            className={`w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-[#FDB813]/20 rounded-2xl pl-12 ${type === 'pickup' ? 'pr-24' : 'pr-12'} py-4 min-h-[48px] text-[13px] font-bold outline-none dark:text-white transition-all shadow-inner`}
           />
-          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#EAB308]" size={18} />
+          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FDB813]" size={18} />
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
             {type === 'pickup' && (
               <button
@@ -692,7 +692,7 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
           <div className="mb-4">
             {gpsError && (
               <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl flex items-center gap-2 mb-2 text-rose-800 dark:text-rose-200 text-[11px] font-semibold">
-                <AlertTriangle size={14} className="shrink-0 text-[#FF6467]" />
+                <AlertTriangle size={14} className="shrink-0 text-[#FDB813]" />
                 <span>{gpsError}</span>
               </div>
             )}
@@ -755,7 +755,7 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="text-[14px] font-semibold text-[#EAB308] dark:text-[#EAB308] leading-5">
+                <div className="text-[14px] font-semibold text-[#CA8A04] dark:text-[#FDB813] leading-5">
                   {p.structured_formatting?.main_text || p.description}
                 </div>
 
@@ -1064,7 +1064,7 @@ style.innerHTML = `
 
   .pac-item .pac-item-query {
     font-weight: 900 !important;
-    color: #EAB308 !important; /* custom highlight */
+    color: #FDB813 !important; /* custom highlight */
   }
 
   .pac-item .pac-item-subtitle {
@@ -1205,7 +1205,7 @@ style.innerHTML = `
       directionsService.current = new google.maps.DirectionsService();
       directionsRenderer.current = new google.maps.DirectionsRenderer({
         map: mapInstance.current,
-        polylineOptions: { strokeColor: "#EAB308", strokeWeight: 6, strokeOpacity: 0.95 },
+        polylineOptions: { strokeColor: "#FDB813", strokeWeight: 6, strokeOpacity: 0.95 },
         suppressMarkers: false,
         preserveViewport: true
       });
@@ -1691,7 +1691,7 @@ style.innerHTML = `
   const hillStr = formData.isHillStation ? '%0A*Hill Station Charge:* Applied (₹300)' : '';
 
   const message = `*NEW BOOKING CONFIRMATION*%0A*Trip Type:* ${formData.tripType}%0A*Phone:* ${formData.phone}%0A*Pickup:* ${formData.pickup}%0A${tripDetails}%0A${dateTimeStr}${hillStr}%0A*Vehicle:* ${formData.vehicleType}%0A*Fare:* ${formData.estimatedFare}`;
-  window.open(`https://wa.me/918870088020?text=${message}`, '_blank');
+  window.open(`https://wa.me/919488834020?text=${message}`, '_blank');
 };
 
 
@@ -1801,9 +1801,7 @@ style.innerHTML = `
       transition-all duration-500 relative
       ${isMapActive 
         ? 'fixed inset-0 w-full max-w-full overflow-hidden md:relative md:w-full md:max-w-3xl md:min-h-[500px] pointer-events-auto bg-slate-50 dark:bg-slate-950 md:bg-white md:dark:bg-slate-900 md:p-5 md:rounded-[2.5rem] shadow-none md:shadow-2xl md:border md:border-slate-100 md:dark:border-slate-800 mx-auto flex flex-col md:flex-row gap-5 z-[80]' 
-        : isMobileScreen
-          ? 'w-full max-w-lg bg-transparent border-none shadow-none p-0 mx-auto'
-          : 'w-full max-w-sm bg-white dark:bg-slate-900 p-4 pb-6 sm:p-5 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 mx-auto'
+        : 'w-full max-w-lg md:max-w-sm bg-transparent md:bg-white md:dark:bg-slate-900 border-none md:border md:border-slate-105 md:dark:border-slate-850 shadow-none md:shadow-2xl p-0 md:p-5 pb-0 md:pb-6 rounded-none md:rounded-3xl mx-auto'
       }
     `}>
       {isMapActive && (
@@ -1811,7 +1809,7 @@ style.innerHTML = `
           <div ref={setMapNode} className="w-full h-full" />
           {mapError && (
             <div className="absolute top-[calc(env(safe-area-inset-top,16px)+190px)] md:top-auto md:bottom-2 left-4 right-4 md:left-2 md:right-2 bg-rose-50/95 dark:bg-rose-950/95 border border-rose-200 dark:border-rose-900/50 p-1.5 px-2.5 rounded-xl flex items-center gap-2 shadow-md animate-in fade-in slide-in-from-bottom-1 z-10">
-              <AlertTriangle size={12} className="text-[#FF6467] shrink-0" />
+              <AlertTriangle size={12} className="text-[#FDB813] shrink-0" />
               <span className="text-[9px] text-rose-800 dark:text-rose-200 font-bold uppercase tracking-wider">{mapError}</span>
             </div>
           )}
@@ -1849,10 +1847,10 @@ style.innerHTML = `
         className={`
           transition-all duration-300 ease-in-out
           ${isMapActive 
-            ? `fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-auto md:max-h-[480px] md:flex-1 md:pr-1 pointer-events-auto
+            ? `fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-[460px] md:max-h-[460px] md:flex md:flex-col md:flex-1 md:pr-1 pointer-events-auto
                ${isSheetExpanded 
-                 ? `shadow-[0_-15px_30px_rgba(0,0,0,0.15)] p-4 pb-[calc(env(safe-area-inset-bottom,16px)+16px)] rounded-t-[2rem] ${isKeyboardVisible ? 'h-[85vh] max-h-[85vh]' : 'h-[62vh] max-h-[62vh]'}` 
-                 : 'shadow-[0_-5px_15px_rgba(0,0,0,0.08)] p-3 pt-2 pb-[calc(env(safe-area-inset-bottom,16px)+8px)] rounded-t-2xl h-[72px] max-h-[72px] overflow-hidden cursor-pointer'
+                 ? `shadow-[0_-15px_30px_rgba(0,0,0,0.15)] p-4 pb-[calc(env(safe-area-inset-bottom,16px)+16px)] rounded-t-[2rem] md:shadow-none md:p-0 md:rounded-none ${isKeyboardVisible ? 'h-[85vh] max-h-[85vh] md:h-[460px] md:max-h-[460px]' : 'h-[62vh] max-h-[62vh] md:h-[460px] md:max-h-[460px]'}` 
+                 : 'shadow-[0_-5px_15px_rgba(0,0,0,0.08)] p-3 pt-2 pb-[calc(env(safe-area-inset-bottom,16px)+8px)] rounded-t-2xl h-[72px] max-h-[72px] md:h-[460px] md:max-h-[460px] md:shadow-none md:p-0 md:rounded-none overflow-hidden cursor-pointer'
                }` 
             : 'w-full flex flex-col gap-3.5'
           }
@@ -1880,21 +1878,21 @@ style.innerHTML = `
           </div>
         )}
 
-      {isMobileScreen === true && step === 1 && !isMapActive && (
-  <div className="flex flex-col text-left space-y-2 mb-3 select-none animate-fade-in px-1">
-    {/* Display Headings */}
-    <div className="space-y-1">
-      <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white leading-[1.1] tracking-tight">
-        Need a Ride? Book a Taxi Nearby
-      </h1>
-    </div>
-  </div>
-)}
+        {step === 1 && !isMapActive && (
+          <div className="flex flex-col text-left space-y-2 mb-3 select-none animate-fade-in px-1 lg:hidden">
+            {/* Display Headings */}
+            <div className="space-y-1">
+              <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white leading-[1.1] tracking-tight">
+                Need a Ride? Book a Taxi Nearby
+              </h1>
+            </div>
+          </div>
+        )}
 
         {isMapActive && !isSheetExpanded ? (
           <div className="flex items-center justify-between mt-1 md:hidden animate-fade-in w-full">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="p-1.5 bg-[#EAB308]/10 text-[#EAB308] rounded-xl shrink-0">
+              <div className="p-1.5 bg-[#FDB813]/10 text-[#CA8A04] dark:text-[#FDB813] rounded-xl shrink-0">
                 <Car size={15} />
               </div>
               <div className="min-w-0">
@@ -1911,30 +1909,28 @@ style.innerHTML = `
                 e.stopPropagation();
                 setIsSheetExpanded(true);
               }}
-              className="bg-[#EAB308] text-slate-950 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-md flex items-center gap-2 hover:bg-[#FACC15] active:scale-95 transition-all"
+              className="bg-[#FDB813] text-slate-950 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-md flex items-center gap-2 hover:bg-[#E5A300] active:scale-95 transition-all"
             >
               <span>Book</span>
               <ChevronUp size={15} className="stroke-[4px]" />
             </button>
           </div>
         ) : (
-          !(isMobileScreen && step === 1 && !isMapActive) && (
-            <div className={`flex justify-between items-center mb-1 ${isMapActive && !isSheetExpanded ? 'hidden md:flex' : ''}`}>
-              <h3 className="text-md font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                {step === 1 ? 'Enter Locations' : step === 2 ? 'Enter Mobile' : step === 3 ? 'Select Vehicle' : 'Trip Summary'}
-              </h3>
-              <div className="flex gap-1.5">
-                <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-                <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-                <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-                <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-[#EAB308]' : 'bg-slate-200 dark:bg-slate-800'}`} />
-              </div>
+          <div className={`justify-between items-center mb-1 ${isMapActive && !isSheetExpanded ? 'hidden md:flex' : 'flex'} ${step === 1 && !isMapActive ? 'hidden lg:flex' : 'flex'}`}>
+            <h3 className="text-md font-black text-slate-900 dark:text-white uppercase tracking-tight">
+              {step === 1 ? 'Enter Locations' : step === 2 ? 'Enter Mobile' : step === 3 ? 'Select Vehicle' : 'Trip Summary'}
+            </h3>
+            <div className="flex gap-1.5">
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-[#FDB813]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-[#FDB813]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-[#FDB813]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-[#FDB813]' : 'bg-slate-200 dark:bg-slate-800'}`} />
             </div>
-          )
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className={`
-          ${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between gap-2.5 md:space-y-3.5 md:block' : 'space-y-3.5'}
+          ${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between gap-2.5 md:flex md:flex-col md:h-full md:space-y-0' : 'space-y-3.5'}
           ${isMapActive && !isSheetExpanded ? 'hidden md:flex' : ''}
         `}>
         {/* Step 2: Phone Number Verification / App Access */}
@@ -1954,12 +1950,11 @@ style.innerHTML = `
                 <span>Change Locations</span>
               </button>
 
-              {/* Show Date, Time, Duration card here on mobile */}
-              {isMobileScreen && (
-                <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-2xl p-2.5 px-3.5 flex items-center divide-x divide-slate-200/80 dark:divide-slate-800/80 shadow-sm gap-0.5 my-2 animate-fade-in text-left">
+              {/* Show Date, Time, Duration card here on mobile & desktop */}
+              <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-2xl p-2.5 px-3.5 flex items-center divide-x divide-slate-200/80 dark:divide-slate-800/80 shadow-sm gap-0.5 my-2 animate-fade-in text-left">
                   {/* Date Column */}
                   <div className="flex-1 flex items-center gap-1.5 min-w-0 pr-3">
-                    <Calendar size={13} className="text-[#EAB308] shrink-0" />
+                    <Calendar size={13} className="text-[#CA8A04] dark:text-[#FDB813] shrink-0" />
                     <div className="flex-1 min-w-0">
                       <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Date</span>
                       <input
@@ -1975,7 +1970,7 @@ style.innerHTML = `
 
                   {/* Time Column */}
                   <div className={`flex-1 flex items-center gap-1.5 min-w-0 px-3 ${formData.tripType === TripType.ROUND_TRIP ? 'pr-3' : ''}`}>
-                    <Clock size={13} className="text-[#EAB308] shrink-0" />
+                    <Clock size={13} className="text-[#CA8A04] dark:text-[#FDB813] shrink-0" />
                     <div className="flex-1 min-w-0">
                       <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Time</span>
                       <input
@@ -1991,7 +1986,7 @@ style.innerHTML = `
                   {/* Duration (Round Trip only) */}
                   {formData.tripType === TripType.ROUND_TRIP && (
                     <div className="flex-1 flex items-center gap-1.5 min-w-0 pl-3">
-                      <Clock size={13} className="text-[#EAB308] shrink-0" />
+                      <Clock size={13} className="text-[#CA8A04] dark:text-[#FDB813] shrink-0" />
                       <div className="flex-1 min-w-0">
                         <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Duration</span>
                         <select
@@ -2010,14 +2005,13 @@ style.innerHTML = `
                     </div>
                   )}
                 </div>
-              )}
 
-              <div className="w-full bg-[#EAB308]/5 dark:bg-[#EAB308]/10 border-2 border-[#EAB308] focus-within:ring-4 focus-within:ring-[#EAB308]/20 rounded-xl p-2.5 px-3.5 flex items-center gap-3 transition-all shadow-md shadow-[#EAB308]/5 relative overflow-hidden text-left mt-2">
-                <span className="text-xs font-black text-[#EAB308] select-none border-r border-[#EAB308]/20 pr-2">
+              <div className="w-full bg-[#FDB813]/5 dark:bg-[#FDB813]/10 border-2 border-[#FDB813] focus-within:ring-4 focus-within:ring-[#FDB813]/20 rounded-xl p-2.5 px-3.5 flex items-center gap-3 transition-all shadow-md shadow-[#FDB813]/5 relative overflow-hidden text-left mt-2">
+                <span className="text-xs font-black text-[#CA8A04] dark:text-[#FDB813] select-none border-r border-[#FDB813]/20 pr-2">
                   +91
                 </span>
                 <div className="flex-1 min-w-0">
-                  <span className="block text-[8px] font-black text-[#EAB308] uppercase tracking-widest mb-0.5">Mobile Number</span>
+                  <span className="block text-[8px] font-black text-[#CA8A04] dark:text-[#FDB813] uppercase tracking-widest mb-0.5">Mobile Number</span>
                   <input
                     type="tel"
                     placeholder="10-digit number"
@@ -2039,7 +2033,7 @@ style.innerHTML = `
                         e.target.blur();
                       }
                     }}
-                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-black outline-none text-slate-900 dark:text-white placeholder-[#EAB308]/40"
+                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-black outline-none text-slate-900 dark:text-white placeholder-[#CA8A04]/40"
                     maxLength={10}
                     autoFocus
                   />
@@ -2060,12 +2054,7 @@ style.innerHTML = `
                   }
                   setStep(3);
                 }}
-                className={`
-                  w-full font-black py-4 uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95
-                  ${isMobileScreen 
-                    ? 'bg-brand-yellow hover:bg-[#EAB308] text-slate-900 shadow-lg shadow-brand-yellow/20 text-sm rounded-full' 
-                    : 'bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 shadow-lg shadow-[#FACC15]/20 text-[10px] rounded-2xl'}
-                `}
+                className="w-full bg-[#FDB813] hover:bg-[#E5A300] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FDB813]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 Let’s Choose a Vehicle <ArrowRight size={14} />
               </button>
@@ -2079,100 +2068,48 @@ style.innerHTML = `
             {/* Scrollable Body */}
             <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 space-y-3.5 app-scroll pb-2' : 'space-y-3.5'}`}>
           {/* Trip Type Category Selector */}
-          {isMobileScreen ? (
-            <div className="flex gap-2.5 flex-wrap pb-1 animate-fade-in select-none">
-              {[
-                { id: 'local', label: 'Book Ride' },
-                { id: 'rental', label: 'Rental' },
-                { id: 'outstation', label: 'Outstation' }
-              ].map((cat) => {
-                const isActive = 
-                  (cat.id === 'local' && formData.tripType === TripType.LOCAL) ||
-                  (cat.id === 'outstation' && (formData.tripType === TripType.ONE_WAY || formData.tripType === TripType.ROUND_TRIP)) ||
-                  (cat.id === 'rental' && formData.tripType === TripTypeRental);
-                
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => {
-                      let newTripType = TripType.LOCAL;
-                      if (cat.id === 'outstation') {
-                        newTripType = TripType.ONE_WAY;
-                      } else if (cat.id === 'rental') {
-                        newTripType = TripTypeRental;
-                      }
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        tripType: newTripType, 
-                        estimatedFare: '', 
-                        distance: '',
-                        localPackage: ''
-                      }));
-                    }}
-                    className={`
-                      px-5 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-sm border
-                      ${isActive 
-                        ? 'bg-brand-yellow text-slate-900 border-transparent shadow-brand-yellow/10' 
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-800'}
-                    `}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl gap-1 relative overflow-hidden border border-slate-200/10 dark:border-slate-700/20">
-              {[
-                { id: 'local', label: 'Local' },
-                { id: 'outstation', label: 'Outstation' },
-                { id: 'rental', label: 'Rental' }
-              ].map((cat) => {
-                const isActive = 
-                  (cat.id === 'local' && formData.tripType === TripType.LOCAL) ||
-                  (cat.id === 'outstation' && (formData.tripType === TripType.ONE_WAY || formData.tripType === TripType.ROUND_TRIP)) ||
-                  (cat.id === 'rental' && formData.tripType === TripTypeRental);
-                
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => {
-                      let newTripType = TripType.LOCAL;
-                      if (cat.id === 'outstation') {
-                        newTripType = TripType.ONE_WAY; // Default to One Way
-                      } else if (cat.id === 'rental') {
-                        newTripType = TripTypeRental;
-                      }
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        tripType: newTripType, 
-                        estimatedFare: '', 
-                        distance: '',
-                        localPackage: ''
-                      }));
-                    }}
-                    className={`
-                      relative flex-1 flex items-center justify-center py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors duration-200 z-10
-                      ${isActive 
-                        ? 'text-slate-950' 
-                        : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}
-                    `}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeCategoryType"
-                        className="absolute inset-0 bg-[#FACC15] rounded-xl shadow-md"
-                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                    <span className="relative z-10">{cat.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          <div className="flex gap-2.5 flex-wrap pb-1 animate-fade-in select-none">
+            {[
+              { id: 'local', label: 'Book Ride' },
+              { id: 'rental', label: 'Rental' },
+              { id: 'outstation', label: 'Outstation' }
+            ].map((cat) => {
+              const isActive = 
+                (cat.id === 'local' && formData.tripType === TripType.LOCAL) ||
+                (cat.id === 'outstation' && (formData.tripType === TripType.ONE_WAY || formData.tripType === TripType.ROUND_TRIP)) ||
+                (cat.id === 'rental' && formData.tripType === TripTypeRental);
+              
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    let newTripType = TripType.LOCAL;
+                    if (cat.id === 'outstation') {
+                      newTripType = TripType.ONE_WAY;
+                    } else if (cat.id === 'rental') {
+                      newTripType = TripTypeRental;
+                    }
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      tripType: newTripType, 
+                      estimatedFare: '', 
+                      distance: '',
+                      localPackage: ''
+                    }));
+                  }}
+                  className={`
+                    px-5 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-sm border
+                    ${isActive 
+                      ? 'bg-[#FDB813] text-slate-950 font-black border-transparent shadow-[#FDB813]/10' 
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-800'}
+                  `}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
 
   
           {/* Outstation Type Sub-selector (One Way vs Round Trip Toggle Switch) */}
@@ -2212,204 +2149,89 @@ style.innerHTML = `
 
 
           {/* Unified App-Style Route Selector Card */}
-          {isMobileScreen ? (
-            <div className="space-y-3 animate-fade-in select-none">
-              {/* Pickup Location Card on Mobile */}
+          <div className="space-y-3 animate-fade-in select-none">
+            {/* Pickup Location Card */}
+            <div 
+              onClick={() => setMobileSearchType('pickup')}
+              className="relative bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer min-h-[48px]"
+            >
+              <MapPin className="text-[#CA8A04] dark:text-[#FDB813] shrink-0" size={18} />
+              <div className="flex-1 min-w-0 text-left">
+                <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">Pickup Location</span>
+                <div className={`text-xs font-bold line-clamp-2 break-words whitespace-normal text-left leading-snug ${formData.pickup ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>
+                  {formData.pickup || "Enter Pickup Location"}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                {locatingPickup && (
+                  <div className="w-5 h-5 border-2 border-brand-yellow border-t-transparent rounded-full animate-spin" />
+                )}
+                {!locatingPickup && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDesktopUseGPS();
+                    }}
+                    className="w-7 h-7 bg-[#FDB813] text-slate-950 hover:bg-[#E5A300] rounded-full flex items-center justify-center transition-all shadow-md active:scale-90 cursor-pointer"
+                    title="Use current GPS location"
+                  >
+                    <Locate size={13} className="stroke-[3px]" />
+                  </button>
+                )}
+                {formData.pickup && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFormData(prev => ({ ...prev, pickup: '', pickupData: undefined }));
+                      if (pickupRef.current) pickupRef.current.value = '';
+                    }}
+                    className="w-7 h-7 bg-slate-200/60 dark:bg-slate-800 text-slate-500 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <X size={12} className="stroke-[3px]" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {formData.tripType !== TripTypeRental && (
+              /* Destination Card */
               <div 
-                onClick={() => setMobileSearchType('pickup')}
+                onClick={() => setMobileSearchType('drop')}
                 className="relative bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer min-h-[48px]"
               >
-                <MapPin className="text-brand-yellow shrink-0" size={18} />
+                <div className="w-4.5 h-4.5 rounded-full border-2 border-rose-500 flex items-center justify-center shrink-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                </div>
                 <div className="flex-1 min-w-0 text-left">
-                  <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">Pickup Location</span>
-                  <div className={`text-xs font-bold line-clamp-2 break-words whitespace-normal text-left leading-snug ${formData.pickup ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>
-                    {formData.pickup || "Enter Pickup Location"}
+                  <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">Destination</span>
+                  <div className={`text-xs font-bold line-clamp-2 break-words whitespace-normal text-left leading-snug ${formData.drop ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>
+                    {formData.drop || "Enter Destination"}
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                  {locatingPickup && (
-                    <div className="w-5 h-5 border-2 border-brand-yellow border-t-transparent rounded-full animate-spin" />
-                  )}
-                  {!locatingPickup && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDesktopUseGPS();
-                      }}
-                      className="w-7 h-7 bg-brand-yellow text-slate-900 hover:bg-[#EAB308] rounded-full flex items-center justify-center transition-all shadow-md active:scale-90 cursor-pointer"
-                      title="Use current GPS location"
-                    >
-                      <Locate size={13} className="stroke-[3px]" />
-                    </button>
-                  )}
-                  {formData.pickup && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFormData(prev => ({ ...prev, pickup: '', pickupData: undefined }));
-                        if (pickupRef.current) pickupRef.current.value = '';
-                      }}
-                      className="w-7 h-7 bg-slate-200/60 dark:bg-slate-800 text-slate-500 rounded-full flex items-center justify-center transition-all cursor-pointer"
-                    >
-                      <X size={12} className="stroke-[3px]" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {formData.tripType !== TripTypeRental && (
-                /* Destination Card on Mobile */
-                <div 
-                  onClick={() => setMobileSearchType('drop')}
-                  className="relative bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer min-h-[48px]"
-                >
-                  <div className="w-4.5 h-4.5 rounded-full border-2 border-rose-500 flex items-center justify-center shrink-0">
-                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">Destination</span>
-                    <div className={`text-xs font-bold line-clamp-2 break-words whitespace-normal text-left leading-snug ${formData.drop ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>
-                      {formData.drop || "Enter Destination"}
-                    </div>
-                  </div>
-                  {formData.drop && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFormData(prev => ({ ...prev, drop: '' }));
-                        if (dropRef.current) dropRef.current.value = '';
-                      }}
-                      className="w-7 h-7 bg-slate-200/60 dark:bg-slate-800 text-slate-500 rounded-full flex items-center justify-center transition-all cursor-pointer"
-                    >
-                      <X size={12} className="stroke-[3px]" />
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="relative bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-850 rounded-2xl p-3 flex gap-3 shadow-sm">
-              {/* Visual native-app line connector */}
-              <div className="flex flex-col items-center justify-center py-1.5">
-                {/* Pickup Dot */}
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/10 flex-shrink-0" />
-                
-                {formData.tripType !== TripTypeRental && (
-                  <>
-                    {/* Connecting line */}
-                    <div className="w-0.5 bg-slate-200 dark:bg-slate-800 flex-1 my-1.5 min-h-[14px] border-l border-dashed border-slate-300 dark:border-slate-700" />
-                    
-                    {/* Drop Dot */}
-                    <div className="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-rose-500/10 flex-shrink-0" />
-                  </>
+                {formData.drop && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFormData(prev => ({ ...prev, drop: '' }));
+                      if (dropRef.current) dropRef.current.value = '';
+                    }}
+                    className="w-7 h-7 bg-slate-200/60 dark:bg-slate-800 text-slate-500 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <X size={12} className="stroke-[3px]" />
+                  </button>
                 )}
               </div>
-
-              {/* Input fields */}
-              <div className="flex-1 space-y-2">
-                {/* Pickup input */}
-                <div className="relative">
-                  <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">Pickup Location</span>
-                  <input
-                    ref={pickupRef}
-                    type="text"
-                    readOnly={window.innerWidth < 640}
-                    onClick={() => {
-                      if (window.innerWidth < 640) setMobileSearchType('pickup');
-                    }}
-                    onFocus={() => {
-                      if (window.innerWidth < 640) setMobileSearchType('pickup');
-                    }}
-                    required
-                    placeholder="Enter Pickup Location"
-                    value={formData.pickup}
-                    onChange={(e) => setFormData(prev => ({ ...prev, pickup: e.target.value }))}
-                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-bold outline-none dark:text-white placeholder-slate-400 pr-16"
-                  />
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-10">
-                    {locatingPickup && (
-                      <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin shrink-0" />
-                    )}
-                    {!locatingPickup && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDesktopUseGPS();
-                        }}
-                        className="w-6 h-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center transition-all shadow-md hover:scale-110 active:scale-95 cursor-pointer animate-fade-in"
-                        title="Use current GPS location (99% accuracy)"
-                      >
-                        <Locate size={12} className="stroke-[3px]" />
-                      </button>
-                    )}
-                    {formData.pickup && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFormData(prev => ({ ...prev, pickup: '', pickupData: undefined }));
-                          if (pickupRef.current) pickupRef.current.value = '';
-                        }}
-                        className="w-6 h-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-[#EAB308] rounded-full flex items-center justify-center transition-all shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer"
-                        title="Clear pickup"
-                      >
-                        <X size={12} className="stroke-[3px]" />
-                      </button>
-                    )}
-                  </div>
-                  {gpsErrorPickup && (
-                    <p className="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-wide leading-tight animate-fade-in">
-                      {gpsErrorPickup}
-                    </p>
-                  )}
-                </div>
-
-                {formData.tripType !== TripTypeRental && (
-                  <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/80 relative">
-                    <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">Destination</span>
-                    <input
-                      ref={dropRef}
-                      type="text"
-                      readOnly={window.innerWidth < 640}
-                      onClick={() => {
-                        if (window.innerWidth < 640) setMobileSearchType('drop');
-                      }}
-                      onFocus={() => {
-                        if (window.innerWidth < 640) setMobileSearchType('drop');
-                      }}
-                      required={formData.tripType !== TripTypeRental}
-                      placeholder="Enter Destination"
-                      value={formData.drop}
-                      onChange={(e) => setFormData(prev => ({ ...prev, drop: e.target.value }))}
-                      className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-bold outline-none dark:text-white placeholder-slate-400 pr-8"
-                    />
-                    {formData.drop && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData(prev => ({ ...prev, drop: '' }));
-                        }}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-[#EAB308] rounded-full flex items-center justify-center transition-all shadow-sm border border-slate-200 dark:border-slate-700"
-                        title="Clear destination"
-                      >
-                        <X size={12} className="stroke-[3px]" />
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Local Package Select */}
           {formData.tripType === TripTypeRental && (
             <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-xl p-2 px-3 flex items-center gap-3 shadow-sm">
-              <Package size={14} className="text-[#EAB308]" />
+              <Package size={14} className="text-[#CA8A04] dark:text-[#FDB813]" />
               <div className="flex-1">
                 <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">Local Package</span>
                 <select
@@ -2436,62 +2258,6 @@ style.innerHTML = `
               -webkit-appearance: none;
             }
           `}</style>
-          {!isMobileScreen && (
-            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-2xl p-2.5 px-3.5 flex items-center divide-x divide-slate-200/80 dark:divide-slate-800/80 shadow-sm gap-0.5">
-              {/* Date Column */}
-              <div className="flex-1 flex items-center gap-1.5 min-w-0 pr-3">
-                <Calendar size={13} className="text-[#EAB308] shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Date</span>
-                  <input
-                    type="date"
-                    name="date"
-                    min={indiaToday}
-                    value={formData.date}
-                    onChange={handleChange}
-                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-[11px] sm:text-xs font-bold outline-none dark:text-white cursor-pointer min-w-0"
-                  />
-                </div>
-              </div>
-
-              {/* Time Column */}
-              <div className={`flex-1 flex items-center gap-1.5 min-w-0 px-3 ${formData.tripType === TripType.ROUND_TRIP ? 'pr-3' : ''}`}>
-                <Clock size={13} className="text-[#EAB308] shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Time</span>
-                  <input
-                    type="time"
-                    name="time"
-                    value={formData.time}
-                    onChange={handleChange}
-                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-[11px] sm:text-xs font-bold outline-none dark:text-white cursor-pointer min-w-0"
-                  />
-                </div>
-              </div>
-
-              {/* Duration (Round Trip only) */}
-              {formData.tripType === TripType.ROUND_TRIP && (
-                <div className="flex-1 flex items-center gap-1.5 min-w-0 pl-3">
-                  <Clock size={13} className="text-[#EAB308] shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 truncate">Duration</span>
-                    <select
-                      name="numberOfDays"
-                      value={formData.numberOfDays}
-                      onChange={handleChange}
-                      className="w-full bg-transparent border-none p-0 focus:ring-0 text-[11px] sm:text-xs font-bold outline-none dark:text-white appearance-none cursor-pointer min-w-0"
-                    >
-                      {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].map(n => (
-                        <option key={n} value={n.toString()}>
-                          {n === 1 ? 'Same Day' : `${n} Days`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
             </div>
 
@@ -2501,14 +2267,9 @@ style.innerHTML = `
                 type="button" 
                 id="btn-next-step"
                 onClick={handleNextStep} 
-                className={`
-                  w-full font-black py-4 rounded-full uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95
-                  ${isMobileScreen 
-                    ? 'bg-brand-yellow hover:bg-[#EAB308] text-slate-900 shadow-lg shadow-brand-yellow/20 text-sm' 
-                    : 'bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 shadow-lg shadow-[#FACC15]/20 text-xs rounded-2xl'}
-                `}
+                className="w-full bg-[#FDB813] hover:bg-[#E5A300] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FDB813]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                {isMobileScreen ? 'Get a Ride in Minutes' : <>Continue <ArrowRight size={18} /></>}
+                Continue <ArrowRight size={18} />
               </button>
             </div>
           </div>
@@ -2524,7 +2285,7 @@ style.innerHTML = `
                 setStep(2);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex items-center gap-1.5 text-[#EAB308] hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 -ml-1 rounded-lg transition-all"
+              className="flex items-center gap-1.5 text-[#CA8A04] dark:text-[#FDB813] hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 -ml-1 rounded-lg transition-all"
             >
               <ArrowLeft size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
@@ -2556,7 +2317,7 @@ style.innerHTML = `
                   className={`
                     w-full flex items-center gap-3 p-6 rounded-2xl border-2 transition-all text-left
                     ${formData.vehicleType === v.type 
-                      ? 'border-[#EAB308] bg-[#EAB308]/5 dark:bg-[#EAB308]/10' 
+                      ? 'border-[#FDB813] bg-[#FDB813]/5 dark:bg-[#FDB813]/10' 
                       : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-950'}
                   `}
                 >
@@ -2606,7 +2367,7 @@ style.innerHTML = `
             <button
               type="button"
               disabled={loading}
-              className="flex-1 bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
+              className="flex-1 bg-[#FDB813] hover:bg-[#E5A300] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FDB813]/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
               onClick={() => {
                 if (!formData.vehicleType) {
                   alert("Please select a vehicle.");
@@ -2641,11 +2402,11 @@ style.innerHTML = `
                   : 'w-10 h-10 gap-1.5 py-1'
                 }
               `}>
-                <div className={`rounded-full border-2 border-[#EAB308]
+                <div className={`rounded-full border-2 border-[#FDB813]
                   ${isMapActive ? 'w-1.5 h-1.5' : 'w-2 h-2'}
                 `} />
                 <div className="w-0.5 flex-1 bg-slate-200 dark:bg-slate-700" />
-                <div className={`rounded-full bg-[#EAB308]
+                <div className={`rounded-full bg-[#FDB813]
                   ${isMapActive ? 'w-1.5 h-1.5' : 'w-2 h-2'}
                 `} />
               </div>
@@ -2674,22 +2435,22 @@ style.innerHTML = `
             <div>
               <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Departure</span>
               <div className="flex items-center gap-1.5">
-                <Calendar size={isMapActive ? 10 : 12} className="text-[#EAB308]" />
+                <Calendar size={isMapActive ? 10 : 12} className="text-[#CA8A04] dark:text-[#FDB813]" />
                 <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.date}</p>
               </div>
               <div className={`flex items-center gap-1.5 ${isMapActive ? 'mt-0.5' : 'mt-1'}`}>
-                <Clock size={isMapActive ? 10 : 12} className="text-[#EAB308]" />
+                <Clock size={isMapActive ? 10 : 12} className="text-[#CA8A04] dark:text-[#FDB813]" />
                 <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.time}</p>
               </div>
             </div>
             <div>
               <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Vehicle</span>
               <div className="flex items-center gap-1.5">
-                <Car size={isMapActive ? 10 : 12} className="text-[#EAB308]" />
+                <Car size={isMapActive ? 10 : 12} className="text-[#CA8A04] dark:text-[#FDB813]" />
                 <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase truncate">{formData.vehicleType}</p>
               </div>
               <div className={`flex items-center gap-1.5 ${isMapActive ? 'mt-0.5' : 'mt-1'}`}>
-                <Phone size={isMapActive ? 10 : 12} className="text-[#EAB308]" />
+                <Phone size={isMapActive ? 10 : 12} className="text-[#CA8A04] dark:text-[#FDB813]" />
                 <p className="text-[10px] font-bold text-slate-900 dark:text-white">{formData.phone}</p>
               </div>
             </div>
@@ -2700,7 +2461,7 @@ style.innerHTML = `
           `}>
             <div>
               <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Estimated Distance</span>
-              <span className="text-xs font-black text-[#EAB308]">{formData.distance}</span>
+              <span className="text-xs font-black text-[#CA8A04] dark:text-[#FDB813]">{formData.distance}</span>
             </div>
             <div className="text-right">
               <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Total Fare</span>
@@ -2735,7 +2496,7 @@ style.innerHTML = `
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-[#FACC15] hover:bg-[#EAB308] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FACC15]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-[#FDB813] hover:bg-[#E5A300] text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-[#FDB813]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 {loading ? 'Booking...' : (
                   <>
