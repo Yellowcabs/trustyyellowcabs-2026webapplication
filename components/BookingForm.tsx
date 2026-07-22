@@ -898,54 +898,22 @@ export const BookingForm: React.FC = () => {
   };
   const tomorrowStr = getTomorrowDate();
 
-  const DRAFT_KEY = 'trustyyellowcabs_booking_draft';
-
-  const getInitialFormData = (): BookingDetails => {
-    try {
-      const saved = localStorage.getItem(DRAFT_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object' && (parsed.phone || parsed.pickup || parsed.drop)) {
-          return {
-            phone: parsed.phone || '',
-            pickup: parsed.pickup || '',
-            drop: parsed.drop || '',
-            date: parsed.date || indiaToday,
-            time: parsed.time || '',
-            numberOfDays: parsed.numberOfDays || '1',
-            waitingHours: parsed.waitingHours || '0',
-            vehicleType: parsed.vehicleType || VehicleType.MINI,
-            tripType: parsed.tripType || TripType.LOCAL,
-            localPackage: parsed.localPackage || '',
-            isHillStation: !!parsed.isHillStation,
-            distance: parsed.distance || '',
-            rawDistance: parsed.rawDistance || 0,
-            estimatedFare: parsed.estimatedFare || '',
-          };
-        }
-      }
-    } catch (e) {
-      // ignore storage errors
-    }
-    return {
-      phone: '',
-      pickup: '',
-      drop: '',
-      date: indiaToday,
-      time: '',
-      numberOfDays: '1',
-      waitingHours: '0',
-      vehicleType: VehicleType.MINI,
-      tripType: TripType.LOCAL,
-      localPackage: '',
-      isHillStation: false,
-      distance: '',
-      rawDistance: 0,
-      estimatedFare: '',
-    };
-  };
-
-  const [formData, setFormData] = useState<BookingDetails>(getInitialFormData);
+  const [formData, setFormData] = useState<BookingDetails>({
+    phone: '',
+    pickup: '',
+    drop: '',
+    date: indiaToday,
+    time: '',
+    numberOfDays: '1',
+    waitingHours: '0',
+    vehicleType: VehicleType.MINI,
+    tripType: TripType.LOCAL,
+    localPackage: '',
+    isHillStation: false,
+    distance: '',
+    rawDistance: 0,
+    estimatedFare: '',
+  });
 
   const [mobileSearchType, setMobileSearchType] = useState<null | 'pickup' | 'drop'>(null);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -1605,13 +1573,6 @@ style.innerHTML = `
   const formDataRef = useRef(formData);
   useEffect(() => {
     formDataRef.current = formData;
-    if (!submittedRef.current && (formData.phone || formData.pickup || formData.drop)) {
-      try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
-      } catch (e) {
-        // ignore storage errors
-      }
-    }
   }, [formData]);
 
   // Abandoned Lead Capture Logic
@@ -1636,10 +1597,10 @@ style.innerHTML = `
     const rawPhone = (currentFormData.phone || '').replace(/\D/g, '');
     const cleanPhone = rawPhone.length >= 10 ? rawPhone.slice(-10) : rawPhone;
     const hasValidPhone = cleanPhone.length === 10;
-    const hasLocation = !!(currentFormData.pickup || currentFormData.drop);
 
-    // Require at least 10-digit phone number OR location details
-    if (!hasValidPhone && !hasLocation) {
+    // STRICT REQUIREMENT: User MUST type a valid 10-digit mobile number.
+    // If mobile number is not typed/invalid, DO NOT send abandoned lead email.
+    if (!hasValidPhone) {
       return;
     }
 
@@ -1656,12 +1617,12 @@ style.innerHTML = `
 
     const bookingData: BookingDetails = {
       ...currentFormData,
-      phone: hasValidPhone ? cleanPhone : (currentFormData.phone || 'Not Provided'),
+      phone: cleanPhone,
       isLead: true,
       estimatedFare: currentFormData.estimatedFare || (currentStep >= 2 ? 'Abandoned at Vehicle/Summary Step' : 'Abandoned Lead (Step 1)')
     };
 
-    console.log('Capturing abandoned lead...', bookingData.phone, bookingData.pickup);
+    console.log('Capturing abandoned lead with valid mobile number:', bookingData.phone);
 
     // Send email and sheet update in parallel using keepalive
     Promise.allSettled([
@@ -1723,11 +1684,6 @@ style.innerHTML = `
       if (isEmailSuccess || isSheetSuccess) {
         submittedRef.current = true;
         setSubmitted(true);
-        try {
-          localStorage.removeItem(DRAFT_KEY);
-        } catch (e) {
-          // ignore storage errors
-        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         isSubmittingRef.current = false;
