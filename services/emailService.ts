@@ -85,24 +85,25 @@ Trustyyellowcabs Booking System`
     ? rawPhone
     : `91${rawPhone}`;
 
-  const waMessage = encodeURIComponent(
-`👋 Hi / வணக்கம்!
+const waMessage = encodeURIComponent(
+`Thank you for choosing us 😊
 
-*Trustyyellowcabs* — Your Ride Partner
+Reliable rides • Transparent fares • Professional drivers
 
-Need a taxi anytime?
-Just open:
-https://www.trustyyellowcabs.in/
+Customer Support
+━━━━━━━━━━━━
++91 94888 34020
++91 88700 88020
++91 422-3596446
+━━━━━━━━━━━━
 
-Easy to book:
-Add this website to your Home Screen.
-Next time — book in just one tap 👍
+Book your next ride instantly:
+www.trustyyellowcabs.in
 
-Safe • On-time • Easy Booking
+Need assistance? Call us anytime.
 
-Whenever you need a ride,
-we are just one tap away`
-  );
+⚠️ Book direct. Avoid driver contact !`
+);
 
   const waLink = `https://wa.me/${phoneWithCountryCode}?text=${waMessage}`;
 
