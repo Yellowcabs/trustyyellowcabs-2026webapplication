@@ -28,14 +28,14 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           
-<Link to="/" className="flex items-center gap-2">
+<Link to="/" className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink">
   <img
     src="/images/taxi-icon-512.png"
     alt="TrustyYellowCabs"
-    className="h-12 w-auto"
+    className="h-9 sm:h-11 md:h-12 w-auto shrink-0"
   />
 
-  <span className="text-lg font-extrabold tracking-tight whitespace-nowrap">
+  <span className="text-sm xs:text-base sm:text-lg font-extrabold tracking-tight whitespace-nowrap">
     <span className="text-slate-900 dark:text-white">
       Trusty
     </span>
@@ -77,10 +77,10 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center gap-1.5 sm:gap-2 shrink-0">
              <button
               onClick={toggleDarkMode}
-              className="p-2.5 text-slate-500 dark:text-brand-yellow bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 transition-transform active:scale-90"
+              className="p-2 sm:p-2.5 text-slate-500 dark:text-brand-yellow bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 transition-transform active:scale-90"
               aria-label="Toggle Dark Mode"
             >
               {darkMode ? <Sun size={18} /> : <Moon size={18} />}
@@ -88,7 +88,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
             
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all duration-300 active:scale-95 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl border transition-all duration-300 active:scale-95 ${
                 isOpen 
                   ? 'bg-brand-yellow border-brand-yellow text-slate-950 shadow-lg shadow-brand-yellow/20' 
                   : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white'

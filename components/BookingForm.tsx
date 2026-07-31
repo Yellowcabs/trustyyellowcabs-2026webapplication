@@ -422,29 +422,6 @@ const InputWrapper = memo(({ children, icon: Icon, label }: { children: React.Re
   </div>
 ));
 
-const POPULAR_LOCATIONS = [
-  "Coimbatore International Airport (CJB)",
-  "Coimbatore Junction Railway Station (CBE)",
-  "Gandhipuram Bus Stand, Coimbatore",
-  "Ukkadam Bus Stand, Coimbatore",
-  "Singanallur Bus Stand, Coimbatore",
-  "RS Puram, Coimbatore",
-  "Peelamedu, Coimbatore",
-  "Saravanampatti, Coimbatore",
-  "Vadavalli, Coimbatore",
-  "Thudiyalur, Coimbatore",
-  "Kuniamuthur, Coimbatore",
-  "Koundampalayam, Coimbatore",
-  "Hope College, Coimbatore",
-  "L&T Bypass Road, Coimbatore",
-  "Laxmi Mills Junction, Coimbatore",
-  "PSG Tech, Peelamedu, Coimbatore",
-  "Brookefields Mall, Coimbatore",
-  "Prozone Mall, Sathy Road, Coimbatore",
-  "Fun Republic Mall, Avinashi Road, Coimbatore",
-  "Eachanari Vinayagar Temple, Coimbatore"
-];
-
 const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialValue }: { 
   type: 'pickup' | 'drop', 
   onSelect: (address: string, placeData?: PlaceData) => void, 
@@ -489,61 +466,67 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
     setLocating(true);
     setGpsError(null);
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const accuracy = position.coords.accuracy;
-        console.log(`High Accuracy GPS: Lat=${lat}, Lng=${lng}, Accuracy=${accuracy}m`);
+    const onSuccess = (position: any) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      console.log(`GPS Success: Lat=${lat}, Lng=${lng}`);
 
-        if (googleLoaded && (window as any).google?.maps?.Geocoder) {
-          const geocoder = new (window as any).google.maps.Geocoder();
-          geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
-            setLocating(false);
-            if (status === 'OK' && results && results[0]) {
-              const formattedAddress = results[0].formatted_address;
-              onSelect(formattedAddress, {
-                address: formattedAddress,
-                placeId: results[0].place_id,
-                lat,
-                lng
-              });
-            } else {
-              setGpsError("Failed to resolve address. Using coordinates.");
-              onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
-                address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-                lat,
-                lng
-              });
-            }
-          });
-        } else {
+      if (googleLoaded && (window as any).google?.maps?.Geocoder) {
+        const geocoder = new (window as any).google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
           setLocating(false);
-          onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
-            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-            lat,
-            lng
-          });
-        }
-      },
-      (error) => {
+          if (status === 'OK' && results && results[0]) {
+            const formattedAddress = results[0].formatted_address;
+            onSelect(formattedAddress, {
+              address: formattedAddress,
+              placeId: results[0].place_id,
+              lat,
+              lng
+            });
+          } else {
+            setGpsError("Failed to resolve address. Using coordinates.");
+            onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
+              address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+              lat,
+              lng
+            });
+          }
+        });
+      } else {
         setLocating(false);
-        console.error("GPS Error Code:", error.code, "Message:", error.message);
-        let errorMsg = "Unable to get your GPS location.";
-        if (error.code === error.PERMISSION_DENIED) {
-          errorMsg = "Location access was denied. Please allow location permissions in your browser/device settings.";
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          errorMsg = "Location info is unavailable. Ensure GPS is enabled on your device.";
-        } else if (error.code === error.TIMEOUT) {
-          errorMsg = "GPS location request timed out. Please try again.";
-        }
-        setGpsError(errorMsg);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+        onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
+          address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+          lat,
+          lng
+        });
       }
+    };
+
+    const onError = (error: any) => {
+      setLocating(false);
+      console.error("GPS Error Code:", error.code, "Message:", error.message);
+      let errorMsg = "Unable to get your GPS location.";
+      if (error.code === error.PERMISSION_DENIED) {
+        errorMsg = "Location access was denied. Please allow location permissions in your browser/device settings.";
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        errorMsg = "Location info is unavailable. Ensure GPS is enabled on your device.";
+      } else if (error.code === error.TIMEOUT) {
+        errorMsg = "GPS location request timed out. Please try again.";
+      }
+      setGpsError(errorMsg);
+    };
+
+    // Fast-first geolocation strategy for quick response
+    navigator.geolocation.getCurrentPosition(
+      onSuccess,
+      () => {
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          onError,
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+        );
+      },
+      { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
     );
   };
 
@@ -666,8 +649,8 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
                   handleUseGPS();
                 }}
                 disabled={locating}
-                className="w-10 h-10 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center transition-all shadow-md hover:scale-110 active:scale-95 cursor-pointer animate-fade-in"
-                title="Use current GPS location (99% accuracy)"
+                className="w-9 h-9 bg-[#FDB813] hover:bg-[#E5A300] text-slate-950 rounded-full flex items-center justify-center transition-all shadow-md active:scale-90 cursor-pointer animate-fade-in"
+                title="Use current GPS location"
               >
                 <Locate size={16} className={`stroke-[3px] ${locating ? 'animate-spin' : ''}`} />
               </button>
@@ -685,37 +668,15 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
             )}
           </div>
         </div>
+        {gpsError && (
+          <div className="mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-[#FDB813]/30 rounded-xl flex items-center gap-2 text-amber-800 dark:text-amber-200 text-[11px] font-semibold">
+            <AlertTriangle size={14} className="shrink-0 text-[#CA8A04] dark:text-[#FDB813]" />
+            <span>{gpsError}</span>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1 pb-[calc(env(safe-area-inset-bottom,16px)+32px)] overscroll-contain">
-        {type === 'pickup' && !query && (
-          <div className="mb-4">
-            {gpsError && (
-              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl flex items-center gap-2 mb-2 text-rose-800 dark:text-rose-200 text-[11px] font-semibold">
-                <AlertTriangle size={14} className="shrink-0 text-[#FDB813]" />
-                <span>{gpsError}</span>
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={handleUseGPS}
-              disabled={locating}
-              className="w-full flex items-center gap-3.5 p-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/5 dark:hover:bg-emerald-500/10 rounded-2xl transition-all text-left border border-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-            >
-              <div className="bg-emerald-500 text-white p-2.5 rounded-xl flex items-center justify-center shrink-0 shadow-md">
-                <Locate size={16} className={`stroke-[3px] ${locating ? 'animate-spin' : ''}`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 block uppercase tracking-wider">
-                  {locating ? 'Acquiring GPS Location...' : 'Use Current GPS Location'}
-                </span>
-                <span className="text-[9px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                  {locating ? 'Pinging satellites for maximum accuracy (99%)...' : 'Detects your work, home or current location with high precision'}
-                </span>
-              </div>
-            </button>
-          </div>
-        )}
         {predictions.length > 0 ? (
           predictions.map((p) => (
             <button 
@@ -765,64 +726,13 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
               </div>
             </button>
           ))
+        ) : query ? (
+          <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs font-semibold">
+            No matching locations found for "{query}"
+          </div>
         ) : (
-          <div className="space-y-1 pt-2">
-            <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-2">
-              {query ? 'Matching Locations' : 'Popular Locations Coimbatore'}
-            </h3>
-            {(query ? POPULAR_LOCATIONS.filter(l => l.toLowerCase().includes(query.toLowerCase())) : POPULAR_LOCATIONS).map((loc) => (
-              <button
-                key={loc}
-                type="button"
-                disabled={locating}
-                onClick={async () => {
-                  setLocating(true);
-                  try {
-                    const geocoder = new (window as any).google.maps.Geocoder();
-                    const results = await new Promise<any[]>((resolve, reject) => {
-                      geocoder.geocode({ address: loc }, (results: any, status: string) => {
-                        if (status === 'OK' && results) resolve(results);
-                        else reject(status);
-                      });
-                    });
-
-                    if (results && results[0]) {
-                      const res = results[0];
-                      const lat = res.geometry.location.lat();
-                      const lng = res.geometry.location.lng();
-                      const pData = {
-                        address: res.formatted_address || loc,
-                        placeId: res.place_id,
-                        lat,
-                        lng
-                      };
-                      setLocating(false);
-                      onSelect(pData.address, pData);
-                    } else {
-                      setLocating(false);
-                      onSelect(loc);
-                    }
-                  } catch (err) {
-                    console.error("Geocoding popular location failed:", err);
-                    setLocating(false);
-                    onSelect(loc);
-                  }
-                }}
-                className="w-full flex items-center gap-3.5 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all text-left border-b border-slate-100 dark:border-slate-800/40 last:border-none"
-              >
-                <div className="bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl text-emerald-500">
-                  <MapPin size={16} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block truncate">
-                    {loc}
-                  </span>
-                  <span className="text-[9px] text-slate-400 dark:text-slate-500 block">
-                    Coimbatore, Tamil Nadu
-                  </span>
-                </div>
-              </button>
-            ))}
+          <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs font-semibold">
+            Type a location to search...
           </div>
         )}
       </div>
