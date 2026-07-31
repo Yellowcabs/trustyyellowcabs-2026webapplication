@@ -118,7 +118,7 @@ export const Home: React.FC = () => {
           
           
         <p className="text-base sm:text-lg md:text-3xl font-medium md:font-bold text-slate-900 dark:text-white tracking-normal leading-relaxed md:leading-normal max-w-2xl mx-auto text-center">
-  Local ride ah? Outstation ah? fast point Cab Taxi dhaan — Anytime, Anywhere!
+  Local ride ah? Outstation ah? Travel Anytime!
 </p>
           
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
