@@ -422,29 +422,6 @@ const InputWrapper = memo(({ children, icon: Icon, label }: { children: React.Re
   </div>
 ));
 
-const POPULAR_LOCATIONS = [
-  "Coimbatore International Airport (CJB)",
-  "Coimbatore Junction Railway Station (CBE)",
-  "Gandhipuram Bus Stand, Coimbatore",
-  "Ukkadam Bus Stand, Coimbatore",
-  "Singanallur Bus Stand, Coimbatore",
-  "RS Puram, Coimbatore",
-  "Peelamedu, Coimbatore",
-  "Saravanampatti, Coimbatore",
-  "Vadavalli, Coimbatore",
-  "Thudiyalur, Coimbatore",
-  "Kuniamuthur, Coimbatore",
-  "Koundampalayam, Coimbatore",
-  "Hope College, Coimbatore",
-  "L&T Bypass Road, Coimbatore",
-  "Laxmi Mills Junction, Coimbatore",
-  "PSG Tech, Peelamedu, Coimbatore",
-  "Brookefields Mall, Coimbatore",
-  "Prozone Mall, Sathy Road, Coimbatore",
-  "Fun Republic Mall, Avinashi Road, Coimbatore",
-  "Eachanari Vinayagar Temple, Coimbatore"
-];
-
 const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialValue }: { 
   type: 'pickup' | 'drop', 
   onSelect: (address: string, placeData?: PlaceData) => void, 
@@ -455,9 +432,84 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
   const [query, setQuery] = useState(initialValue);
   const [predictions, setPredictions] = useState<any[]>([]);
   const service = useRef<any>(null);
+  const [loadingItem, setLoadingItem] = useState(false);
+  const [clickedToType, setClickedToType] = useState(false);
   const [locating, setLocating] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
-  const [clickedToType, setClickedToType] = useState(false);
+
+  const handleUseGPS = () => {
+    if (!navigator.geolocation) {
+      setGpsError("GPS is not supported by your browser.");
+      return;
+    }
+
+    setLocating(true);
+    setGpsError(null);
+
+    const onSuccess = (position: any) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      console.log(`GPS Success: Lat=${lat}, Lng=${lng}`);
+
+      if (googleLoaded && (window as any).google?.maps?.Geocoder) {
+        const geocoder = new (window as any).google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
+          setLocating(false);
+          if (status === 'OK' && results && results[0]) {
+            const formattedAddress = results[0].formatted_address;
+            onSelect(formattedAddress, {
+              address: formattedAddress,
+              placeId: results[0].place_id,
+              lat,
+              lng
+            });
+          } else {
+            setGpsError("Failed to resolve address. Using coordinates.");
+            onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
+              address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+              lat,
+              lng
+            });
+          }
+        });
+      } else {
+        setLocating(false);
+        onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
+          address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+          lat,
+          lng
+        });
+      }
+    };
+
+    const onError = (error: any) => {
+      setLocating(false);
+      console.error("GPS Error Code:", error.code, "Message:", error.message);
+      let errorMsg = "Unable to get your GPS location.";
+      if (error.code === error.PERMISSION_DENIED) {
+        errorMsg = "Location access was denied. Please allow location permissions in your browser/device settings.";
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        errorMsg = "Location info is unavailable. Ensure GPS is enabled on your device.";
+      } else if (error.code === error.TIMEOUT) {
+        errorMsg = "GPS location request timed out. Please try again.";
+      }
+      setGpsError(errorMsg);
+    };
+
+    // Fast-first geolocation strategy for instant loading
+    navigator.geolocation.getCurrentPosition(
+      onSuccess,
+      () => {
+        // Fallback to high accuracy if quick mode fails
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          onError,
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+        );
+      },
+      { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
+    );
+  };
 
   const fetchPlaceDetails = (placeId: string): Promise<any> => {
     return new Promise((resolve, reject) => {
@@ -478,73 +530,6 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
         reject(err);
       }
     });
-  };
-
-  const handleUseGPS = () => {
-    if (!navigator.geolocation) {
-      setGpsError("GPS is not supported by your browser.");
-      return;
-    }
-
-    setLocating(true);
-    setGpsError(null);
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const accuracy = position.coords.accuracy;
-        console.log(`High Accuracy GPS: Lat=${lat}, Lng=${lng}, Accuracy=${accuracy}m`);
-
-        if (googleLoaded && (window as any).google?.maps?.Geocoder) {
-          const geocoder = new (window as any).google.maps.Geocoder();
-          geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
-            setLocating(false);
-            if (status === 'OK' && results && results[0]) {
-              const formattedAddress = results[0].formatted_address;
-              onSelect(formattedAddress, {
-                address: formattedAddress,
-                placeId: results[0].place_id,
-                lat,
-                lng
-              });
-            } else {
-              setGpsError("Failed to resolve address. Using coordinates.");
-              onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
-                address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-                lat,
-                lng
-              });
-            }
-          });
-        } else {
-          setLocating(false);
-          onSelect(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
-            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-            lat,
-            lng
-          });
-        }
-      },
-      (error) => {
-        setLocating(false);
-        console.error("GPS Error Code:", error.code, "Message:", error.message);
-        let errorMsg = "Unable to get your GPS location.";
-        if (error.code === error.PERMISSION_DENIED) {
-          errorMsg = "Location access was denied. Please allow location permissions in your browser/device settings.";
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          errorMsg = "Location info is unavailable. Ensure GPS is enabled on your device.";
-        } else if (error.code === error.TIMEOUT) {
-          errorMsg = "GPS location request timed out. Please try again.";
-        }
-        setGpsError(errorMsg);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
-    );
   };
 
   useEffect(() => {
@@ -657,7 +642,7 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
             className={`w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-[#FF6467]/20 rounded-2xl pl-12 ${type === 'pickup' ? 'pr-24' : 'pr-12'} py-4 min-h-[48px] text-[13px] font-bold outline-none dark:text-white transition-all shadow-inner`}
           />
           <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FF6467]" size={18} />
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
             {type === 'pickup' && (
               <button
                 type="button"
@@ -666,8 +651,8 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
                   handleUseGPS();
                 }}
                 disabled={locating}
-                className="w-10 h-10 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center transition-all shadow-md hover:scale-110 active:scale-95 cursor-pointer animate-fade-in"
-                title="Use current GPS location (99% accuracy)"
+                className="w-9 h-9 bg-[#FF6467] hover:bg-[#e55a5d] text-white rounded-full flex items-center justify-center transition-all shadow-md active:scale-90 cursor-pointer"
+                title="Use current GPS location"
               >
                 <Locate size={16} className={`stroke-[3px] ${locating ? 'animate-spin' : ''}`} />
               </button>
@@ -685,44 +670,22 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
             )}
           </div>
         </div>
+        {gpsError && (
+          <div className="mt-2 p-2.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl flex items-center gap-2 text-rose-800 dark:text-rose-200 text-[11px] font-semibold">
+            <AlertTriangle size={14} className="shrink-0 text-[#FF6467]" />
+            <span>{gpsError}</span>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1 pb-[calc(env(safe-area-inset-bottom,16px)+32px)] overscroll-contain">
-        {type === 'pickup' && !query && (
-          <div className="mb-4">
-            {gpsError && (
-              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl flex items-center gap-2 mb-2 text-rose-800 dark:text-rose-200 text-[11px] font-semibold">
-                <AlertTriangle size={14} className="shrink-0 text-[#FF6467]" />
-                <span>{gpsError}</span>
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={handleUseGPS}
-              disabled={locating}
-              className="w-full flex items-center gap-3.5 p-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/5 dark:hover:bg-emerald-500/10 rounded-2xl transition-all text-left border border-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-            >
-              <div className="bg-emerald-500 text-white p-2.5 rounded-xl flex items-center justify-center shrink-0 shadow-md">
-                <Locate size={16} className={`stroke-[3px] ${locating ? 'animate-spin' : ''}`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 block uppercase tracking-wider">
-                  {locating ? 'Acquiring GPS Location...' : 'Use Current GPS Location'}
-                </span>
-                <span className="text-[9px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                  {locating ? 'Pinging satellites for maximum accuracy (99%)...' : 'Detects your work, home or current location with high precision'}
-                </span>
-              </div>
-            </button>
-          </div>
-        )}
         {predictions.length > 0 ? (
           predictions.map((p) => (
             <button 
               key={p.place_id}
-              disabled={locating}
+              disabled={loadingItem}
               onClick={async () => {
-                setLocating(true);
+                setLoadingItem(true);
                 try {
                   const placeDetails = await fetchPlaceDetails(p.place_id);
                   const lat = typeof placeDetails.geometry?.location?.lat === 'function' ? placeDetails.geometry.location.lat() : placeDetails.geometry?.location?.lat;
@@ -730,7 +693,7 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
                   
                   if (!placeDetails.geometry || !placeDetails.place_id || typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) {
                     alert("Selected location details are incomplete or invalid. Please select a specific address.");
-                    setLocating(false);
+                    setLoadingItem(false);
                     return;
                   }
 
@@ -740,11 +703,11 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
                     lat,
                     lng
                   };
-                  setLocating(false);
+                  setLoadingItem(false);
                   onSelect(pData.address, pData);
                 } catch (err) {
                   console.error("Failed to fetch place details:", err);
-                  setLocating(false);
+                  setLoadingItem(false);
                   onSelect(p.description);
                 }
               }}
@@ -765,64 +728,13 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
               </div>
             </button>
           ))
+        ) : query ? (
+          <div className="p-6 text-center text-slate-400 dark:text-slate-500 text-xs font-semibold">
+            No matching locations found for "{query}"
+          </div>
         ) : (
-          <div className="space-y-1 pt-2">
-            <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-2">
-              {query ? 'Matching Locations' : 'Popular Locations Coimbatore'}
-            </h3>
-            {(query ? POPULAR_LOCATIONS.filter(l => l.toLowerCase().includes(query.toLowerCase())) : POPULAR_LOCATIONS).map((loc) => (
-              <button
-                key={loc}
-                type="button"
-                disabled={locating}
-                onClick={async () => {
-                  setLocating(true);
-                  try {
-                    const geocoder = new (window as any).google.maps.Geocoder();
-                    const results = await new Promise<any[]>((resolve, reject) => {
-                      geocoder.geocode({ address: loc }, (results: any, status: string) => {
-                        if (status === 'OK' && results) resolve(results);
-                        else reject(status);
-                      });
-                    });
-
-                    if (results && results[0]) {
-                      const res = results[0];
-                      const lat = res.geometry.location.lat();
-                      const lng = res.geometry.location.lng();
-                      const pData = {
-                        address: res.formatted_address || loc,
-                        placeId: res.place_id,
-                        lat,
-                        lng
-                      };
-                      setLocating(false);
-                      onSelect(pData.address, pData);
-                    } else {
-                      setLocating(false);
-                      onSelect(loc);
-                    }
-                  } catch (err) {
-                    console.error("Geocoding popular location failed:", err);
-                    setLocating(false);
-                    onSelect(loc);
-                  }
-                }}
-                className="w-full flex items-center gap-3.5 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all text-left border-b border-slate-100 dark:border-slate-800/40 last:border-none"
-              >
-                <div className="bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl text-emerald-500">
-                  <MapPin size={16} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block truncate">
-                    {loc}
-                  </span>
-                  <span className="text-[9px] text-slate-400 dark:text-slate-500 block">
-                    Coimbatore, Tamil Nadu
-                  </span>
-                </div>
-              </button>
-            ))}
+          <div className="p-6 text-center text-slate-400 dark:text-slate-500 text-xs font-semibold">
+            Type a location to search...
           </div>
         )}
       </div>
@@ -932,69 +844,76 @@ export const BookingForm: React.FC = () => {
     setLocatingPickup(true);
     setGpsErrorPickup(null);
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const accuracy = position.coords.accuracy;
-        console.log(`High Accuracy Desktop GPS: Lat=${lat}, Lng=${lng}, Accuracy=${accuracy}m`);
+    const onSuccess = (position: any) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      console.log(`Desktop GPS Success: Lat=${lat}, Lng=${lng}`);
 
-        if (googleLoaded && (window as any).google?.maps?.Geocoder) {
-          const geocoder = new (window as any).google.maps.Geocoder();
-          geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
-            setLocatingPickup(false);
-            if (status === 'OK' && results && results[0]) {
-              const formattedAddress = results[0].formatted_address;
-              const pData = {
-                address: formattedAddress,
-                placeId: results[0].place_id,
-                lat,
-                lng
-              };
-              setFormData(prev => ({ ...prev, pickup: formattedAddress, pickupData: pData }));
-              if (pickupRef.current) pickupRef.current.value = formattedAddress;
-            } else {
-              const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-              const pData = {
-                address: coords,
-                lat,
-                lng
-              };
-              setFormData(prev => ({ ...prev, pickup: coords, pickupData: pData }));
-              if (pickupRef.current) pickupRef.current.value = coords;
-              setGpsErrorPickup("Failed to resolve address. Using coordinates.");
-            }
-          });
-        } else {
+      if (googleLoaded && (window as any).google?.maps?.Geocoder) {
+        const geocoder = new (window as any).google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
           setLocatingPickup(false);
-          const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-          const pData = {
-            address: coords,
-            lat,
-            lng
-          };
-          setFormData(prev => ({ ...prev, pickup: coords, pickupData: pData }));
-          if (pickupRef.current) pickupRef.current.value = coords;
-        }
-      },
-      (error) => {
+          if (status === 'OK' && results && results[0]) {
+            const formattedAddress = results[0].formatted_address;
+            const pData = {
+              address: formattedAddress,
+              placeId: results[0].place_id,
+              lat,
+              lng
+            };
+            setFormData(prev => ({ ...prev, pickup: formattedAddress, pickupData: pData }));
+            if (pickupRef.current) pickupRef.current.value = formattedAddress;
+          } else {
+            const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            const pData = {
+              address: coords,
+              lat,
+              lng
+            };
+            setFormData(prev => ({ ...prev, pickup: coords, pickupData: pData }));
+            if (pickupRef.current) pickupRef.current.value = coords;
+            setGpsErrorPickup("Failed to resolve address. Using coordinates.");
+          }
+        });
+      } else {
         setLocatingPickup(false);
-        console.error("GPS Error Code:", error.code, "Message:", error.message);
-        let errorMsg = "Unable to get your GPS location.";
-        if (error.code === error.PERMISSION_DENIED) {
-          errorMsg = "Location access was denied. Please allow location permissions in your browser/device settings.";
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          errorMsg = "Location info is unavailable. Ensure GPS is enabled on your device.";
-        } else if (error.code === error.TIMEOUT) {
-          errorMsg = "GPS location request timed out. Please try again.";
-        }
-        setGpsErrorPickup(errorMsg);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+        const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        const pData = {
+          address: coords,
+          lat,
+          lng
+        };
+        setFormData(prev => ({ ...prev, pickup: coords, pickupData: pData }));
+        if (pickupRef.current) pickupRef.current.value = coords;
       }
+    };
+
+    const onError = (error: any) => {
+      setLocatingPickup(false);
+      console.error("GPS Error Code:", error.code, "Message:", error.message);
+      let errorMsg = "Unable to get your GPS location.";
+      if (error.code === error.PERMISSION_DENIED) {
+        errorMsg = "Location access was denied. Please allow location permissions in your browser/device settings.";
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        errorMsg = "Location info is unavailable. Ensure GPS is enabled on your device.";
+      } else if (error.code === error.TIMEOUT) {
+        errorMsg = "GPS location request timed out. Please try again.";
+      }
+      setGpsErrorPickup(errorMsg);
+    };
+
+    // Fast-first geolocation strategy for instant loading
+    navigator.geolocation.getCurrentPosition(
+      onSuccess,
+      () => {
+        // Fallback to high accuracy if quick mode fails
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          onError,
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+        );
+      },
+      { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
     );
   };
 
