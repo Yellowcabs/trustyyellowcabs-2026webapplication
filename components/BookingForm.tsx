@@ -2412,7 +2412,7 @@ style.innerHTML = `
             <p className={`font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest
               ${isMapActive ? 'text-[6px]' : 'text-[9px]'}
             `}>
-              * Tolls, state permit & parking extra
+              * Tolls, permit, parking & other charges extra. T&C apply.
             </p>
           </div>
         </div>
