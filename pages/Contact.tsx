@@ -129,7 +129,8 @@ export const Contact: React.FC = () => {
     <p>7. One day is equal to one calendar day (from midnight to midnight).</p>
     <p>8. Parking, toll, and interstate permit charges are extra.</p>
     <p>9. Driver allowance will be extra if the driver drives between 10:00 PM to 6:00 AM.</p>
-    <p>10. Total km and time calculation is from office to office.</p>
+    <p>10. Total km and time calculation is from office to office.
+      Fare shown during booking is an estimate only. Final fare will be based on actual distance traveled and applicable tariff.</p>
     <p>11. AC will not work in hill areas (upwards) and stopped/parked vehicles.</p>
     <p>12. If km usage exceeds standard limits, tariff shifts automatically to Day/KM Basis.</p>
      <p>13. Bookings made via online ads (e.g., Google Ads) may appear when searching for other brands. Trustyyellowcabs is only responsible for bookings actually made with us. Customers cannot claim services from other brands using our ad links.</p>
