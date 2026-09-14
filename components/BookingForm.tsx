@@ -2392,7 +2392,7 @@ const handleWhatsAppConfirm = () => {
               <span className="text-xs font-black text-[#FF6467]">{formData.distance}</span>
             </div>
             <div className="text-right">
-              <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Total Fare</span>
+              <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Estimated Fare</span>
               <span className={`font-black text-slate-900 dark:text-white ${isMapActive ? 'text-xl' : 'text-2xl'}`}>{formData.estimatedFare}</span>
             </div>
           </div>
