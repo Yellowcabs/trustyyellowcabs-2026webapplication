@@ -61,7 +61,7 @@ Maps: ${details.drop ? `https://maps.google.com/?q=${encodeURIComponent(cleanDro
 *Time:* ${details.time || "N/A"}
 
 *Distance:* ${details.distance || "N/A"}
-*Estimated Fare:* ${details.estimatedFare || "Manual Quote"}
+
 
 *Schedule (IST):* ${scheduleIST}
 
