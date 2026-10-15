@@ -50,7 +50,7 @@ export const BookingConfirmed: React.FC = () => {
         </button>
         <button
           type="button"
-          onClick={() => navigate('/book-a-trip', { replace: true })}
+          onClick={() => navigate('/', { replace: true })}
           className="w-full cursor-pointer rounded-2xl border border-slate-300 py-4 text-[10px] font-bold uppercase text-slate-900 transition-all hover:bg-slate-100"
         >
           Book Another Ride

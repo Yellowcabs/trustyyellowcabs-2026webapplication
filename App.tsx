@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Navigate, Routes, Route, useLocation } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
@@ -27,10 +28,14 @@ const App: React.FC = () => {
   const { pathname } = useLocation();
   const [homeBookingMapOpen, setHomeBookingMapOpen] = React.useState(false);
   const isBookingConfirmed = pathname === '/booking-confirmed';
+  const isNoIndexRoute = pathname === '/book-a-trip' || isBookingConfirmed;
 
   return (
     <>
       <ScrollToTop />
+      <Helmet>
+        {isNoIndexRoute && <meta name="robots" content="noindex, nofollow" />}
+      </Helmet>
       <div className="min-h-screen flex flex-col bg-white">
         {!isBookingConfirmed && <Navbar />}
         <main className="flex-grow">
