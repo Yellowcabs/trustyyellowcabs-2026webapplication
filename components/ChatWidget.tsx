@@ -41,7 +41,7 @@ export const ChatWidget: React.FC = () => {
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       {isOpen && (
-        <div className="mb-4 w-80 md:w-96 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col transition-all duration-300 transform origin-bottom-right">
+        <div className="mb-4 w-80 md:w-96 bg-white  rounded-2xl shadow-2xl border border-slate-200  overflow-hidden flex flex-col transition-all duration-300 transform origin-bottom-right">
           <div className="bg-amber-500 p-4 flex justify-between items-center text-white">
             <div className="flex items-center gap-2">
               <Bot size={24} />
@@ -52,13 +52,13 @@ export const ChatWidget: React.FC = () => {
             </button>
           </div>
           
-          <div ref={scrollRef} className="flex-1 p-4 h-80 overflow-y-auto bg-slate-50 dark:bg-slate-900 space-y-4">
+          <div ref={scrollRef} className="flex-1 p-4 h-80 overflow-y-auto bg-slate-50  space-y-4">
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${
                   msg.sender === 'user' 
                     ? 'bg-amber-500 text-white rounded-br-none' 
-                    : 'bg-white dark:bg-slate-700 dark:text-slate-100 border border-slate-200 dark:border-slate-600 rounded-bl-none'
+                    : 'bg-white   border border-slate-200  rounded-bl-none'
                 }`}>
                   {msg.text}
                 </div>
@@ -66,7 +66,7 @@ export const ChatWidget: React.FC = () => {
             ))}
             {loading && (
                <div className="flex justify-start">
-               <div className="bg-white dark:bg-slate-700 p-3 rounded-2xl rounded-bl-none border border-slate-200 dark:border-slate-600">
+               <div className="bg-white  p-3 rounded-2xl rounded-bl-none border border-slate-200 ">
                  <div className="flex gap-1">
                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></span>
                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-75"></span>
@@ -77,14 +77,14 @@ export const ChatWidget: React.FC = () => {
             )}
           </div>
 
-          <div className="p-3 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex gap-2">
+          <div className="p-3 bg-white  border-t border-slate-200  flex gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Ask about fleets, prices..."
-              className="flex-1 bg-slate-100 dark:bg-slate-700 dark:text-white px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+              className="flex-1 bg-slate-100   px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
             />
             <button 
               onClick={handleSend}

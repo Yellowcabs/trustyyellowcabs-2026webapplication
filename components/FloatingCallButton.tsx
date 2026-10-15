@@ -14,9 +14,9 @@ export const FloatingCallButton: React.FC = () => {
       
       <div className="relative flex flex-col items-center">
         {/* Subtle Online Floating Indicator */}
-        <div className="absolute -top-6 flex items-center gap-1.5 px-2 py-0.5 bg-slate-900/10 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+        <div className="absolute -top-6 flex items-center gap-1.5 px-2 py-0.5 bg-slate-900/10  backdrop-blur-md rounded-full border border-white/20">
           <div className="w-1.5 h-1.5 bg-[#FF6467] rounded-full animate-pulse"></div>
-          <span className="text-[7px] font-black text-slate-900 dark:text-white uppercase tracking-tighter">Live</span>
+          <span className="text-[7px] font-black text-slate-900  uppercase tracking-tighter">Live</span>
         </div>
 
         {/* Small Action Hub */}
@@ -38,7 +38,7 @@ export const FloatingCallButton: React.FC = () => {
 
           {/* Magnetic Label (Shown on hover for desktop) */}
           <div className="hidden md:block absolute right-full top-1/2 -translate-y-1/2 mr-4 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
-            <div className="bg-slate-950 dark:bg-white text-white dark:text-slate-950 px-3 py-2 rounded-xl shadow-2xl flex flex-col border border-white/10 whitespace-nowrap">
+            <div className="bg-slate-950  text-white  px-3 py-2 rounded-xl shadow-2xl flex flex-col border border-white/10 whitespace-nowrap">
               <span className="text-[10px] font-black leading-none">+91 94888 34020</span>
               <span className="text-[7px] font-bold text-[#FF6467] uppercase mt-0.5">Quick Booking</span>
             </div>

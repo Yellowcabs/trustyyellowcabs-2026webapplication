@@ -82,16 +82,6 @@ export interface BookingDetails {
   isLead?: boolean;
 }
 
-export interface BillRequestDetails {
-  name: string;
-  phone: string;
-  date?: string;
-  pickup: string;
-  drop: string;
-  amount: string;
-  vehicleNumber?: string;
-}
-
 export interface Testimonial {
   id: string;
   name: string;

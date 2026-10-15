@@ -29,7 +29,7 @@ export const MobileTabBar: React.FC = () => {
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 pb-safe-area-inset-bottom shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)]">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-100 pb-safe-area-inset-bottom shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)]">
       <div className="flex items-stretch justify-around h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -41,7 +41,7 @@ export const MobileTabBar: React.FC = () => {
               <button
     key={item.label}
     onClick={item.action}
-    className="flex-1 flex flex-col items-center justify-center text-slate-950 dark:text-white transition-all active:scale-95 group"
+    className="flex-1 flex flex-col items-center justify-center text-slate-950 transition-all active:scale-95 group"
   >
     <Icon size={20} strokeWidth={3} className="group-active:scale-110 transition-transform" />
     <span className="text-[9px] font-black mt-1 uppercase tracking-tighter">
@@ -57,7 +57,7 @@ export const MobileTabBar: React.FC = () => {
               <a
                 key={item.label}
                 href={item.path}
-                className="flex-1 flex flex-col items-center justify-center text-slate-900 dark:text-white transition-all active:bg-slate-50 dark:active:bg-slate-900 group"
+                className="flex-1 flex flex-col items-center justify-center text-slate-900 transition-all active:bg-slate-50 group"
               >
                 <div className="relative p-1.5 rounded-full border-2 border-brand-yellow/30 group-active:border-brand-yellow group-active:scale-110 transition-all">
                   <Icon size={18} strokeWidth={2.5} className="text-brand-yellow animate-ring-vibrate" />
@@ -77,7 +77,7 @@ export const MobileTabBar: React.FC = () => {
               className={`flex-1 flex flex-col items-center justify-center transition-all relative group active:scale-95 ${
                 active 
                   ? 'text-brand-yellow' 
-                  : 'text-slate-400 dark:text-slate-500'
+                  : 'text-slate-400'
               }`}
             >
               {/* Active Top Bar Indicator */}

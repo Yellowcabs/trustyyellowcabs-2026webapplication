@@ -9,7 +9,7 @@ export const About: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50  transition-colors duration-300">
 
       {/* Hero Section */}
       <div className="relative py-24 lg:py-32 bg-gradient-to-br from-[#FF6467] to-[#FF3E4D] overflow-hidden">
@@ -41,31 +41,31 @@ export const About: React.FC = () => {
               <div className="h-px w-8 bg-[#FF6467]"></div>
               Mission & Vision
             </div>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight leading-tight">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900  uppercase tracking-tight leading-tight">
              Cab Service Near Me <br />Coimbatore
             </h2>
-            <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+            <p className="text-lg text-slate-600  leading-relaxed font-medium">
              Book your ride in Coimbatore with online taxi booking, experienced drivers, and clear, upfront pricing.
             </p>
-            <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+            <p className="text-lg text-slate-600  leading-relaxed font-medium">
              Experience professional taxi services with easy online booking and reliable vehicles throughout Coimbatore and Tamil Nadu.
 Call a taxi and start your journey.
             </p>
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 sm:gap-6 pt-6">
-              <div className="p-6 sm:p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all group">
+              <div className="p-6 sm:p-8 bg-white  rounded-2xl shadow-sm border border-slate-100  hover:shadow-lg transition-all group">
                 <div className="w-10 h-10 bg-[#FF6467]/10 rounded-xl flex items-center justify-center text-[#FF6467] mb-4 group-hover:scale-110 transition-transform">
                   <Award size={24} />
                 </div>
-                <span className="block text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mb-2">10+</span>
+                <span className="block text-3xl sm:text-4xl font-extrabold text-slate-900  mb-2">10+</span>
                 <span className="text-slate-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Years of Trust</span>
               </div>
-              <div className="p-6 sm:p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all group">
+              <div className="p-6 sm:p-8 bg-white  rounded-2xl shadow-sm border border-slate-100  hover:shadow-lg transition-all group">
                 <div className="w-10 h-10 bg-[#FF6467]/10 rounded-xl flex items-center justify-center text-[#FF6467] mb-4 group-hover:scale-110 transition-transform">
                   <Users size={24} />
                 </div>
-                <span className="block text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mb-2">60k+</span>
+                <span className="block text-3xl sm:text-4xl font-extrabold text-slate-900  mb-2">60k+</span>
                 <span className="text-slate-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Happy Travelers</span>
               </div>
             </div>
@@ -74,7 +74,7 @@ Call a taxi and start your journey.
           {/* Images */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4 order-1 lg:order-2">
             <div className="space-y-3 sm:space-y-4 mt-8 sm:mt-12">
-              <img src="/images/ChatGPT Image Oct 12, 2025, 09_27_33 AM.jpg" className="rounded-2xl shadow-xl hover:scale-[1.02] transition-transform duration-500 border-2 sm:border-4 border-white dark:border-slate-800 aspect-[3/4] w-full object-cover" alt="Professional Driving" />
+              <img src="/images/ChatGPT Image Oct 12, 2025, 09_27_33 AM.jpg" className="rounded-2xl shadow-xl hover:scale-[1.02] transition-transform duration-500 border-2 sm:border-4 border-white  aspect-[3/4] w-full object-cover" alt="Professional Driving" />
               <div className="bg-[#FF6467] aspect-[2/1] rounded-2xl flex items-center justify-center text-white shadow-lg transform hover:-translate-y-1 transition-transform p-4">
                 <div className="text-center">
                   <p className="text-xl sm:text-3xl font-extrabold">24/7</p>
@@ -83,22 +83,22 @@ Call a taxi and start your journey.
               </div>
             </div>
             <div className="space-y-3 sm:space-y-4">
-              <div className="bg-slate-900 dark:bg-[#FF6467] aspect-[2/1] rounded-2xl flex items-center justify-center text-white shadow-lg transform hover:-translate-y-1 transition-transform p-4">
+              <div className="bg-slate-900  aspect-[2/1] rounded-2xl flex items-center justify-center text-white shadow-lg transform hover:-translate-y-1 transition-transform p-4">
                 <div className="text-center">
                   <p className="text-xl sm:text-3xl font-extrabold">100%</p>
                   <p className="text-[8px] sm:text-[10px] font-bold uppercase tracking-tighter">Safe Rides</p>
                 </div>
               </div>
-              <img src="/images/taxi4-5 Verticle 1080 x 1350px.jpg" className="rounded-2xl shadow-xl hover:scale-[1.02] transition-transform duration-500 border-2 sm:border-4 border-white dark:border-slate-800 aspect-[3/4] w-full object-cover" alt="Travel Experience" />
+              <img src="/images/taxi4-5 Verticle 1080 x 1350px.jpg" className="rounded-2xl shadow-xl hover:scale-[1.02] transition-transform duration-500 border-2 sm:border-4 border-white  aspect-[3/4] w-full object-cover" alt="Travel Experience" />
             </div>
           </div>
         </div>
 
         {/* Values Section */}
-        <div className="bg-slate-100 dark:bg-slate-900 rounded-[3rem] p-8 md:p-20">
+        <div className="bg-slate-100  rounded-[3rem] p-8 md:p-20">
           <div className="text-center mb-16 space-y-4">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight">Why We Stand Out</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-bold tracking-widest text-[10px] uppercase">The Trusty Yellow Promise</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900  uppercase tracking-tight">Why We Stand Out</h2>
+            <p className="text-slate-500  font-bold tracking-widest text-[10px] uppercase">The Trusty Yellow Promise</p>
           </div>
           <div className="grid md:grid-cols-3 gap-12">
             {[
@@ -107,26 +107,26 @@ Call a taxi and start your journey.
               { icon: Star, title: 'Premium Service', desc: 'Ride comfortably in well-maintained cars with AC and reliable, professional drivers.' },
             ].map((value, i) => (
               <div key={i} className="flex flex-col items-center text-center space-y-6">
-                <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[#FF6467]">
+                <div className="w-16 h-16 bg-white  rounded-3xl shadow-sm border border-slate-100  flex items-center justify-center text-[#FF6467]">
                   <value.icon size={32} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight">{value.title}</h3>
-                <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{value.desc}</p>
+                <h3 className="text-xl font-bold text-slate-900  uppercase tracking-tight">{value.title}</h3>
+                <p className="text-slate-500  font-medium leading-relaxed">{value.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Final CTA */}
-        <div className="mt-32 text-center bg-slate-900 dark:bg-white rounded-[3rem] p-12 md:p-24 overflow-hidden relative">
+        <div className="mt-32 text-center bg-slate-900  rounded-[3rem] p-12 md:p-24 overflow-hidden relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF6467]/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#FF6467]/10 rounded-full blur-3xl -ml-32 -mb-32"></div>
           <div className="relative z-10 space-y-8">
-            <h2 className="text-4xl md:text-6xl font-black text-white dark:text-slate-950 uppercase tracking-tight leading-none">
+            <h2 className="text-4xl md:text-6xl font-black text-white  uppercase tracking-tight leading-none">
               Ready for a <br/>
               <span className="text-[#FF6467]">Better Ride?</span>
             </h2>
-            <p className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px]">
+            <p className="text-slate-400  font-bold uppercase tracking-[0.3em] text-[10px]">
               Coimbatore's Number One Choice
             </p>
             <button 

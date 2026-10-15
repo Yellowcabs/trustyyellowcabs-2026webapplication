@@ -1,14 +1,9 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
-interface NavbarProps {
-  darkMode: boolean;
-  toggleDarkMode: () => void;
-}
-
-export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
+export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
@@ -17,19 +12,18 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
     { path: '/about', label: 'About' },
     { path: '/fleet', label: 'Fleet' },
     { path: '/services', label: 'Services' },
-    { path: '/bill-request', label: 'Bill Request' },
     { path: '/contact', label: 'Contact' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-slate-50 dark:border-slate-900 transition-all">
+    <nav className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-xl border-b border-slate-50 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           
           <Link to="/" className="flex items-center group gap-0.5">
-             <span className="text-xl font-extrabold tracking-tighter text-slate-900 dark:text-white transition-colors">
+             <span className="text-xl font-extrabold tracking-tighter text-slate-900 transition-colors">
               Book  
              </span>
              <span className="text-xl font-extrabold tracking-tighter text-brand-yellow transition-colors">
@@ -46,20 +40,12 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                 className={`text-[11px] font-bold uppercase tracking-widest transition-all ${
                   isActive(link.path) 
                     ? 'text-brand-yellow' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="h-4 w-px bg-slate-100 dark:bg-slate-800"></div>
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 text-slate-400 dark:text-brand-yellow hover:scale-110 transition-all bg-slate-50 dark:bg-slate-900 rounded-lg"
-              aria-label="Toggle Dark Mode"
-            >
-              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
             <Link 
               to="/" 
               state={{ scrollToBook: true }}
@@ -71,20 +57,12 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-2">
-             <button
-              onClick={toggleDarkMode}
-              className="p-2.5 text-slate-500 dark:text-brand-yellow bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 transition-transform active:scale-90"
-              aria-label="Toggle Dark Mode"
-            >
-              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            
             <button
               onClick={() => setIsOpen(!isOpen)}
               className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all duration-300 active:scale-95 ${
                 isOpen 
                   ? 'bg-brand-yellow border-brand-yellow text-slate-950 shadow-lg shadow-brand-yellow/20' 
-                  : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white'
+                  : 'bg-white border-slate-100 text-slate-900'
               }`}
               aria-expanded={isOpen}
               aria-label="Toggle navigation menu"
@@ -102,7 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
 
       {/* Mobile Nav Drawer */}
       {isOpen && (
-        <div className="md:hidden bg-white dark:bg-slate-950 border-b border-slate-50 dark:border-slate-900 pb-12 transition-all animate-fade-in">
+        <div className="md:hidden bg-white border-b border-slate-50 pb-12 transition-all animate-fade-in">
           <div className="px-4 pt-6 space-y-2">
             {links.map((link) => (
               <Link
@@ -111,8 +89,8 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                 onClick={() => setIsOpen(false)}
                 className={`block px-5 py-4 rounded-xl text-sm font-bold uppercase tracking-widest ${
                   isActive(link.path)
-                    ? 'bg-slate-50 dark:bg-slate-900 text-brand-yellow'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900'
+                    ? 'bg-slate-50 text-brand-yellow'
+                    : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 {link.label}

@@ -16,7 +16,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
@@ -28,7 +27,6 @@
             colors: {
               brand: {
                 yellow: '#FF6467',
-                dark: '#020617',
                 slate: '#0f172a',
                 cloud: '#F8FAFC',
               },
@@ -165,13 +163,11 @@
     user-select: text;
   }
 
-  /* Ensure main content doesn't get hidden by the tab bar */
-  main {
-    padding-bottom: 5rem;
-  }
-  @media (min-width: 768px) {
+  /* Footer already provides clearance for the fixed mobile tab bar. */
+  @media (max-width: 767px) {
     main {
       padding-bottom: 0;
+      flex-grow: 0;
     }
   }
 

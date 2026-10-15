@@ -1,50 +1,64 @@
 import React from 'react';
 import { FLEET_DATA } from '../constants';
-import { Users, Zap, Check } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Fleet: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-20">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Our Fleet</h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
-           Book your Coimbatore taxi or outstation taxi from our wide range of vehicles, from budget sedans to premium coaches.
-          </p>
-        </div>
+    <div className="min-h-screen bg-white pb-14  sm:pb-16 lg:pb-20">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-5 md:px-6 lg:px-8">
+        <header className="grid px-1 pb-8 pt-8 text-left sm:px-0 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-end md:gap-12 md:pb-10 md:pt-12 lg:grid-cols-2 lg:items-center lg:gap-12 lg:pb-14 lg:pt-16">
+          <div>
+            <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#FF5F68] md:text-xs">
+              Explore Our Vehicles
+            </p>
+            <h1 className="text-[32px] font-extrabold uppercase leading-none tracking-[-0.035em] text-[#0B1733]  md:text-[44px] lg:text-[56px]">
+              Our Fleet
+            </h1>
+            <div className="mt-4 h-1 w-14 rounded-full bg-[#FF5F68]"></div>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {FLEET_DATA.map((car) => (
-            <div key={car.id} className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group border border-slate-100 dark:border-slate-700">
-              <div className="relative h-64 overflow-hidden">
+          <p className="mt-6 max-w-[650px] text-sm font-medium leading-[1.7] text-slate-600  md:mt-0 md:text-[15px] lg:text-base">
+            Book your Coimbatore taxi or outstation taxi from our wide range of vehicles, from budget sedans to premium coaches.
+          </p>
+        </header>
+
+        <div className="space-y-0 md:space-y-6 lg:space-y-8">
+          {FLEET_DATA.map((car, index) => (
+            <section
+              key={car.id}
+              className="group grid overflow-hidden border-b border-slate-200 bg-white py-8 first:pt-0 last:border-b-0   md:grid-cols-2 md:rounded-[22px] md:border md:py-0 md:shadow-[0_10px_35px_rgba(15,23,42,0.05)] md:transition-shadow md:duration-300 md:hover:shadow-[0_16px_45px_rgba(15,23,42,0.09)]"
+            >
+              <div className={`relative flex min-h-[230px] items-center justify-center bg-white px-0 py-2  sm:min-h-[260px] md:p-7 lg:min-h-[320px] lg:p-10 ${index % 2 === 0 ? 'md:order-2' : 'md:order-1'}`}>
                 <img 
                   src={car.image} 
                   alt={car.name} 
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
+                  className="h-full max-h-[280px] w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.025]"
                 />
-                <div className="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur text-brand-yellow text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider border border-slate-100 dark:border-slate-700">
-                  {car.type}
-                </div>
               </div>
-              
-              <div className="p-8">
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight">{car.name}</h3>
+
+              <div className={`flex flex-col justify-center px-0 pb-0 pt-4 md:border-t-0 md:p-8 lg:p-10 ${index % 2 === 0 ? 'md:order-1 md:border-r md:border-slate-100 ' : 'md:order-2 md:border-l md:border-slate-100 '}`}>
+                <div className="mb-4">
+                  <span className="inline-flex rounded-md bg-[#FFF0F2] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#FF5F68] ">
+                    {car.type}
+                  </span>
+                  <h3 className="mt-3 text-2xl font-extrabold uppercase leading-tight tracking-[-0.02em] text-[#0B1733]  lg:text-3xl">
+                    {car.name}
+                  </h3>
                 </div>
 
-                <div className="flex gap-4 mb-8 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                  <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-lg">
-                    <Users size={14} className="text-brand-yellow" />
+                <div className="mb-5 flex text-sm font-semibold text-slate-600  md:mb-6 md:text-[10px] md:font-bold md:uppercase md:tracking-widest">
+                  <div className="flex items-center gap-2 md:rounded-lg md:bg-slate-100 md:px-3 md:py-2 ">
+                    <Users size={15} className="hidden text-[#FF5F68] md:block" aria-hidden="true" />
                     <span>{car.capacity} Seats Available</span>
                   </div>
                 </div>
 
-                <div className="space-y-3 mb-8">
+                <div className="mb-7 grid grid-cols-2 gap-x-4 gap-y-2.5 md:grid-cols-1 lg:grid-cols-2">
                   {car.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300 font-medium">
-                      <div className="w-1 h-1 rounded-full bg-brand-yellow" />
-                      {feature}
+                    <div key={idx} className="flex items-start gap-3 text-sm font-medium leading-5 text-slate-600 ">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF5F68]"></span>
+                      <span>{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -52,12 +66,12 @@ export const Fleet: React.FC = () => {
                 <Link 
                   to="/" 
                   state={{ scrollToBook: true }}
-                  className="block w-full text-center bg-brand-yellow text-white font-bold py-4 rounded-lg hover:bg-yellow-400 transition-all shadow-md active:scale-95 uppercase tracking-widest text-[11px]"
+                  className="block w-full rounded-lg bg-[#FF5F68] px-6 py-3.5 text-center text-[11px] font-extrabold uppercase tracking-[0.12em] text-white shadow-[0_8px_20px_rgba(255,95,104,0.22)] transition-all duration-300 hover:bg-[#F04F59] hover:shadow-[0_10px_24px_rgba(255,95,104,0.3)] active:scale-[0.98] md:w-fit md:min-w-56"
                 >
                   Book This Vehicle
                 </Link>
               </div>
-            </div>
+            </section>
           ))}
         </div>
       </div>
