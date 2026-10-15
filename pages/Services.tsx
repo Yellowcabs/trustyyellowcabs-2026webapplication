@@ -31,7 +31,7 @@ export const Services: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white pb-14  sm:pb-16 lg:pb-20">
+    <div className="min-h-screen bg-white pb-0 sm:pb-0 md:pb-16 lg:pb-20">
       <div className="container mx-auto max-w-[1200px] px-4 sm:px-5 md:px-6">
         <header className="grid px-1 pb-8 pt-8 text-left sm:px-0 md:grid-cols-2 md:items-center md:gap-8 md:pb-10 md:pt-10 lg:gap-12 lg:pb-12 lg:pt-14">
           <div>
@@ -92,7 +92,7 @@ export const Services: React.FC = () => {
           ))}
         </div>
 
-        <section className="mt-4 border-t border-slate-200 px-1 py-12 text-center  sm:mt-6 sm:py-14">
+        <section className="mt-4 border-t border-slate-200 px-1 py-6 text-center sm:mt-6 sm:py-6 md:py-14">
           <h2 className="text-2xl font-extrabold tracking-[-0.02em] text-[#0B1733]  sm:text-3xl">Plan Your Cab Booking Today</h2>
           <Link
             to="/"

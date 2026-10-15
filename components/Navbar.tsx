@@ -1,11 +1,24 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const scrollY = window.scrollY;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
 
   const links = [
     { path: '/', label: 'Home' },
@@ -18,7 +31,7 @@ export const Navbar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-xl border-b border-slate-50 transition-all">
+    <nav className={`${isOpen ? 'fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-white' : 'sticky top-0 z-40 bg-white/95 backdrop-blur-xl'} w-full border-b border-slate-50 transition-all`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           
@@ -61,7 +74,7 @@ export const Navbar: React.FC = () => {
               onClick={() => setIsOpen(!isOpen)}
               className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all duration-300 active:scale-95 ${
                 isOpen 
-                  ? 'bg-brand-yellow border-brand-yellow text-slate-950 shadow-lg shadow-brand-yellow/20' 
+                  ? 'bg-brand-yellow border-brand-yellow text-white hover:text-white active:text-white focus:text-white shadow-lg shadow-brand-yellow/20' 
                   : 'bg-white border-slate-100 text-slate-900'
               }`}
               aria-expanded={isOpen}
@@ -101,7 +114,7 @@ export const Navbar: React.FC = () => {
                 to="/"
                 state={{ scrollToBook: true }}
                 onClick={() => setIsOpen(false)}
-                className="block w-full text-center bg-brand-yellow text-slate-950 px-6 py-5 rounded-xl font-extrabold uppercase tracking-widest shadow-lg shadow-brand-yellow/20 transition-transform active:scale-[0.98]"
+                className="block w-full text-center bg-brand-yellow text-white hover:text-white active:text-white focus:text-white px-6 py-5 rounded-xl font-extrabold uppercase tracking-widest shadow-lg shadow-brand-yellow/20 transition-transform active:scale-[0.98]"
               >
                 Book Your Ride
               </Link>

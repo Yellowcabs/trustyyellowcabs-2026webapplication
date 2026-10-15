@@ -1,22 +1,20 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Home, Car, Phone, Calendar, Mail } from 'lucide-react';
 
 export const MobileTabBar: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/fleet', label: 'Fleet', icon: Car },
     { 
-      path: '/', 
+      path: '/book-a-trip', 
       label: 'Book', 
       icon: Calendar, 
       isAction: true, 
       isPrimary: true,
-      action: () => navigate('/', { state: { scrollToBook: true } }) 
+      action: () => navigate('/book-a-trip') 
     },
     { 
       path: 'tel:+919488834020', 
@@ -29,25 +27,25 @@ export const MobileTabBar: React.FC = () => {
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-100 pb-safe-area-inset-bottom shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)]">
-      <div className="flex items-stretch justify-around h-16">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 w-full rounded-t-2xl rounded-b-none bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(15,23,42,0.08)]">
+      <style>{`\n        @keyframes fp-call-ring {\n          0%, 30%, 100% { transform: rotate(0deg); }\n          6% { transform: rotate(-10deg); }\n          12% { transform: rotate(10deg); }\n          18% { transform: rotate(-7deg); }\n          24% { transform: rotate(5deg); }\n        }\n        .fp-call-ring { animation: fp-call-ring 5s ease-in-out infinite; transform-origin: 50% 50%; }\n        @media (prefers-reduced-motion: reduce) {\n          .fp-call-ring { animation: none; }\n        }\n      `}</style>
+      <div className="grid h-[68px] grid-cols-[repeat(5,minmax(0,1fr))] items-stretch overflow-visible rounded-t-2xl rounded-b-none px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = isActive(item.path) && !item.isAction && !item.isExternal;
 
           // Primary CTA Style (Book)
           if (item.isPrimary) {
             return (
               <button
-    key={item.label}
-    onClick={item.action}
-    className="flex-1 flex flex-col items-center justify-center text-slate-950 transition-all active:scale-95 group"
-  >
-    <Icon size={20} strokeWidth={3} className="group-active:scale-110 transition-transform" />
-    <span className="text-[9px] font-black mt-1 uppercase tracking-tighter">
-      {item.label}
-    </span>
-  </button>
+                key={item.label}
+                onClick={item.action}
+                className="flex h-full min-w-0 flex-col items-center justify-end pb-2 text-[#FF6269] transition-all active:scale-95 group"
+              >
+                <Icon size={22} strokeWidth={2.5} className="group-active:scale-110 transition-transform" />
+                <span className="mt-1 text-[9px] font-bold uppercase tracking-tighter text-[#FF6269]">
+                  {item.label}
+                </span>
+              </button>
             );
           }
 
@@ -57,12 +55,10 @@ export const MobileTabBar: React.FC = () => {
               <a
                 key={item.label}
                 href={item.path}
-                className="flex-1 flex flex-col items-center justify-center text-slate-900 transition-all active:bg-slate-50 group"
+                className="flex h-full min-w-0 flex-col items-center justify-end pb-2 text-[#0B1733] transition-all active:bg-slate-50 group"
               >
-                <div className="relative p-1.5 rounded-full border-2 border-brand-yellow/30 group-active:border-brand-yellow group-active:scale-110 transition-all">
-                  <Icon size={18} strokeWidth={2.5} className="text-brand-yellow animate-ring-vibrate" />
-                </div>
-                <span className="text-[9px] font-black mt-1 uppercase tracking-tighter opacity-80">
+                <Icon size={22} strokeWidth={2.2} className="fp-call-ring text-black" />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-black">
                   {item.label}
                 </span>
               </a>
@@ -74,20 +70,13 @@ export const MobileTabBar: React.FC = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex-1 flex flex-col items-center justify-center transition-all relative group active:scale-95 ${
-                active 
-                  ? 'text-brand-yellow' 
-                  : 'text-slate-400'
+              className={`relative flex h-full min-w-0 flex-col items-center justify-end pb-2 transition-all group active:scale-95 ${
+                'text-black'
               }`}
             >
-              {/* Active Top Bar Indicator */}
-              {active && (
-                <div className="absolute top-0 left-1/4 right-1/4 h-1 bg-brand-yellow rounded-b-full shadow-[0_2px_10px_rgba(253,184,19,0.5)]" />
-              )}
-              
-              <Icon size={20} strokeWidth={active ? 2.5 : 2} className="group-hover:scale-110 transition-transform" />
+              <Icon size={22} strokeWidth={2.2} className="group-hover:scale-110 transition-transform" />
               <span className={`text-[9px] font-bold mt-1 uppercase tracking-tighter transition-colors ${
-                active ? 'opacity-100' : 'opacity-60'
+                'text-black'
               }`}>
                 {item.label}
               </span>

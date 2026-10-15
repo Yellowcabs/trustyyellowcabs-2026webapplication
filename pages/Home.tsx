@@ -5,7 +5,7 @@ import { SERVICES_DATA, TESTIMONIALS_DATA } from '../constants';
 import { ArrowRight, Star, MapPin, CheckCircle, Users } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
-export const Home: React.FC = () => {
+export const Home: React.FC<{ onBookingMapChange?: (active: boolean) => void }> = ({ onBookingMapChange }) => {
   const { state, pathname } = useLocation();
   const feedbackCloneCount = 3;
   const [feedbackIndex, setFeedbackIndex] = useState(feedbackCloneCount);
@@ -173,14 +173,14 @@ export const Home: React.FC = () => {
             </div>
 
            <div className="relative flex justify-center lg:justify-end order-1 lg:order-2 w-full lg:w-auto mt-0 lg:mt-0" id="book">
-              <BookingForm />
+              <BookingForm onMapActiveChange={onBookingMapChange} />
             </div>
           </div>
         </div>
       </section>
 
       {/* App-Style Quote / Trust Highlights */}
-      <section className="select-none bg-white py-12 sm:py-14 lg:py-16">
+      <section className="select-none bg-white pt-6 pb-0 sm:pt-8 sm:pb-0 md:pt-14 md:pb-14 lg:pt-16 lg:pb-0">
         <div className="container mx-auto max-w-7xl px-4 text-center sm:px-6">
           <div className="mx-auto mb-5 h-1 w-14 rounded-full bg-[#FF5F68]"></div>
 
@@ -209,7 +209,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Services Grid */}
-      <section className="bg-white py-16 sm:py-20 lg:py-24">
+      <section className="bg-white pt-10 pb-0 sm:pt-12 sm:pb-0 md:py-20 lg:pt-16 lg:pb-24">
         <div className="container mx-auto max-w-[1536px] px-4 sm:px-6 lg:px-8">
           <div className="mb-10 text-center sm:mb-12 lg:mb-16">
             <h2 className="text-3xl font-extrabold uppercase tracking-tight text-[#0B1833] md:text-5xl">Our Services</h2>

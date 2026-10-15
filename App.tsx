@@ -7,6 +7,7 @@ import { Fleet } from './pages/Fleet';
 import { Services } from './pages/Services';
 import { About } from './pages/About';
 import { Contact } from './pages/Contact';
+import { BookATrip } from './pages/BookATrip';
 import { FloatingCallButton } from './components/FloatingCallButton';
 import { MobileTabBar } from './components/MobileTabBar';
 
@@ -22,6 +23,9 @@ const ScrollToTop = () => {
 };
 
 const App: React.FC = () => {
+  const { pathname } = useLocation();
+  const [homeBookingMapOpen, setHomeBookingMapOpen] = React.useState(false);
+
   return (
     <>
       <ScrollToTop />
@@ -29,11 +33,12 @@ const App: React.FC = () => {
         <Navbar />
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home onBookingMapChange={setHomeBookingMapOpen} />} />
             <Route path="/fleet" element={<Fleet />} />
             <Route path="/services" element={<Services />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/book-a-trip" element={<BookATrip />} />
             <Route path="/bill-request" element={<Navigate to="/" replace />} />
            
           
@@ -42,7 +47,7 @@ const App: React.FC = () => {
         </main>
         <Footer />
         <FloatingCallButton />
-        <MobileTabBar />
+        {pathname !== '/book-a-trip' && !(pathname === '/' && homeBookingMapOpen) && <MobileTabBar />}
       </div>
     </>
   );

@@ -1,53 +1,38 @@
 import React from 'react';
-import { Phone } from 'lucide-react';
 
 export const FloatingCallButton: React.FC = () => {
   return (
-   <a
-  href="tel:+919488834020"
-  className="fixed bottom-24 md:bottom-28 right-4 md:right-6 z-[60] group flex flex-col items-center animate-magnetic-float hidden md:flex"
-  aria-label="Call for Booking"
->
-      {/* Radar Signal Pulses */}
-      <div className="absolute inset-0 border-2 border-[#FF6467] rounded-full animate-radar-signal"></div>
-      <div className="absolute inset-0 border-2 border-[#FF6467] rounded-full animate-radar-signal [animation-delay:1.5s]"></div>
-      
-      <div className="relative flex flex-col items-center">
-        {/* Subtle Online Floating Indicator */}
-        <div className="absolute -top-6 flex items-center gap-1.5 px-2 py-0.5 bg-slate-900/10  backdrop-blur-md rounded-full border border-white/20">
-          <div className="w-1.5 h-1.5 bg-[#FF6467] rounded-full animate-pulse"></div>
-          <span className="text-[7px] font-black text-slate-900  uppercase tracking-tighter">Live</span>
-        </div>
-
-        {/* Small Action Hub */}
-        <div className="relative animate-ring-vibrate">
-          {/* Main Button Container - Gradient Pink Theme */}
-          <div className="bg-gradient-to-br from-[#FF6467]/80 via-[#FF4F55]/80 to-[#FF7B7F]/80 p-3.5 md:p-4 rounded-2xl shadow-xl border-t border-white/30 transform transition-all duration-500 group-hover:scale-110 group-active:scale-90 flex items-center justify-center relative overflow-hidden animate-glow-flow">
-            
-            {/* Glossy Reflection Path */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent pointer-events-none"></div>
-            
-            {/* Rhythmic Vibrating Icon */}
-            <div className="animate-rhythmic-vibrate">
-              <Phone size={20} strokeWidth={2.5} className="text-white drop-shadow-md" />
-            </div>
-
-            {/* Internal Animated Glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-800"></div>
-          </div>
-
-          {/* Magnetic Label (Shown on hover for desktop) */}
-          <div className="hidden md:block absolute right-full top-1/2 -translate-y-1/2 mr-4 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
-            <div className="bg-slate-950  text-white  px-3 py-2 rounded-xl shadow-2xl flex flex-col border border-white/10 whitespace-nowrap">
-              <span className="text-[10px] font-black leading-none">+91 94888 34020</span>
-              <span className="text-[7px] font-bold text-[#FF6467] uppercase mt-0.5">Quick Booking</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Soft Interactive Shadow */}
-      <div className="w-8 h-1 bg-[#FF6467]/30 blur-md rounded-full mt-4 transition-all duration-500 group-hover:scale-150 group-hover:opacity-40"></div>
-    </a>
+    <>
+      <style>{`
+        @keyframes fp-whatsapp-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        @keyframes fp-whatsapp-pulse {
+          0%, 70%, 100% { opacity: 0; transform: scale(1); }
+          12% { opacity: 0.35; }
+          45% { opacity: 0; transform: scale(1.32); }
+        }
+        .fp-whatsapp-float { animation: fp-whatsapp-float 4.5s ease-in-out infinite; }
+        .fp-whatsapp-pulse { animation: fp-whatsapp-pulse 4.5s ease-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .fp-whatsapp-float, .fp-whatsapp-pulse { animation: none; }
+        }
+      `}</style>
+      <a
+        href="https://wa.me/919488834020?text=Hello%2C%20I%20would%20like%20to%20book%20a%20cab."
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group fixed bottom-24 right-4 z-[60] hidden h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-transform duration-200 hover:scale-[1.06] hover:shadow-[0_8px_24px_rgba(37,211,102,0.35)] active:scale-95 md:bottom-28 md:right-6 md:flex"
+        aria-label="Chat on WhatsApp"
+      >
+        <span className="fp-whatsapp-float relative flex h-full w-full items-center justify-center">
+          <span className="fp-whatsapp-pulse pointer-events-none absolute inset-0 rounded-full border-2 border-[#25D366]" aria-hidden="true" />
+          <svg viewBox="0 0 24 24" className="relative h-7 w-7 fill-current" aria-hidden="true">
+            <path d="M12 2a9.9 9.9 0 0 0-8.53 15.02L2 22l5.13-1.43A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.08-1.12l-.29-.17-3.05.85.86-2.97-.19-.31A8 8 0 1 1 12 20Zm4.39-5.98c-.24-.12-1.42-.7-1.64-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06a6.6 6.6 0 0 1-1.93-1.19 7.3 7.3 0 0 1-1.34-1.66c-.14-.24-.01-.37.1-.49.1-.1.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.4-.54-.41h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.68 2.56 4.07 3.59.57.25 1.01.4 1.36.51.57.18 1.09.15 1.5.09.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" />
+          </svg>
+        </span>
+      </a>
+    </>
   );
 };

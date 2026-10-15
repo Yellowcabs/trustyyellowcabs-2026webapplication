@@ -362,7 +362,7 @@ const VEHICLE_CONFIG = [
   { 
     type: VehicleType.MINI, 
     label: 'MINI / ANY SEDAN', 
-    image: '/images/car_etios.svg', 
+    image: 'public/images/car_etios.svg', 
     capacity: 4,
     description: 'ANY SEDAN'
   },
@@ -742,7 +742,7 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
   );
 };
 
-export const BookingForm: React.FC = () => {
+export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () => void; onMapActiveChange?: (active: boolean) => void }> = ({ forceMapActive = false, onMapBack, onMapActiveChange }) => {
   const [step, setStep] = useState(1);
   const stepRef = useRef(1);
   useEffect(() => { stepRef.current = step; }, [step]);
@@ -1685,7 +1685,7 @@ const handleWhatsAppConfirm = () => {
   window.open(`https://wa.me/919488834020?text=${message}`, '_blank');
 };
 
-  const isMapActive = !!(
+  const isMapActive = forceMapActive || !!(
     !submitted &&
     formData.pickup && (
       formData.tripType === TripTypeRental ||
@@ -1697,6 +1697,8 @@ const handleWhatsAppConfirm = () => {
   const isMobileSummary = isMapActive && isMobileScreen;
 
   useEffect(() => {
+    onMapActiveChange?.(isMapActive);
+
     const checkAndToggleClass = () => {
       const isMobile = window.innerWidth < 768;
       if (isMobile && isMapActive) {
@@ -1713,7 +1715,7 @@ const handleWhatsAppConfirm = () => {
       document.documentElement.classList.remove('map-is-active');
       window.removeEventListener('resize', checkAndToggleClass);
     };
-  }, [isMapActive]);
+  }, [isMapActive, onMapActiveChange]);
 
   useEffect(() => {
     setIsSheetExpanded(true);
@@ -1814,6 +1816,11 @@ const handleWhatsAppConfirm = () => {
             // Capture lead immediately before we clear or reset anything!
             handleAbandonment();
             leadSentRef.current = false; // Reset tracker for future attempts
+
+            if (onMapBack) {
+              onMapBack();
+              return;
+            }
             
             // Fall back to home screen by resetting locations and step
             setFormData(prev => ({ 
@@ -1908,7 +1915,7 @@ const handleWhatsAppConfirm = () => {
           </div>
         ) : (
           <div className={`justify-between items-center mb-1 ${isMapActive && !isSheetExpanded ? 'hidden md:flex' : 'flex'} ${step === 1 && !isMapActive ? 'hidden lg:flex' : 'flex'}`}>
-            <h3 className="text-md font-black text-slate-900  uppercase tracking-tight">
+            <h3 className={`${step === 2 && isMapActive && isMobileScreen ? 'text-[13px] tracking-wider' : 'text-md tracking-tight'} font-black text-slate-900 uppercase`}>
               {step === 1 ? 'Enter Locations' : step === 2 ? 'Enter Mobile' : step === 3 ? 'Select Vehicle' : 'Trip Summary'}
             </h3>
             <div className="flex gap-1.5">
@@ -1935,16 +1942,22 @@ const handleWhatsAppConfirm = () => {
                   setStep(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200   text-slate-700  text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-slate-200  shadow-sm flex items-center gap-1.5 self-start mb-2 mt-2"
+                className={`${isMapActive && isMobileScreen
+                  ? 'px-3.5 py-2 bg-white text-slate-700 text-[10px] border border-slate-200 shadow-none rounded-xl mb-1 mt-1'
+                  : 'px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] border border-slate-200 shadow-sm rounded-xl mb-2 mt-2'
+                } font-black uppercase tracking-widest transition-all flex items-center gap-1.5 self-start`}
               >
                 <ArrowLeft size={14} className="stroke-[3px]" />
                 <span>Change Locations</span>
               </button>
 
               {/* Show Date, Time, Duration card here on mobile & desktop */}
-              <div className="bg-slate-50  border border-slate-200/60  rounded-2xl p-2.5 px-3.5 flex items-center divide-x divide-slate-200/80  shadow-sm gap-0.5 my-2 animate-fade-in text-left">
+              <div className={`${isMapActive && isMobileScreen
+                ? 'bg-white border border-slate-200 rounded-2xl p-2.5 grid grid-cols-2 gap-2.5 shadow-none my-2'
+                : 'bg-slate-50 border border-slate-200/60 rounded-2xl p-2.5 px-3.5 flex items-center divide-x divide-slate-200/80 shadow-sm gap-0.5 my-2'
+              } animate-fade-in text-left`}>
                   {/* Date Column */}
-                  <div className="flex-1 flex items-center gap-1.5 min-w-0 pr-3">
+                  <div className={`${isMapActive && isMobileScreen ? 'p-2 rounded-xl bg-slate-50 border border-slate-100' : 'flex-1 pr-3'} flex items-center gap-1.5 min-w-0`}>
                     <Calendar size={13} className="text-[#FF6467] shrink-0" />
                     <div className="flex-1 min-w-0">
                       <span className="block text-[8px] font-black text-slate-400  uppercase tracking-widest mb-0.5 truncate">Date</span>
@@ -1960,7 +1973,7 @@ const handleWhatsAppConfirm = () => {
                   </div>
 
                   {/* Time Column */}
-                  <div className={`flex-1 flex items-center gap-1.5 min-w-0 px-3 ${formData.tripType === TripType.ROUND_TRIP ? 'pr-3' : ''}`}>
+                  <div className={`${isMapActive && isMobileScreen ? 'p-2 rounded-xl bg-slate-50 border border-slate-100' : 'flex-1 px-3'} flex items-center gap-1.5 min-w-0 ${formData.tripType === TripType.ROUND_TRIP ? 'pr-3' : ''}`}>
                     <Clock size={13} className="text-[#FF6467] shrink-0" />
                     <div className="flex-1 min-w-0">
                       <span className="block text-[8px] font-black text-slate-400  uppercase tracking-widest mb-0.5 truncate">Time</span>
@@ -1976,7 +1989,7 @@ const handleWhatsAppConfirm = () => {
 
                   {/* Duration (Round Trip only) */}
                   {formData.tripType === TripType.ROUND_TRIP && (
-                    <div className="flex-1 flex items-center gap-1.5 min-w-0 pl-3">
+                    <div className={`${isMapActive && isMobileScreen ? 'col-span-2 p-2 rounded-xl bg-slate-50 border border-slate-100' : 'flex-1 pl-3'} flex items-center gap-1.5 min-w-0`}>
                       <Clock size={13} className="text-[#FF6467] shrink-0" />
                       <div className="flex-1 min-w-0">
                         <span className="block text-[8px] font-black text-slate-400  uppercase tracking-widest mb-0.5 truncate">Duration</span>
@@ -1997,12 +2010,15 @@ const handleWhatsAppConfirm = () => {
                   )}
                 </div>
 
-              <div className="w-full bg-[#FF6467]/5  border-2 border-[#FF6467] focus-within:ring-4 focus-within:ring-[#FF6467]/20 rounded-xl p-2.5 px-3.5 flex items-center gap-3 transition-all shadow-md shadow-[#FF6467]/5 relative overflow-hidden text-left mt-2">
-                <span className="text-xs font-black text-[#FF6467] select-none border-r border-[#FF6467]/20 pr-2">
+              <div className={`${isMapActive && isMobileScreen
+                ? 'w-full bg-white border border-slate-200 focus-within:border-[#FF6269] focus-within:ring-4 focus-within:ring-[#FF6269]/10 rounded-2xl p-3.5 flex items-center gap-3 transition-all shadow-none'
+                : 'w-full bg-[#FF6467]/5 border-2 border-[#FF6467] focus-within:ring-4 focus-within:ring-[#FF6467]/20 rounded-xl p-2.5 px-3.5 flex items-center gap-3 transition-all shadow-md shadow-[#FF6467]/5'
+              } relative overflow-hidden text-left mt-2`}>
+                <span className={`text-xs font-black select-none border-r pr-2 ${isMapActive && isMobileScreen ? 'text-slate-700 border-slate-200' : 'text-[#FF6467] border-[#FF6467]/20'}`}>
                   +91
                 </span>
                 <div className="flex-1 min-w-0">
-                  <span className="block text-[8px] font-black text-[#FF6467] uppercase tracking-widest mb-0.5">Mobile Number</span>
+                  <span className={`block text-[8px] font-black uppercase tracking-widest mb-0.5 ${isMapActive && isMobileScreen ? 'text-slate-500' : 'text-[#FF6467]'}`}>Mobile Number</span>
                   <input
                     type="tel"
                     placeholder="10-digit number"
@@ -2024,7 +2040,7 @@ const handleWhatsAppConfirm = () => {
                         e.target.blur();
                       }
                     }}
-                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-black outline-none text-slate-900  placeholder-[#FF6467]/40"
+                    className={`w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-black outline-none text-slate-900 ${isMapActive && isMobileScreen ? 'placeholder-slate-400' : 'placeholder-[#FF6467]/40'}`}
                     maxLength={10}
                     autoFocus
                   />
@@ -2389,7 +2405,10 @@ const handleWhatsAppConfirm = () => {
         {step === 4 && (
           <div className={`${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between' : 'space-y-4'} animate-fade-in`}>
             {/* Scrollable Body */}
-            <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 space-y-2.5 app-scroll pb-2' : 'space-y-4'}`}>
+            <div className={`${isMapActive
+              ? `${isMobileScreen ? 'flex-1 min-h-0 overflow-y-auto pr-1 space-y-2.5 app-scroll pb-14' : 'flex-1 overflow-y-auto pr-1 space-y-2.5 app-scroll pb-2'}`
+              : 'space-y-4'
+            }`}>
         <div className={`transition-all
           ${isMobileSummary
             ? 'bg-white border-0 rounded-none p-0 space-y-4'
@@ -2500,7 +2519,7 @@ const handleWhatsAppConfirm = () => {
 
             </div>
             {/* Sticky Footer */}
-            <div className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent' : ''} flex gap-3`}>
+            <div className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent shrink-0' : ''} flex gap-3`}>
               <button
                 type="button"
                 onClick={() => {
