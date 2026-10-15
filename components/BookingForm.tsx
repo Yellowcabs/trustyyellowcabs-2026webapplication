@@ -362,7 +362,7 @@ const VEHICLE_CONFIG = [
   { 
     type: VehicleType.MINI, 
     label: 'MINI / ANY SEDAN', 
-    image: 'public/images/car_etios.svg', 
+    image: '/images/car_etios.svg', 
     capacity: 4,
     description: 'ANY SEDAN'
   },
