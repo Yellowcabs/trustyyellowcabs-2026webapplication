@@ -2341,6 +2341,10 @@ const handleWhatsAppConfirm = () => {
                       <img
                         src={v.image}
                         alt={v.label}
+                        width="160"
+                        height="80"
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-auto object-contain rounded-lg"
                         style={isMapActive && isMobileScreen ? { width: '100%', height: 'auto', maxWidth: 'none', maxHeight: 'none' } : undefined}
                         referrerPolicy="no-referrer"

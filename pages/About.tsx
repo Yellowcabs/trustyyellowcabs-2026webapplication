@@ -53,7 +53,7 @@ Call a taxi and start your journey.
           {/* Images */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4 order-1 lg:order-2">
             <div className="space-y-3 sm:space-y-4 mt-8 sm:mt-12">
-              <img src="/images/ChatGPT Image Oct 12, 2025, 09_27_33 AM.webp" className="rounded-2xl shadow-xl hover:scale-[1.02] transition-transform duration-500 border-2 sm:border-4 border-white  aspect-[3/4] w-full object-cover" alt="Professional Driving" />
+              <img src="/images/ChatGPT Image Oct 12, 2025, 09_27_33 AM.webp" width="1080" height="1350" fetchPriority="high" className="rounded-2xl shadow-xl hover:scale-[1.02] transition-transform duration-500 border-2 sm:border-4 border-white  aspect-[3/4] w-full object-cover" alt="Professional Driving" />
               <div className="bg-[#FF6467] aspect-[2/1] rounded-2xl flex items-center justify-center text-white shadow-lg transform hover:-translate-y-1 transition-transform p-4">
                 <div className="text-center">
                   <p className="text-xl sm:text-3xl font-extrabold">24/7</p>
@@ -68,7 +68,7 @@ Call a taxi and start your journey.
                   <p className="text-[8px] sm:text-[10px] font-bold uppercase tracking-tighter">Safe Rides</p>
                 </div>
               </div>
-              <img src="/images/taxi4-5 Verticle 1080 x 1350px.webp" className="rounded-2xl shadow-xl hover:scale-[1.02] transition-transform duration-500 border-2 sm:border-4 border-white  aspect-[3/4] w-full object-cover" alt="Travel Experience" />
+              <img src="/images/taxi4-5 Verticle 1080 x 1350px.webp" width="1080" height="1350" loading="lazy" decoding="async" className="rounded-2xl shadow-xl hover:scale-[1.02] transition-transform duration-500 border-2 sm:border-4 border-white  aspect-[3/4] w-full object-cover" alt="Travel Experience" />
             </div>
           </div>
         </div>

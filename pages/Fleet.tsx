@@ -21,6 +21,13 @@ export const Fleet: React.FC = () => {
           <p className="mt-6 max-w-[650px] text-sm font-medium leading-[1.7] text-slate-600  md:mt-0 md:text-[15px] lg:text-base">
             Book your Coimbatore taxi or outstation taxi from our wide range of vehicles, from budget sedans to premium coaches.
           </p>
+          <nav aria-label="Vehicle taxi pages" className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-xs font-bold text-[#0B1733] md:col-span-2">
+            <Link to="/mini-taxi-coimbatore" className="underline decoration-[#FF5F68]/50 underline-offset-4">Mini taxi</Link>
+            <Link to="/sedan-taxi-coimbatore" className="underline decoration-[#FF5F68]/50 underline-offset-4">Sedan taxi</Link>
+            <Link to="/suv-taxi-coimbatore" className="underline decoration-[#FF5F68]/50 underline-offset-4">SUV taxi</Link>
+            <Link to="/innova-taxi-coimbatore" className="underline decoration-[#FF5F68]/50 underline-offset-4">Innova taxi</Link>
+            <Link to="/tempo-traveller-rental-coimbatore" className="underline decoration-[#FF5F68]/50 underline-offset-4">Tempo Traveller rental</Link>
+          </nav>
         </header>
 
         <div className="space-y-0 md:space-y-6 lg:space-y-8">
@@ -33,6 +40,11 @@ export const Fleet: React.FC = () => {
                 <img 
                   src={car.image} 
                   alt={car.name} 
+                  width="800"
+                  height="500"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  fetchPriority={index === 0 ? 'high' : 'auto'}
+                  decoding="async"
                   className="h-full max-h-[280px] w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.025]"
                 />
               </div>

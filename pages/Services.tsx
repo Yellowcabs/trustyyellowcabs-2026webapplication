@@ -41,8 +41,13 @@ export const Services: React.FC = () => {
           </div>
 
           <p className="mt-6 text-sm font-medium leading-[1.6] text-slate-600  md:mt-0 md:text-[15px] lg:text-base lg:leading-[1.7]">
-            Safe and reliable cab services in Coimbatore, offering city rides, airport transfers, and outstation trips with online booking.
+            Safe and reliable <Link to="/taxi-service-in-coimbatore" className="underline decoration-[#FF5F68]/50 underline-offset-4">cab services in Coimbatore</Link>, offering city rides, airport transfers, and outstation trips with online booking.
           </p>
+          <nav aria-label="Popular taxi services" className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-xs font-bold text-[#0B1733] md:col-span-2">
+            <Link to="/airport-taxi-coimbatore" className="underline decoration-[#FF5F68]/50 underline-offset-4">Airport taxi</Link>
+            <Link to="/outstation-taxi-coimbatore" className="underline decoration-[#FF5F68]/50 underline-offset-4">Outstation taxi</Link>
+            <Link to="/hourly-taxi-rental-coimbatore" className="underline decoration-[#FF5F68]/50 underline-offset-4">Hourly taxi rental</Link>
+          </nav>
         </header>
 
         <div ref={servicesRef}>
@@ -56,7 +61,11 @@ export const Services: React.FC = () => {
                 <img 
                   src={service.image}
                   alt={service.title}
-                  loading="lazy"
+                  width="800"
+                  height="600"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  fetchPriority={index === 0 ? 'high' : 'auto'}
+                  decoding="async"
                   className="h-[220px] w-full object-contain sm:h-[280px] lg:h-[360px]"
                 />
               </div>

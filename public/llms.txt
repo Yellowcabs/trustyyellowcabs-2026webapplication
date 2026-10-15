@@ -1,0 +1,17 @@
+# FastPointCab
+
+FastPointCab provides taxi booking services in Coimbatore, Tamil Nadu, including local rides, airport transfers, hourly rentals, outstation trips, and corporate travel.
+
+## Public pages
+
+- [Home](https://www.fastpointcab.in/)
+- [About FastPointCab](https://www.fastpointcab.in/about)
+- [Taxi fleet](https://www.fastpointcab.in/fleet)
+- [Taxi services](https://www.fastpointcab.in/services)
+- [Contact](https://www.fastpointcab.in/contact)
+- [Taxi service in Coimbatore](https://www.fastpointcab.in/taxi-service-in-coimbatore)
+
+## Contact
+
+Phone: +91 94888 34020
+Service area: Coimbatore, Tamil Nadu

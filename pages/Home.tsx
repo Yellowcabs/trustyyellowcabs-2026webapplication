@@ -1,5 +1,4 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { BookingForm } from '../components/BookingForm';
 import { SERVICES_DATA, TESTIMONIALS_DATA } from '../constants';
 import { ArrowRight, Star, MapPin, CheckCircle, Users } from 'lucide-react';
@@ -125,11 +124,6 @@ export const Home: React.FC<{ onBookingMapChange?: (active: boolean) => void }> 
 
   return (
     <div className="flex flex-col w-full overflow-hidden bg-white  transition-colors">
-      <Helmet>
-        <title>FastPoint Cab | Best Taxi Service in Coimbatore</title>
-        <meta name="description" content="Book a reliable taxi in Coimbatore with FastPoint Cab. Safe, clean, and affordable city rides, airport transfers, and outstation trips available 24/7." />
-        <link rel="canonical" href="https://www.fastpointcab.in/" />
-      </Helmet>
       {/* Hero Section */}
        <section className="relative min-h-[50vh] lg:min-h-[85vh] flex items-start lg:items-center bg-white  overflow-hidden pt-5 pb-10 lg:py-0">
         <div className="absolute inset-0 z-0">
@@ -156,7 +150,7 @@ export const Home: React.FC<{ onBookingMapChange?: (active: boolean) => void }> 
   <p className="text-base sm:text-lg md:text-xl 
                 text-slate-500  
                 max-w-md md:max-w-lg leading-relaxed font-medium">
-    Reliable Cab service in Coimbatore. Safe, clean, and always on time.
+    <Link to="/taxi-service-in-coimbatore" className="underline decoration-[#FF5F68]/50 underline-offset-4">Reliable cab service in Coimbatore</Link>. Safe, clean, and always on time.
   </p>
 </div>
 
