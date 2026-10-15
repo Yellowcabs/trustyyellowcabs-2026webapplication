@@ -8,6 +8,7 @@ import { Services } from './pages/Services';
 import { About } from './pages/About';
 import { Contact } from './pages/Contact';
 import { BookATrip } from './pages/BookATrip';
+import { BookingConfirmed } from './pages/BookingConfirmed';
 import { FloatingCallButton } from './components/FloatingCallButton';
 import { MobileTabBar } from './components/MobileTabBar';
 
@@ -25,12 +26,13 @@ const ScrollToTop = () => {
 const App: React.FC = () => {
   const { pathname } = useLocation();
   const [homeBookingMapOpen, setHomeBookingMapOpen] = React.useState(false);
+  const isBookingConfirmed = pathname === '/booking-confirmed';
 
   return (
     <>
       <ScrollToTop />
       <div className="min-h-screen flex flex-col bg-white">
-        <Navbar />
+        {!isBookingConfirmed && <Navbar />}
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home onBookingMapChange={setHomeBookingMapOpen} />} />
@@ -39,15 +41,16 @@ const App: React.FC = () => {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/book-a-trip" element={<BookATrip />} />
+            <Route path="/booking-confirmed" element={<BookingConfirmed />} />
             <Route path="/bill-request" element={<Navigate to="/" replace />} />
            
           
 
           </Routes>
         </main>
-        <Footer />
-        <FloatingCallButton />
-        {pathname !== '/book-a-trip' && !(pathname === '/' && homeBookingMapOpen) && <MobileTabBar />}
+        {!isBookingConfirmed && <Footer />}
+        {!isBookingConfirmed && <FloatingCallButton />}
+        {!isBookingConfirmed && pathname !== '/book-a-trip' && !(pathname === '/' && homeBookingMapOpen) && <MobileTabBar />}
       </div>
     </>
   );

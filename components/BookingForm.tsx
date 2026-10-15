@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { BookingDetails, VehicleType, TripType, FareBreakdown, PlaceData } from '../types';
 import { MapPin, User, Phone, Smartphone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Repeat, Navigation, Package, X, ChevronUp, ChevronDown, Locate } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { sendBookingEmail } from '../services/emailService';
 import { appendBookingToSheet } from '../services/googleSheets';
 import { motion } from 'framer-motion';
@@ -743,6 +744,7 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
 };
 
 export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () => void; onMapActiveChange?: (active: boolean) => void }> = ({ forceMapActive = false, onMapBack, onMapActiveChange }) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const stepRef = useRef(1);
   useEffect(() => { stepRef.current = step; }, [step]);
@@ -1622,6 +1624,7 @@ style.innerHTML = `
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || isSubmittingRef.current) return;
     const phone = formData.phone.trim();
     const phoneRegex = /^[6-9]\d{9}$/;
 
@@ -1647,8 +1650,7 @@ style.innerHTML = `
       
       if (success) {
         submittedRef.current = true;
-        setSubmitted(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        navigate('/booking-confirmed', { replace: true, state: { booking: formData } });
       } else {
         isSubmittingRef.current = false;
         leadSentRef.current = false; // Allow retry or abandonment capture on failure

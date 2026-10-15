@@ -1,0 +1,61 @@
+import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { CheckCircle2, MessageCircle } from 'lucide-react';
+import { BookingDetails, TripType } from '../types';
+
+export const BookingConfirmed: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const booking = location.state?.booking as BookingDetails | undefined;
+
+  const handleWhatsAppConfirm = () => {
+    if (!booking) {
+      window.open('https://wa.me/919488834020', '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const tripDetails = booking.tripType === TripType.RENTAL
+      ? `*Package:* ${booking.localPackage || 'Not specified'}`
+      : `*Drop:* ${booking.drop}${booking.tripType === TripType.ROUND_TRIP ? `%0A*Days:* ${booking.numberOfDays || '1'}` : ''}`;
+    const dateTimeStr = (booking.date || booking.time)
+      ? `*Date/Time:* ${booking.date || 'Not specified'} at ${booking.time || 'Not specified'}`
+      : '*Date/Time:* Not specified';
+    const message =
+      `*NEW BOOKING CONFIRMATION*` +
+      `%0A*Trip Type:* ${booking.tripType}` +
+      `%0A*Phone:* ${booking.phone}` +
+      `%0A*Pickup:* ${booking.pickup}` +
+      `%0A${tripDetails}` +
+      `%0A${dateTimeStr}` +
+      `%0A*Vehicle:* ${booking.vehicleType}` +
+      `%0A*Estimated Fare:* ${booking.estimatedFare || 'Not specified'}`;
+
+    window.open(`https://wa.me/919488834020?text=${message}`, '_blank', 'noopener,noreferrer');
+  };
+
+  return (
+    <main className="flex min-h-[100dvh] items-center justify-center bg-white px-6">
+      <div className="w-full max-w-sm text-center animate-fade-in">
+        <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/10 text-green-500">
+          <CheckCircle2 size={40} />
+        </div>
+        <h1 className="mb-2 text-2xl font-black uppercase tracking-tight text-slate-900">Booking Sent!</h1>
+        <p className="mb-8 text-[11px] font-bold uppercase leading-relaxed tracking-widest text-slate-500">driver will call you shortly.</p>
+
+        <button
+          onClick={handleWhatsAppConfirm}
+          className="mb-3 flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl bg-[#25D366] py-4 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all active:scale-95"
+        >
+          <MessageCircle size={20} /> WhatsApp support
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate('/book-a-trip', { replace: true })}
+          className="w-full cursor-pointer rounded-2xl border border-slate-300 py-4 text-[10px] font-bold uppercase text-slate-900 transition-all hover:bg-slate-100"
+        >
+          Book Another Ride
+        </button>
+      </div>
+    </main>
+  );
+};
