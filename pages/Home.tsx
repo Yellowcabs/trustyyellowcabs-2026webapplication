@@ -180,7 +180,7 @@ export const Home: React.FC<{ onBookingMapChange?: (active: boolean) => void }> 
       </section>
 
       {/* App-Style Quote / Trust Highlights */}
-      <section className="select-none bg-white pt-6 pb-0 sm:pt-8 sm:pb-0 md:pt-14 md:pb-14 lg:pt-16 lg:pb-0">
+      <section className="select-none bg-white pt-1 pb-0 sm:pt-3 sm:pb-0 md:pt-14 md:pb-14 lg:pt-16 lg:pb-0">
         <div className="container mx-auto max-w-7xl px-4 text-center sm:px-6">
           <div className="mx-auto mb-5 h-1 w-14 rounded-full bg-[#FF5F68]"></div>
 

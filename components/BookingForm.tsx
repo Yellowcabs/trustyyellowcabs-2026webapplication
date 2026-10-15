@@ -1723,7 +1723,7 @@ const handleWhatsAppConfirm = () => {
 
   if (submitted) {
     return (
-      <div className="bg-white  p-8 rounded-[2.5rem] shadow-2xl border border-slate-100  text-center max-w-sm mx-auto animate-fade-in my-10">
+      <div className="text-center max-w-sm mx-auto animate-fade-in">
         <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6 relative">
           <CheckCircle2 size={40} />
         </div>

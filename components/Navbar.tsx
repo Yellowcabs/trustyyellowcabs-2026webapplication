@@ -1,11 +1,12 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const skipMenuScrollRestore = useRef(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -16,7 +17,8 @@ export const Navbar: React.FC = () => {
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.scrollTo(0, scrollY);
+      if (!skipMenuScrollRestore.current) window.scrollTo(0, scrollY);
+      skipMenuScrollRestore.current = false;
     };
   }, [isOpen]);
 
@@ -29,6 +31,15 @@ export const Navbar: React.FC = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleHomeClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (location.pathname !== '/') return;
+
+    event.preventDefault();
+    if (isOpen) skipMenuScrollRestore.current = true;
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    window.scrollTo({ top: 0, behavior });
+  };
 
   return (
     <nav className={`${isOpen ? 'fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-white' : 'sticky top-0 z-40 bg-white/95 backdrop-blur-xl'} w-full border-b border-slate-50 transition-all`}>
@@ -50,6 +61,7 @@ export const Navbar: React.FC = () => {
               <Link
                 key={link.path}
                 to={link.path}
+                onClick={link.path === '/' ? handleHomeClick : undefined}
                 className={`text-[11px] font-bold uppercase tracking-widest transition-all ${
                   isActive(link.path) 
                     ? 'text-brand-yellow' 
@@ -99,7 +111,10 @@ export const Navbar: React.FC = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                onClick={() => setIsOpen(false)}
+                onClick={(event) => {
+                  if (link.path === '/') handleHomeClick(event);
+                  setIsOpen(false);
+                }}
                 className={`block px-5 py-4 rounded-xl text-sm font-bold uppercase tracking-widest ${
                   isActive(link.path)
                     ? 'bg-slate-50 text-brand-yellow'

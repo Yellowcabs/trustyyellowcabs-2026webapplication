@@ -1,9 +1,18 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Car, Phone, Calendar, Mail } from 'lucide-react';
 
 export const MobileTabBar: React.FC = () => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const handleHomeClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname !== '/') return;
+
+    event.preventDefault();
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    window.scrollTo({ top: 0, behavior });
+  };
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
@@ -70,6 +79,7 @@ export const MobileTabBar: React.FC = () => {
             <Link
               key={item.path}
               to={item.path}
+              onClick={item.path === '/' ? handleHomeClick : undefined}
               className={`relative flex h-full min-w-0 flex-col items-center justify-end pb-2 transition-all group active:scale-95 ${
                 'text-black'
               }`}
