@@ -2,10 +2,12 @@ import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { BookingForm } from '../components/BookingForm';
 import { SERVICES_DATA, TESTIMONIALS_DATA } from '../constants';
 import { ArrowRight, Star, MapPin, CheckCircle, Users } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export const Home: React.FC<{ onBookingMapChange?: (active: boolean) => void }> = ({ onBookingMapChange }) => {
   const { state, pathname } = useLocation();
+  const navigate = useNavigate();
+  const handledScrollToBook = useRef(false);
   const feedbackCloneCount = 3;
   const [feedbackIndex, setFeedbackIndex] = useState(feedbackCloneCount);
   const [visibleReviews, setVisibleReviews] = useState(3);
@@ -86,8 +88,12 @@ export const Home: React.FC<{ onBookingMapChange?: (active: boolean) => void }> 
   }, [feedbackTransitioning]);
 
   useEffect(() => {
-    if (state && state.scrollToBook) {
-      setTimeout(scrollToBooking, 100);
+    if (state && state.scrollToBook && !handledScrollToBook.current) {
+      handledScrollToBook.current = true;
+      navigate(pathname, { replace: true, state: null });
+      requestAnimationFrame(scrollToBooking);
+    } else if (handledScrollToBook.current) {
+      return;
     } else {
       window.scrollTo({
         top: 0,
@@ -95,7 +101,7 @@ export const Home: React.FC<{ onBookingMapChange?: (active: boolean) => void }> 
         behavior: 'auto'
       });
     }
-  }, [state, pathname, scrollToBooking]);
+  }, [state, pathname, navigate, scrollToBooking]);
 
   const TestimonialCard: React.FC<{ t: any }> = ({ t }) => (
     <article className="flex h-full min-h-[270px] w-full flex-col rounded-[20px] border border-slate-200 bg-white p-6 shadow-[0_12px_32px_rgba(15,23,42,0.06)]   sm:p-7">
