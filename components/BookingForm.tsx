@@ -1588,7 +1588,7 @@ style.innerHTML = `
       // ⚠️ Mark as sent synchronously BEFORE async calls to prevent duplicate triggers
       leadSentRef.current = true;
       
-      console.log('Capturing abandoned lead...', bookingData.phone);
+    console.log('Capturing abandoned lead...');
       
       // Send Email
       sendBookingEmail(bookingData);

@@ -1,14 +1,7 @@
 import { BookingDetails } from '../types';
 
 export const sendBookingEmail = async (details: BookingDetails): Promise<boolean> => {
-  const apiKey = import.meta.env.VITE_BREVO_API_KEY;
-
-  if (!apiKey) {
-    console.error("API configuration is missing. Brevo API key is not set.");
-    return false;
-  }
-
-  const url = "https://api.brevo.com/v3/smtp/email";
+  const url = "/api/send-booking-email";
 
   // Safely format schedule in 12-hour IST
   let scheduleIST = "N/A";
@@ -251,25 +244,23 @@ Need assistance? Call us anytime.
         keepalive: true, // CRITICAL: Guarantees fetch request completes during page unload/tab switch
         headers: {
           'accept': 'application/json',
-          'api-key': apiKey,
           'content-type': 'application/json'
         },
-        body: JSON.stringify(emailContent)
+        body: JSON.stringify({ emailContent })
       });
 
       if (response.ok) {
         return true;
       }
 
-      const errorText = await response.text();
-      console.error(`Brevo Email API attempt ${attempt} failed with status ${response.status}:`, errorText);
+      console.error(`Booking email request failed with status ${response.status}`);
 
       // If client error like 400 or 401, don't retry
       if (response.status >= 400 && response.status < 500 && response.status !== 429) {
         break;
       }
     } catch (error) {
-      console.error(`Network error sending email (attempt ${attempt}/${maxAttempts}):`, error);
+      console.error(`Network error sending booking email (attempt ${attempt}/${maxAttempts})`);
     }
 
     if (attempt < maxAttempts) {

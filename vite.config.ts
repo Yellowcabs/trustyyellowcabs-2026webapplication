@@ -25,9 +25,6 @@ export default defineConfig(({ mode }) => {
       "process.env.VITE_GOOGLE_MAPS_API_KEY": JSON.stringify(
         env.VITE_GOOGLE_MAPS_API_KEY
       ),
-      "process.env.VITE_BREVO_API_KEY": JSON.stringify(
-        env.VITE_BREVO_API_KEY
-      ),
     },
 
    build: {
