@@ -755,22 +755,49 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [isSheetExpanded, setIsSheetExpanded] = useState(true);
+  type SheetPosition = 'collapsed' | 'half' | 'expanded';
+  const [sheetPosition, setSheetPosition] = useState<SheetPosition>('half');
+  const isSheetExpanded = sheetPosition !== 'collapsed';
   const suppressSheetClick = useRef(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const sheetPointerId = useRef<number | null>(null);
   const sheetPointerStartY = useRef<number | null>(null);
   const sheetPointerStartTime = useRef(0);
-  const sheetPointerStartExpanded = useRef(true);
+  const sheetPointerStartPosition = useRef<SheetPosition>('half');
   const sheetPointerScrollContainer = useRef<HTMLElement | null>(null);
   const sheetPointerActive = useRef(false);
   const sheetDragOffsetRef = useRef(0);
   const [isSheetDragging, setIsSheetDragging] = useState(false);
-  const [sheetDragOffset, setSheetDragOffset] = useState(0);
 
-  const getSheetTravel = () => {
-    const expandedHeight = window.innerHeight * (isKeyboardVisible ? 0.85 : 0.62);
-    return Math.max(80, expandedHeight - 76);
+  const getSheetHeights = () => {
+    const viewportHeight = window.visualViewport?.height || window.innerHeight;
+    const collapsedHeight = 76;
+    const halfHeight = Math.max(240, viewportHeight * 0.62);
+    const expandedHeight = Math.max(halfHeight, viewportHeight * 0.85);
+    return { collapsedHeight, halfHeight, expandedHeight };
+  };
+
+  const getSheetHeight = (position: SheetPosition) => {
+    const { collapsedHeight, halfHeight, expandedHeight } = getSheetHeights();
+    return position === 'collapsed' ? collapsedHeight : position === 'expanded' ? expandedHeight : halfHeight;
+  };
+
+  const getSheetOffsetBounds = (position: SheetPosition) => {
+    const { collapsedHeight, halfHeight, expandedHeight } = getSheetHeights();
+    const height = position === 'collapsed' ? collapsedHeight : position === 'expanded' ? expandedHeight : halfHeight;
+    return {
+      min: -(expandedHeight - height),
+      max: height - collapsedHeight,
+    };
+  };
+
+  const getNearestSheetPosition = (height: number): SheetPosition => {
+    const positions: SheetPosition[] = ['collapsed', 'half', 'expanded'];
+    return positions.reduce((nearest, position) =>
+      Math.abs(getSheetHeight(position) - height) < Math.abs(getSheetHeight(nearest) - height)
+        ? position
+        : nearest
+    , 'half' as SheetPosition);
   };
 
   const resetSheetPointer = () => {
@@ -784,7 +811,6 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
       sheetRef.current.style.touchAction = '';
       sheetRef.current.style.transition = '';
     }
-    setSheetDragOffset(0);
     setIsSheetDragging(false);
   };
 
@@ -793,17 +819,22 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
 
     const target = e.target as HTMLElement;
     const scrollContainer = target.closest<HTMLElement>('.app-scroll');
+    const dragSurface = target.closest<HTMLElement>('[data-sheet-drag-surface]');
     if (target.closest('input, textarea, select, button, a')) return;
 
     // Claim the primary pointer immediately on the sheet's blank surface.
     // Form content remains available for native scrolling and text input.
-    const canDragSheet = !isSheetExpanded || !scrollContainer || target === scrollContainer;
+    const canDragSheet = Boolean(dragSurface) || !isSheetExpanded || !scrollContainer || target === scrollContainer;
     if (isSheetExpanded && scrollContainer && !canDragSheet) return;
+
+    // If the form is already scrolled, let Android consume this gesture to
+    // return the form to its top before a later downward gesture collapses it.
+    if (isSheetExpanded && scrollContainer && scrollContainer.scrollTop > 0) return;
 
     sheetPointerId.current = e.pointerId;
     sheetPointerStartY.current = e.clientY;
     sheetPointerStartTime.current = Date.now();
-    sheetPointerStartExpanded.current = isSheetExpanded;
+    sheetPointerStartPosition.current = sheetPosition;
     sheetPointerScrollContainer.current = scrollContainer;
     sheetPointerActive.current = canDragSheet;
 
@@ -825,16 +856,8 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     if (sheetPointerId.current !== e.pointerId || sheetPointerStartY.current === null) return;
 
     const diff = e.clientY - sheetPointerStartY.current;
-    const validDirection = sheetPointerStartExpanded.current ? diff > 0 : diff < 0;
     if (!sheetPointerActive.current) {
-      if (Math.abs(diff) < 1 || !validDirection) return;
-
-      // Let the form consume upward scrolling. A downward sheet drag may
-      // take over only when the expanded form is already at its top edge.
-      const scrollContainer = sheetPointerScrollContainer.current;
-      if (sheetPointerStartExpanded.current && scrollContainer &&
-          (diff < 0 || scrollContainer.scrollTop > 0)) return;
-
+      if (Math.abs(diff) < 1) return;
       sheetPointerActive.current = true;
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -846,17 +869,40 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
 
     // Prevent page movement only after a deliberate sheet drag has started.
     e.preventDefault();
-    if (!validDirection) {
-      sheetDragOffsetRef.current = 0;
-      if (sheetRef.current) sheetRef.current.style.transform = 'translateY(0px)';
-      return;
-    }
-    const travel = getSheetTravel();
-    const offset = sheetPointerStartExpanded.current
-      ? Math.min(travel, Math.max(0, diff))
-      : Math.max(-travel, Math.min(0, diff));
+    const bounds = getSheetOffsetBounds(sheetPointerStartPosition.current);
+    const offset = Math.min(bounds.max, Math.max(bounds.min, diff));
     sheetDragOffsetRef.current = offset;
     if (sheetRef.current) sheetRef.current.style.transform = `translateY(${offset}px)`;
+  };
+
+  const finishSheetGesture = (position: SheetPosition, e: React.PointerEvent<HTMLDivElement>) => {
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // Pointer capture may already have been released by Android.
+    }
+
+    sheetPointerId.current = null;
+    sheetPointerStartY.current = null;
+    sheetPointerScrollContainer.current = null;
+    sheetPointerActive.current = false;
+    setSheetPosition(position);
+    setIsSheetDragging(false);
+
+    if (sheetRef.current) {
+      sheetRef.current.style.transition = 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)';
+      requestAnimationFrame(() => {
+        if (sheetRef.current) sheetRef.current.style.transform = 'translateY(0px)';
+      });
+    }
+
+    window.setTimeout(() => {
+      sheetDragOffsetRef.current = 0;
+      if (sheetRef.current) {
+        sheetRef.current.style.touchAction = '';
+        sheetRef.current.style.transition = '';
+      }
+    }, 320);
   };
 
   const handleSheetPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -867,16 +913,23 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     if (Math.abs(diff) > 10) suppressSheetClick.current = true;
 
     if (sheetPointerActive.current) {
-      const travel = getSheetTravel();
-      const distance = Math.abs(diff);
-      const fastFlick = distance > 24 && duration < 250;
-      const shouldSnap = distance > travel / 2 || fastFlick;
-      setIsSheetExpanded(sheetPointerStartExpanded.current ? !shouldSnap : shouldSnap);
-      try {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      } catch {
-        // Pointer capture may already have been released by the browser.
+      const startPosition = sheetPointerStartPosition.current;
+      const startHeight = getSheetHeight(startPosition);
+      const currentHeight = startHeight - sheetDragOffsetRef.current;
+      const velocity = duration > 0 ? diff / duration : 0;
+      const projectedHeight = currentHeight - velocity * 160;
+      let nextPosition = getNearestSheetPosition(projectedHeight);
+
+      // A decisive flick advances one snap point in its travel direction.
+      if (Math.abs(velocity) > 0.45) {
+        const positions: SheetPosition[] = ['collapsed', 'half', 'expanded'];
+        const startIndex = positions.indexOf(startPosition);
+        const nextIndex = velocity < 0 ? Math.min(positions.length - 1, startIndex + 1) : Math.max(0, startIndex - 1);
+        nextPosition = positions[nextIndex];
       }
+
+      finishSheetGesture(nextPosition, e);
+      return;
     }
 
     resetSheetPointer();
@@ -1765,7 +1818,7 @@ const handleWhatsAppConfirm = () => {
   }, [isMapActive, onMapActiveChange]);
 
   useEffect(() => {
-    setIsSheetExpanded(true);
+    setSheetPosition('half');
   }, [step, isMapActive]);
 
   if (submitted) {
@@ -1893,30 +1946,30 @@ const handleWhatsAppConfirm = () => {
         onPointerUp={handleSheetPointerUp}
         onPointerCancel={handleSheetPointerCancel}
         className={`
-          ${isSheetDragging ? 'transition-none touch-none' : 'transition-all duration-300 ease-in-out [touch-action:pan-y]'}
+          ${isSheetDragging ? 'transition-none touch-none' : !isSheetExpanded ? 'transition-all duration-300 ease-in-out touch-none' : 'transition-all duration-300 ease-in-out [touch-action:pan-y]'}
           ${isMapActive 
             ? `fixed bottom-0 left-0 right-0 z-30 box-border w-full max-w-none bg-white/95  backdrop-blur-md border-t border-slate-100  flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent  md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-[460px] md:max-h-[460px] md:flex md:flex-col md:flex-1 md:pr-1 pointer-events-auto
                ${isSheetExpanded 
-                 ? `shadow-[0_-15px_30px_rgba(0,0,0,0.15)] p-4 pb-[calc(env(safe-area-inset-bottom,16px)+16px)] rounded-t-[2rem] box-border ${isKeyboardVisible ? 'h-[85dvh] max-h-[calc(100dvh-env(safe-area-inset-top,0px))] md:h-[460px] md:max-h-[460px]' : 'h-[62dvh] max-h-[calc(100dvh-env(safe-area-inset-top,0px))] md:h-[460px] md:max-h-[460px]'} md:shadow-none md:p-0 md:rounded-none` 
+                 ? `shadow-[0_-15px_30px_rgba(0,0,0,0.15)] p-4 pb-[calc(env(safe-area-inset-bottom,16px)+16px)] rounded-t-[2rem] box-border ${sheetPosition === 'expanded' || isKeyboardVisible ? 'h-[85dvh] max-h-[calc(100dvh-env(safe-area-inset-top,0px))] md:h-[460px] md:max-h-[460px]' : 'h-[62dvh] max-h-[calc(100dvh-env(safe-area-inset-top,0px))] md:h-[460px] md:max-h-[460px]'} md:shadow-none md:p-0 md:rounded-none`
                  : 'shadow-[0_-5px_15px_rgba(0,0,0,0.08)] min-h-[calc(76px+env(safe-area-inset-bottom,0px))] max-h-none p-3 pt-3 pb-[calc(env(safe-area-inset-bottom,16px)+12px)] rounded-t-2xl md:h-[460px] md:max-h-[460px] md:shadow-none md:p-0 md:rounded-none overflow-visible cursor-pointer'
                }` 
             : 'w-full flex flex-col gap-3.5'
           }
         `}
-        style={isMapActive && isMobileScreen ? { transform: `translateY(${sheetDragOffset}px)` } : undefined}
         onClick={(e) => {
           if (suppressSheetClick.current) {
             suppressSheetClick.current = false;
             return;
           }
           if (isMapActive && !isSheetExpanded) {
-            setIsSheetExpanded(true);
+            setSheetPosition('half');
           }
         }}
       >
         {isMapActive && (
           <div 
-            className="w-full flex flex-col items-center py-0.5 cursor-pointer md:hidden group"
+            data-sheet-drag-surface="handle"
+            className="w-full flex flex-col items-center py-0.5 cursor-pointer md:hidden group touch-none"
           >
             <div className="w-12 h-1 bg-slate-300  rounded-full group-hover:bg-slate-400  transition-colors" />
           </div>
@@ -1952,7 +2005,7 @@ const handleWhatsAppConfirm = () => {
                   return;
                 }
                 e.stopPropagation();
-                setIsSheetExpanded(true);
+                setSheetPosition('half');
               }}
               className="bg-[#FF6467] text-slate-950 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-md flex items-center gap-2 hover:bg-[#FF7075] active:scale-95 transition-all"
             >
@@ -2320,6 +2373,12 @@ const handleWhatsAppConfirm = () => {
             }
           `}</style>
 
+          <div
+            data-sheet-drag-surface="blank"
+            aria-hidden="true"
+            className="md:hidden h-24 shrink-0 touch-none"
+          />
+
             </div>
 
             {/* Sticky Footer */}
@@ -2612,7 +2671,7 @@ const handleWhatsAppConfirm = () => {
           initialValue={mobileSearchType === 'pickup' ? formData.pickup : formData.drop}
           onClose={() => {
             setMobileSearchType(null);
-            setIsSheetExpanded(true);
+            setSheetPosition('half');
           }}
           onSelect={async (address, placeData) => {
             if (mobileSearchType === 'pickup') {
@@ -2623,7 +2682,7 @@ const handleWhatsAppConfirm = () => {
               if (dropRef.current) dropRef.current.value = address;
             }
             setMobileSearchType(null);
-            setIsSheetExpanded(true);
+            setSheetPosition('half');
           }}
         />
       )}
