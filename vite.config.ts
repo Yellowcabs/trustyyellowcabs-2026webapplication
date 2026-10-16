@@ -106,7 +106,7 @@ const staticSeoPlugin = () => ({
       fs.writeFileSync(path.join(routeDir, 'index.html'), routeHead);
     };
 
-    writeRoute('', rootSeoHead, template, true);
+    writeRoute('', rootSeoHead, template, false);
     for (const [route, seo] of Object.entries(seoRouteHeads)) {
       writeRoute(route, seo, template, seo.robots === 'index, follow');
     }

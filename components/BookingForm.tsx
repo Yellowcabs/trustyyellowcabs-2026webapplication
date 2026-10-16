@@ -8,6 +8,19 @@ import { motion } from 'framer-motion';
 
 declare const google: any;
 
+const getGeolocationErrorMessage = (error: GeolocationPositionError | any) => {
+  switch (error?.code) {
+    case 1:
+      return 'Location access is blocked. In Chrome, open the site permissions, set Location to Allow, then try again.';
+    case 2:
+      return 'Location is unavailable. Turn on Android Location/GPS and try again.';
+    case 3:
+      return 'Location request timed out. Check your GPS signal and try again.';
+    default:
+      return 'Unable to get your location. Check browser and device location settings, then try again.';
+  }
+};
+
 const TripTypeRental = (TripType as any).RENTAL || 'Rental' as TripType;
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -450,8 +463,6 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
     const onSuccess = (position: any) => {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
-      console.log(`GPS Success: Lat=${lat}, Lng=${lng}`);
-
       if (googleLoaded && (window as any).google?.maps?.Geocoder) {
         const geocoder = new (window as any).google.maps.Geocoder();
         geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
@@ -485,30 +496,13 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
 
     const onError = (error: any) => {
       setLocating(false);
-      console.error("GPS Error Code:", error.code, "Message:", error.message);
-      let errorMsg = "Unable to get your GPS location.";
-      if (error.code === error.PERMISSION_DENIED) {
-        errorMsg = "Location access was denied. Please allow location permissions in your browser/device settings.";
-      } else if (error.code === error.POSITION_UNAVAILABLE) {
-        errorMsg = "Location info is unavailable. Ensure GPS is enabled on your device.";
-      } else if (error.code === error.TIMEOUT) {
-        errorMsg = "GPS location request timed out. Please try again.";
-      }
-      setGpsError(errorMsg);
+      setGpsError(getGeolocationErrorMessage(error));
     };
 
-    // Fast-first geolocation strategy for instant loading
     navigator.geolocation.getCurrentPosition(
       onSuccess,
-      () => {
-        // Fallback to high accuracy if quick mode fails
-        navigator.geolocation.getCurrentPosition(
-          onSuccess,
-          onError,
-          { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
-        );
-      },
-      { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
+      onError,
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   };
 
@@ -941,8 +935,6 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     const onSuccess = (position: any) => {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
-      console.log(`Desktop GPS Success: Lat=${lat}, Lng=${lng}`);
-
       if (googleLoaded && (window as any).google?.maps?.Geocoder) {
         const geocoder = new (window as any).google.maps.Geocoder();
         geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
@@ -984,30 +976,13 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
 
     const onError = (error: any) => {
       setLocatingPickup(false);
-      console.error("GPS Error Code:", error.code, "Message:", error.message);
-      let errorMsg = "Unable to get your GPS location.";
-      if (error.code === error.PERMISSION_DENIED) {
-        errorMsg = "Location access was denied. Please allow location permissions in your browser/device settings.";
-      } else if (error.code === error.POSITION_UNAVAILABLE) {
-        errorMsg = "Location info is unavailable. Ensure GPS is enabled on your device.";
-      } else if (error.code === error.TIMEOUT) {
-        errorMsg = "GPS location request timed out. Please try again.";
-      }
-      setGpsErrorPickup(errorMsg);
+      setGpsErrorPickup(getGeolocationErrorMessage(error));
     };
 
-    // Fast-first geolocation strategy for instant loading
     navigator.geolocation.getCurrentPosition(
       onSuccess,
-      () => {
-        // Fallback to high accuracy if quick mode fails
-        navigator.geolocation.getCurrentPosition(
-          onSuccess,
-          onError,
-          { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
-        );
-      },
-      { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
+      onError,
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   };
 
@@ -2227,6 +2202,13 @@ const handleWhatsAppConfirm = () => {
                 )}
               </div>
             </div>
+
+            {gpsErrorPickup && (
+              <div className="mt-2 p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-800 text-[11px] font-semibold">
+                <AlertTriangle size={14} className="shrink-0 text-[#FF6467]" />
+                <span>{gpsErrorPickup}</span>
+              </div>
+            )}
 
             {formData.tripType !== TripTypeRental && (
               /* Destination Card */
