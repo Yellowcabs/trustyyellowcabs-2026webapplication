@@ -71,13 +71,13 @@ export const CORE_SEO_ROUTES: Record<string, SeoHead> = {
   '/privacy-policy': {
     title: 'Privacy Policy | TrustyYellowCabs',
     description: 'Read the Trusty Yellow Cab Driver privacy policy covering information collection, location data, security, third-party services, and driver rights.',
-    robots: 'index, follow',
+    robots: 'noindex, follow',
     canonical: `${SITE_URL}/privacy-policy`,
   },
   '/account-deletion': {
     title: 'Account Deletion Request | TrustyYellowCabs',
     description: 'Request deletion of your TRUSTY YELLOW CAB DRIVER account and associated personal information through the official TrustyYellowCabs contact process.',
-    robots: 'index, follow',
+    robots: 'noindex, follow',
     canonical: `${SITE_URL}/account-deletion`,
   },
 };
