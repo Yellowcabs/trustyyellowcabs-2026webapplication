@@ -762,7 +762,9 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
   const sheetPointerStartY = useRef<number | null>(null);
   const sheetPointerStartTime = useRef(0);
   const sheetPointerStartExpanded = useRef(true);
+  const sheetPointerScrollContainer = useRef<HTMLElement | null>(null);
   const sheetPointerActive = useRef(false);
+  const sheetDragOffsetRef = useRef(0);
   const [isSheetDragging, setIsSheetDragging] = useState(false);
   const [sheetDragOffset, setSheetDragOffset] = useState(0);
 
@@ -774,22 +776,49 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
   const resetSheetPointer = () => {
     sheetPointerId.current = null;
     sheetPointerStartY.current = null;
+    sheetPointerScrollContainer.current = null;
     sheetPointerActive.current = false;
+    sheetDragOffsetRef.current = 0;
+    if (sheetRef.current) {
+      sheetRef.current.style.transform = 'translateY(0px)';
+      sheetRef.current.style.touchAction = '';
+      sheetRef.current.style.transition = '';
+    }
     setSheetDragOffset(0);
     setIsSheetDragging(false);
   };
 
   const handleSheetPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isMobileScreen || !isMapActive) return;
+    if (!isMobileScreen || !isMapActive || !e.isPrimary) return;
 
     const target = e.target as HTMLElement;
-    if (isSheetExpanded && target.closest('.app-scroll, input, textarea, select, button, a')) return;
+    const scrollContainer = target.closest<HTMLElement>('.app-scroll');
+    if (target.closest('input, textarea, select, button, a')) return;
+
+    // Claim the primary pointer immediately on the sheet's blank surface.
+    // Form content remains available for native scrolling and text input.
+    const canDragSheet = !isSheetExpanded || !scrollContainer || target === scrollContainer;
+    if (isSheetExpanded && scrollContainer && !canDragSheet) return;
 
     sheetPointerId.current = e.pointerId;
     sheetPointerStartY.current = e.clientY;
     sheetPointerStartTime.current = Date.now();
     sheetPointerStartExpanded.current = isSheetExpanded;
-    sheetPointerActive.current = false;
+    sheetPointerScrollContainer.current = scrollContainer;
+    sheetPointerActive.current = canDragSheet;
+
+    if (canDragSheet) {
+      if (sheetRef.current) {
+        sheetRef.current.style.touchAction = 'none';
+        sheetRef.current.style.transition = 'none';
+      }
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // The browser may cancel a touch before capture is established.
+      }
+      setIsSheetDragging(true);
+    }
   };
 
   const handleSheetPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -798,19 +827,36 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     const diff = e.clientY - sheetPointerStartY.current;
     const validDirection = sheetPointerStartExpanded.current ? diff > 0 : diff < 0;
     if (!sheetPointerActive.current) {
-      if (Math.abs(diff) < 8 || !validDirection) return;
+      if (Math.abs(diff) < 1 || !validDirection) return;
+
+      // Let the form consume upward scrolling. A downward sheet drag may
+      // take over only when the expanded form is already at its top edge.
+      const scrollContainer = sheetPointerScrollContainer.current;
+      if (sheetPointerStartExpanded.current && scrollContainer &&
+          (diff < 0 || scrollContainer.scrollTop > 0)) return;
+
       sheetPointerActive.current = true;
-      e.currentTarget.setPointerCapture(e.pointerId);
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // The browser may cancel a touch before capture is established.
+      }
       setIsSheetDragging(true);
     }
 
+    // Prevent page movement only after a deliberate sheet drag has started.
     e.preventDefault();
-    e.stopPropagation();
+    if (!validDirection) {
+      sheetDragOffsetRef.current = 0;
+      if (sheetRef.current) sheetRef.current.style.transform = 'translateY(0px)';
+      return;
+    }
     const travel = getSheetTravel();
     const offset = sheetPointerStartExpanded.current
       ? Math.min(travel, Math.max(0, diff))
       : Math.max(-travel, Math.min(0, diff));
-    setSheetDragOffset(offset);
+    sheetDragOffsetRef.current = offset;
+    if (sheetRef.current) sheetRef.current.style.transform = `translateY(${offset}px)`;
   };
 
   const handleSheetPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -1067,7 +1113,7 @@ style.innerHTML = `
   .dark .app-scroll::-webkit-scrollbar-thumb {
     background: #334155;
   }
-  .app-scroll { scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+  .app-scroll { scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent; touch-action: pan-y; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
   .dark .app-scroll { scrollbar-color: #334155 transparent; }
 `;
   document.head.appendChild(style);
@@ -1847,7 +1893,7 @@ const handleWhatsAppConfirm = () => {
         onPointerUp={handleSheetPointerUp}
         onPointerCancel={handleSheetPointerCancel}
         className={`
-          ${isSheetDragging ? 'transition-none touch-none' : 'transition-all duration-300 ease-in-out'}
+          ${isSheetDragging ? 'transition-none touch-none' : 'transition-all duration-300 ease-in-out [touch-action:pan-y]'}
           ${isMapActive 
             ? `fixed bottom-0 left-0 right-0 z-30 box-border w-full max-w-none bg-white/95  backdrop-blur-md border-t border-slate-100  flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent  md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-[460px] md:max-h-[460px] md:flex md:flex-col md:flex-1 md:pr-1 pointer-events-auto
                ${isSheetExpanded 
