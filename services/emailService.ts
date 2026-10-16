@@ -65,7 +65,7 @@ Maps: ${details.drop ? `https://maps.google.com/?q=${encodeURIComponent(cleanDro
 
 *Schedule (IST):* ${scheduleIST}
 
-Trustyyellowcabs Booking System`
+TrustyYellowCabs Booking System`
   );
 
   const tgLink = `https://t.me/share/url?text=${tgMessage}`;
@@ -85,9 +85,7 @@ Reliable rides • Transparent fares • Professional drivers
 
 Customer Support
 ━━━━━━━━━━━━
-+91 94888 34020
 +91 88700 88020
-+91 422-3596446
 ━━━━━━━━━━━━
 
 Book your next ride instantly:
@@ -104,8 +102,8 @@ Need assistance? Call us anytime.
   const subjectPrefix = isLead ? "⚠️ ABANDONED LEAD: " : " NEW BOOKING: ";
 
   const emailContent = {
-    sender: { name: "FastPointCab Booking", email: "fastpointcab@gmail.com" },
-    to: [{ email: "fastpointcab@gmail.com", name: "FastPointCab Admin" }],
+    sender: { name: "TrustyYellowCabs Booking", email: "trustyyellowcabs@gmail.com" },
+    to: [{ email: "trustyyellowcabs@gmail.com", name: "TrustyYellowCabs Admin" }],
 
     subject: `${subjectPrefix}${phone} - ${pickup} [${details.estimatedFare || 'Quote'}]`,
 
@@ -228,7 +226,7 @@ Need assistance? Call us anytime.
     </div>
 
     <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8;">
-      Sent from FastPointCab Booking System
+      Sent from TrustyYellowCabs Booking System
     </div>
 
   </div>

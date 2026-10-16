@@ -3,19 +3,19 @@
 @theme {
   --font-sans: "Plus Jakarta Sans", sans-serif;
   --spacing-safe-area-inset-bottom: env(safe-area-inset-bottom);
-  --color-brand-yellow: #FF6467;
-  --color-brand-slate: #0f172a;
-  --color-brand-cloud: #F8FAFC;
-  --color-yellow-50: #FFF5F5;
-  --color-yellow-100: #FFE5E6;
-  --color-yellow-200: #FFCCD0;
-  --color-yellow-300: #FFA3AA;
-  --color-yellow-400: #FF8086;
-  --color-yellow-500: #FF7075;
-  --color-yellow-600: #FF6467;
-  --color-yellow-700: #E64F52;
-  --color-yellow-800: #CC3C3F;
-  --color-yellow-900: #A32426;
+  --color-brand-yellow: #FFC107;
+  --color-brand-slate: #171717;
+  --color-brand-cloud: #FFFFFF;
+  --color-yellow-50: #FFFDF5;
+  --color-yellow-100: #FFF8E1;
+  --color-yellow-200: #FFECB3;
+  --color-yellow-300: #FFE082;
+  --color-yellow-400: #FFD54F;
+  --color-yellow-500: #FFB300;
+  --color-yellow-600: #FFC107;
+  --color-yellow-700: #FF8F00;
+  --color-yellow-800: #FF8F00;
+  --color-yellow-900: #8D6E00;
   --animate-fade-in: fadeIn 0.5s ease-out;
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-vertical-scroll: verticalScroll 60s linear infinite;
@@ -128,7 +128,7 @@ input:focus,
 textarea:focus { outline: none; }
 
 body {
-  background-color: #F8FAFC;
+  background-color: #FFFFFF;
   font-family: 'Plus Jakarta Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -webkit-user-select: none;

@@ -11,7 +11,7 @@ export const initializeChat = async () => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const systemInstruction = `
-    You are 'Trustyyellow Assistant', the helpful AI assistant for Trustyyellowcabs.
+    You are 'TrustyYellowCabs Assistant', the helpful AI assistant for TrustyYellowCabs.
     
     Here is our Fleet information:
     ${JSON.stringify(FLEET_DATA.map(v => `${v.name} (${v.type}): ₹${v.pricePerHour}/hr, Seats: ${v.capacity}`))}

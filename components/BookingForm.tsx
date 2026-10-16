@@ -452,7 +452,7 @@ const InputWrapper = memo(({ children, icon: Icon, label }: { children: React.Re
   <div className="relative group w-full">
     {label && <label className="block text-[9px] font-bold text-slate-400  uppercase tracking-widest mb-1.5 ml-1">{label}</label>}
     <div className="relative">
-      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#FF6467] transition-colors duration-300 pointer-events-none z-10">
+      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#FFC107] transition-colors duration-300 pointer-events-none z-10">
         <Icon size={16} />
       </div>
       {children}
@@ -627,11 +627,11 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
           display: none !important;
         }
       `}</style>
-      <div className="flex flex-col px-4 pb-4 pt-[calc(env(safe-area-inset-top,1rem)+16px)] bg-white  border-b border-slate-100 ">
+      <div className="flex flex-col px-4 pb-4 pt-[calc(env(safe-area-inset-top,1rem)+16px)] bg-white  border-b border-[#E5E7EB] ">
         <div className="flex items-center justify-between mb-4">
           <button 
             onClick={onClose} 
-            className="flex items-center gap-1 text-[#FF6467] hover:bg-slate-50  p-2 -ml-2 rounded-xl transition-all min-h-[44px]"
+            className="flex items-center gap-1 text-[#FFC107] hover:bg-[#FFFDF5]  p-2 -ml-2 rounded-xl transition-all min-h-[44px]"
           >
             <ArrowLeft size={20} />
             <span className="text-[11px] font-black uppercase tracking-widest">Back</span>
@@ -659,9 +659,9 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
             onClick={() => setClickedToType(true)}
             onFocus={() => setClickedToType(true)}
             placeholder={type === 'pickup' ? "Enter pickup location..." : "Enter destination..."}
-            className={`w-full bg-slate-100  border-2 border-transparent focus:border-[#FF6467]/20 rounded-2xl pl-12 ${type === 'pickup' ? 'pr-24' : 'pr-12'} py-4 min-h-[48px] text-[13px] font-bold outline-none  transition-all shadow-inner`}
+            className={`w-full bg-slate-100  border-2 border-transparent focus:border-[#FFC107]/20 rounded-2xl pl-12 ${type === 'pickup' ? 'pr-24' : 'pr-12'} py-4 min-h-[48px] text-[13px] font-bold outline-none  transition-all shadow-inner`}
           />
-          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FF6467]" size={18} />
+          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FFC107]" size={18} />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
             {type === 'pickup' && (
               <button
@@ -671,7 +671,7 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
                   handleUseGPS();
                 }}
                 disabled={locating}
-                className="w-9 h-9 bg-[#FF6467] hover:bg-[#e55a5d] text-white rounded-full flex items-center justify-center transition-all shadow-md active:scale-90 cursor-pointer"
+                className="w-9 h-9 bg-[#FFC107] hover:bg-[#FFB300] text-[#171717] rounded-full flex items-center justify-center transition-all shadow-md active:scale-90 cursor-pointer"
                 title="Use current GPS location"
               >
                 <Locate size={16} className={`stroke-[3px] ${locating ? 'animate-spin' : ''}`} />
@@ -683,7 +683,7 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
                   setQuery('');
                   setClickedToType(true);
                 }}
-                className="w-8 h-8 bg-slate-200  rounded-full flex items-center justify-center text-[10px] font-bold text-slate-500 hover:text-rose-500 cursor-pointer"
+                className="w-8 h-8 bg-slate-200  rounded-full flex items-center justify-center text-[10px] font-bold text-[#525252] hover:text-rose-500 cursor-pointer"
               >
                 ✕
               </button>
@@ -692,7 +692,7 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
         </div>
         {gpsError && (
           <div className="mt-2 p-2.5 bg-rose-50  border border-rose-200  rounded-xl flex items-center gap-2 text-rose-800  text-[11px] font-semibold">
-            <AlertTriangle size={14} className="shrink-0 text-[#FF6467]" />
+            <AlertTriangle size={14} className="shrink-0 text-rose-500" />
             <span>{gpsError}</span>
           </div>
         )}
@@ -731,18 +731,18 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
                   onSelect(p.description);
                 }
               }}
-              className="w-full flex items-start gap-4 p-4 hover:bg-slate-50  rounded-2xl transition-colors text-left group border-b border-slate-50  last:border-none"
+              className="w-full flex items-start gap-4 p-4 hover:bg-[#FFFDF5]  rounded-2xl transition-colors text-left group border-b border-[#FFFDF5]  last:border-none"
             >
               <div className="bg-slate-100 p-2.5 rounded-xl text-slate-400">
                 <MapPin size={18} />
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="text-[14px] font-semibold text-[#FF6467]  leading-5">
+                <div className="text-[14px] font-semibold text-[#FFC107]  leading-5">
                   {p.structured_formatting?.main_text || p.description}
                 </div>
 
-                <div className="text-[12px] text-slate-900  mt-1 leading-5 break-words font-medium">
+                <div className="text-[12px] text-[#171717]  mt-1 leading-5 break-words font-medium">
                   {p.structured_formatting?.secondary_text || p.description}
                 </div>
               </div>
@@ -1302,7 +1302,7 @@ style.innerHTML = `
 
   .pac-item .pac-item-query {
     font-weight: 900 !important;
-    color: #FF6467 !important; /* custom highlight */
+    color: #FFC107 !important; /* custom highlight */
   }
 
   .pac-item .pac-item-subtitle {
@@ -1443,7 +1443,7 @@ style.innerHTML = `
       directionsService.current = new google.maps.DirectionsService();
       directionsRenderer.current = new google.maps.DirectionsRenderer({
         map: mapInstance.current,
-        polylineOptions: { strokeColor: "#FF6467", strokeWeight: 6, strokeOpacity: 0.95 },
+        polylineOptions: { strokeColor: "#FFC107", strokeWeight: 6, strokeOpacity: 0.95 },
         suppressMarkers: false,
         preserveViewport: true
       });
@@ -1956,7 +1956,7 @@ const handleWhatsAppConfirm = () => {
     `%0A*Vehicle:* ${formData.vehicleType}` +
     `%0A*Estimated Fare:* ${formData.estimatedFare}`;
 
-  window.open(`https://wa.me/919488834020?text=${message}`, '_blank');
+  window.open(`https://wa.me/918870088020?text=${message}`, '_blank');
 };
 
   const isMapActive = forceMapActive || !!(
@@ -2012,8 +2012,8 @@ const handleWhatsAppConfirm = () => {
         <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6 relative">
           <CheckCircle2 size={40} />
         </div>
-        <h2 className="text-2xl font-black text-slate-900  mb-2 uppercase tracking-tight">Booking Sent!</h2>
-        <p className="text-[11px] text-slate-500 font-bold mb-8 uppercase tracking-widest leading-relaxed">driver will call you shortly.</p>
+        <h2 className="text-2xl font-black text-[#171717]  mb-2 uppercase tracking-tight">Booking Sent!</h2>
+        <p className="text-[11px] text-[#525252] font-bold mb-8 uppercase tracking-widest leading-relaxed">driver will call you shortly.</p>
 
         {/* WhatsApp Confirm Button */}
         <button 
@@ -2066,7 +2066,7 @@ const handleWhatsAppConfirm = () => {
               window.location.reload();
             }, 50);
           }} 
-          className="w-full text-[10px] font-bold text-slate-900  uppercase border border-slate-300  rounded-2xl py-4 hover:bg-slate-100  transition-all cursor-pointer"
+          className="w-full text-[10px] font-bold text-[#171717]  uppercase border border-slate-300  rounded-2xl py-4 hover:bg-slate-100  transition-all cursor-pointer"
         >
           Book Another Ride
         </button>
@@ -2078,16 +2078,16 @@ const handleWhatsAppConfirm = () => {
     <div className={`booking-form-root
       transition-all duration-500 relative
       ${isMapActive 
-        ? 'fixed inset-0 w-full max-w-full overflow-hidden md:relative md:w-full md:max-w-3xl md:min-h-[500px] pointer-events-auto bg-slate-50  md:bg-white  md:p-5 md:rounded-[2.5rem] shadow-none md:shadow-2xl md:border md:border-slate-100  mx-auto flex flex-col md:flex-row gap-5 z-[80]' 
+        ? 'fixed inset-0 w-full max-w-full overflow-hidden md:relative md:w-full md:max-w-3xl md:min-h-[500px] pointer-events-auto bg-[#FFFDF5]  md:bg-white  md:p-5 md:rounded-[2.5rem] shadow-none md:shadow-2xl md:border md:border-[#E5E7EB]  mx-auto flex flex-col md:flex-row gap-5 z-[80]'
         : 'w-full max-w-lg md:max-w-sm bg-transparent md:bg-white  border-none md:border md:border-slate-105  shadow-none md:shadow-2xl p-0 md:p-5 pb-0 md:pb-6 rounded-none md:rounded-3xl mx-auto'
       }
     `}>
       {isMapActive && (
-        <div className="booking-form-map fixed inset-0 md:relative md:w-[45%] md:h-[460px] md:rounded-[2rem] overflow-hidden border-none md:border md:border-slate-100  shadow-none md:shadow-inner z-0 pointer-events-auto">
+        <div className="booking-form-map fixed inset-0 md:relative md:w-[45%] md:h-[460px] md:rounded-[2rem] overflow-hidden border-none md:border md:border-[#E5E7EB]  shadow-none md:shadow-inner z-0 pointer-events-auto">
           <div ref={setMapNode} className="w-full h-full" />
           {mapError && (
             <div className="absolute top-[calc(env(safe-area-inset-top,16px)+190px)] md:top-auto md:bottom-2 left-4 right-4 md:left-2 md:right-2 bg-rose-50/95  border border-rose-200  p-1.5 px-2.5 rounded-xl flex items-center gap-2 shadow-md animate-in fade-in slide-in-from-bottom-1 z-10">
-              <AlertTriangle size={12} className="text-[#FF6467] shrink-0" />
+              <AlertTriangle size={12} className="text-rose-500 shrink-0" />
               <span className="text-[9px] text-rose-800  font-bold uppercase tracking-wider">{mapError}</span>
             </div>
           )}
@@ -2117,7 +2117,7 @@ const handleWhatsAppConfirm = () => {
             }));
             setStep(1);
           }}
-          className="booking-form-back md:hidden fixed top-[calc(env(safe-area-inset-top,16px)+16px)] left-4 z-50 bg-white/95  p-3 rounded-full shadow-xl border border-slate-200  flex items-center justify-center active:scale-95 transition-all pointer-events-auto"
+          className="booking-form-back md:hidden fixed top-[calc(env(safe-area-inset-top,16px)+16px)] left-4 z-50 bg-white/95  p-3 rounded-full shadow-xl border border-[#E5E7EB]  flex items-center justify-center active:scale-95 transition-all pointer-events-auto"
           title="Back"
         >
           <ArrowLeft size={18} className="text-slate-700  stroke-[3px]" />
@@ -2133,7 +2133,7 @@ const handleWhatsAppConfirm = () => {
         className={`booking-form-sheet
           ${isSheetDragging ? 'transition-none touch-none' : !isSheetExpanded ? 'transition-all duration-300 ease-in-out touch-none' : 'transition-all duration-300 ease-in-out [touch-action:pan-y]'}
           ${isMapActive 
-            ? `fixed bottom-0 left-0 right-0 z-30 box-border w-full max-w-none bg-white/95  backdrop-blur-md border-t border-slate-100  flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent  md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-[460px] md:max-h-[460px] md:flex md:flex-col md:flex-1 md:pr-1 pointer-events-auto
+            ? `fixed bottom-0 left-0 right-0 z-30 box-border w-full max-w-none bg-white/95  backdrop-blur-md border-t border-[#E5E7EB]  flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent  md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-[460px] md:max-h-[460px] md:flex md:flex-col md:flex-1 md:pr-1 pointer-events-auto
                ${isSheetExpanded 
                  ? `shadow-[0_-15px_30px_rgba(0,0,0,0.15)] p-4 pb-[calc(env(safe-area-inset-bottom,16px)+16px)] rounded-t-[2rem] box-border ${sheetPosition === 'expanded' || isKeyboardVisible ? 'h-[85dvh] max-h-[calc(100dvh-env(safe-area-inset-top,0px))] md:h-[460px] md:max-h-[460px]' : 'h-[62dvh] max-h-[calc(100dvh-env(safe-area-inset-top,0px))] md:h-[460px] md:max-h-[460px]'} md:shadow-none md:p-0 md:rounded-none`
                  : 'shadow-[0_-5px_15px_rgba(0,0,0,0.08)] min-h-[calc(76px+env(safe-area-inset-bottom,0px))] max-h-none p-3 pt-3 pb-[calc(env(safe-area-inset-bottom,16px)+12px)] rounded-t-2xl md:h-[460px] md:max-h-[460px] md:shadow-none md:p-0 md:rounded-none overflow-visible cursor-pointer'
@@ -2164,7 +2164,7 @@ const handleWhatsAppConfirm = () => {
           <div className="flex flex-col text-left space-y-2 mb-3 select-none animate-fade-in px-1 lg:hidden">
             {/* Display Headings */}
             <div className="space-y-1">
-              <h1 className="text-3xl font-extrabold text-slate-900  leading-[1.1] tracking-tight">
+              <h1 className="text-3xl font-extrabold text-[#171717]  leading-[1.1] tracking-tight">
                 Need a Ride? Book a Taxi Nearby
               </h1>
             </div>
@@ -2175,10 +2175,10 @@ const handleWhatsAppConfirm = () => {
           <div data-sheet-android-drag-surface="collapsed" className="flex items-center justify-between mt-1 md:hidden animate-fade-in w-full">
             <div className="flex items-center gap-2 min-w-0">
               <div className="min-w-0">
-                <p className="text-[10px] font-black text-slate-900  uppercase tracking-tight truncate">
+                <p className="text-[10px] font-black text-[#171717]  uppercase tracking-tight truncate">
                   Booking in Progress...
                 </p>
-                <p className="text-[8.5px] font-medium text-slate-500 uppercase tracking-wider truncate">
+                <p className="text-[8.5px] font-medium text-[#525252] uppercase tracking-wider truncate">
                   {formData.pickup ? `From: ${formData.pickup.split(',')[0]}` : 'Set locations'}
                 </p>
               </div>
@@ -2192,7 +2192,7 @@ const handleWhatsAppConfirm = () => {
                 e.stopPropagation();
                 setSheetPosition('half');
               }}
-              className="bg-[#FF6467] text-slate-950 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-md flex items-center gap-2 hover:bg-[#FF7075] active:scale-95 transition-all"
+              className="bg-[#FFC107] text-[#171717] text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-md flex items-center gap-2 hover:bg-[#FFB300] active:scale-95 transition-all"
             >
               <span>Book</span>
               <ChevronUp size={15} className="stroke-[4px]" />
@@ -2203,14 +2203,14 @@ const handleWhatsAppConfirm = () => {
             data-sheet-android-drag-surface="header"
             className={`justify-between items-center mb-1 ${isMapActive && !isSheetExpanded ? 'hidden md:flex' : 'flex'} ${step === 1 && !isMapActive ? 'hidden lg:flex' : 'flex'} ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}
           >
-            <h3 className={`${step === 2 && isMapActive && isMobileScreen ? 'text-[13px] tracking-wider' : 'text-md tracking-tight'} font-black text-slate-900 uppercase`}>
+            <h3 className={`${step === 2 && isMapActive && isMobileScreen ? 'text-[13px] tracking-wider' : 'text-md tracking-tight'} font-black text-[#171717] uppercase`}>
               {step === 1 ? 'Enter Locations' : step === 2 ? 'Enter Mobile' : step === 3 ? 'Select Vehicle' : 'Trip Summary'}
             </h3>
             <div className="flex gap-1.5">
-              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-[#FF6467]' : 'bg-slate-200 '}`} />
-              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-[#FF6467]' : 'bg-slate-200 '}`} />
-              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-[#FF6467]' : 'bg-slate-200 '}`} />
-              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-[#FF6467]' : 'bg-slate-200 '}`} />
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-[#FFC107]' : 'bg-slate-200 '}`} />
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-[#FFC107]' : 'bg-slate-200 '}`} />
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-[#FFC107]' : 'bg-slate-200 '}`} />
+              <div className={`h-1.5 w-4 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-[#FFC107]' : 'bg-slate-200 '}`} />
             </div>
           </div>
         )}
@@ -2231,8 +2231,8 @@ const handleWhatsAppConfirm = () => {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className={`${isMapActive && isMobileScreen
-                  ? 'px-3.5 py-2 bg-white text-slate-700 text-[10px] border border-slate-200 shadow-none rounded-xl mb-1 mt-1'
-                  : 'px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] border border-slate-200 shadow-sm rounded-xl mb-2 mt-2'
+                  ? 'px-3.5 py-2 bg-white text-slate-700 text-[10px] border border-[#E5E7EB] shadow-none rounded-xl mb-1 mt-1'
+                  : 'px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] border border-[#E5E7EB] shadow-sm rounded-xl mb-2 mt-2'
                 } font-black uppercase tracking-widest transition-all flex items-center gap-1.5 self-start`}
               >
                 <ArrowLeft size={14} className="stroke-[3px]" />
@@ -2241,11 +2241,11 @@ const handleWhatsAppConfirm = () => {
 
               {/* Show Date, Time, Duration card here on mobile & desktop */}
               <div className={`${isMapActive && isMobileScreen
-                ? 'bg-white border border-slate-200 rounded-2xl p-2.5 grid grid-cols-2 gap-2.5 shadow-none my-2'
-                : 'bg-slate-50 border border-slate-200/60 rounded-2xl p-2.5 px-3.5 flex items-center divide-x divide-slate-200/80 shadow-sm gap-0.5 my-2'
+                ? 'bg-white border border-[#E5E7EB] rounded-2xl p-2.5 grid grid-cols-2 gap-2.5 shadow-none my-2'
+                : 'bg-[#FFFDF5] border border-[#E5E7EB]/60 rounded-2xl p-2.5 px-3.5 flex items-center divide-x divide-slate-200/80 shadow-sm gap-0.5 my-2'
               } animate-fade-in text-left`}>
                   {/* Date Column */}
-                  <div className={`${isMapActive && isMobileScreen ? 'p-2 rounded-xl bg-slate-50 border border-slate-100' : 'flex-1 pr-3'} flex items-center gap-1.5 min-w-0`}>
+                  <div className={`${isMapActive && isMobileScreen ? 'p-2 rounded-xl bg-[#FFFDF5] border border-[#E5E7EB]' : 'flex-1 pr-3'} flex items-center gap-1.5 min-w-0`}>
                     <div className="flex-1 min-w-0">
                       <span className="block text-[8px] font-black text-slate-400  uppercase tracking-widest mb-0.5 truncate">Date</span>
                       <input
@@ -2259,7 +2259,7 @@ const handleWhatsAppConfirm = () => {
                   </div>
 
                   {/* Time Column */}
-                  <div className={`${isMapActive && isMobileScreen ? 'p-2 rounded-xl bg-slate-50 border border-slate-100' : 'flex-1 px-3'} flex items-center gap-1.5 min-w-0 ${formData.tripType === TripType.ROUND_TRIP ? 'pr-3' : ''}`}>
+                  <div className={`${isMapActive && isMobileScreen ? 'p-2 rounded-xl bg-[#FFFDF5] border border-[#E5E7EB]' : 'flex-1 px-3'} flex items-center gap-1.5 min-w-0 ${formData.tripType === TripType.ROUND_TRIP ? 'pr-3' : ''}`}>
                     <div className="flex-1 min-w-0">
                       <span className="block text-[8px] font-black text-slate-400  uppercase tracking-widest mb-0.5 truncate">Time</span>
                       <input
@@ -2274,8 +2274,8 @@ const handleWhatsAppConfirm = () => {
 
                   {/* Duration (Round Trip only) */}
                   {formData.tripType === TripType.ROUND_TRIP && (
-                    <div className={`${isMapActive && isMobileScreen ? 'col-span-2 p-2 rounded-xl bg-slate-50 border border-slate-100' : 'flex-1 pl-3'} flex items-center gap-1.5 min-w-0`}>
-                      <Clock size={13} className="text-[#FF6467] shrink-0" />
+                    <div className={`${isMapActive && isMobileScreen ? 'col-span-2 p-2 rounded-xl bg-[#FFFDF5] border border-[#E5E7EB]' : 'flex-1 pl-3'} flex items-center gap-1.5 min-w-0`}>
+                      <Clock size={13} className="text-[#FFC107] shrink-0" />
                       <div className="flex-1 min-w-0">
                         <span className="block text-[8px] font-black text-slate-400  uppercase tracking-widest mb-0.5 truncate">Duration</span>
                         <select
@@ -2301,7 +2301,7 @@ const handleWhatsAppConfirm = () => {
                     <button
                       type="button"
                       onClick={() => void syncAuthoritativeTime()}
-                      className="shrink-0 font-black uppercase tracking-wider text-[#FF6467]"
+                      className="shrink-0 font-black uppercase tracking-wider text-[#FFC107]"
                     >
                       Retry
                     </button>
@@ -2309,14 +2309,14 @@ const handleWhatsAppConfirm = () => {
                 )}
 
               <div className={`${isMapActive && isMobileScreen
-                ? 'w-full bg-white border border-slate-200 focus-within:border-[#FF6269] focus-within:ring-4 focus-within:ring-[#FF6269]/10 rounded-2xl p-3.5 flex items-center gap-3 transition-all shadow-none'
-                : 'w-full bg-[#FF6467]/5 border-2 border-[#FF6467] focus-within:ring-4 focus-within:ring-[#FF6467]/20 rounded-xl p-2.5 px-3.5 flex items-center gap-3 transition-all shadow-md shadow-[#FF6467]/5'
+                ? 'w-full bg-white border border-[#E5E7EB] focus-within:border-[#FFC107] focus-within:ring-4 focus-within:ring-[#FFC107]/10 rounded-2xl p-3.5 flex items-center gap-3 transition-all shadow-none'
+                : 'w-full bg-[#FFC107]/5 border-2 border-[#FFC107] focus-within:ring-4 focus-within:ring-[#FFC107]/20 rounded-xl p-2.5 px-3.5 flex items-center gap-3 transition-all shadow-md shadow-[#FFC107]/5'
               } relative overflow-hidden text-left mt-2`}>
-                <span className={`text-[13px] font-semibold leading-none select-none border-r pr-2 ${isMapActive && isMobileScreen ? 'text-slate-700 border-slate-200' : 'text-[#FF6467] border-[#FF6467]/20'}`}>
+                <span className={`text-[13px] font-semibold leading-none select-none border-r pr-2 ${isMapActive && isMobileScreen ? 'text-slate-700 border-[#E5E7EB]' : 'text-[#FFC107] border-[#FFC107]/20'}`}>
                   +91
                 </span>
                 <div className="flex-1 min-w-0">
-                  <span className={`block text-[8px] font-black uppercase tracking-widest mb-0.5 ${isMapActive && isMobileScreen ? 'text-slate-500' : 'text-[#FF6467]'}`}>Mobile Number</span>
+                  <span className={`block text-[8px] font-black uppercase tracking-widest mb-0.5 ${isMapActive && isMobileScreen ? 'text-[#525252]' : 'text-[#FFC107]'}`}>Mobile Number</span>
                   <input
                     type="tel"
                     placeholder="10-digit number"
@@ -2333,10 +2333,8 @@ const handleWhatsAppConfirm = () => {
                       phoneFocusScrollTimerRef.current = window.setTimeout(() => {
                         phoneFocusScrollTimerRef.current = null;
                         const viewport = window.visualViewport;
-                        const keyboardIsOpen = viewport
-                          ? focusViewportHeight - viewport.height > 80
-                          : false;
-                        if (!keyboardIsOpen) return;
+                        const keyboardIsOpen = viewport && focusViewportHeight - viewport.height > 80;
+                        if (!viewport || !keyboardIsOpen) return;
 
                         const viewportBottom = viewport.offsetTop + viewport.height;
                         const inputRect = input.getBoundingClientRect();
@@ -2366,7 +2364,7 @@ const handleWhatsAppConfirm = () => {
                         e.target.blur();
                       }
                     }}
-                    className={`w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-black outline-none text-slate-900 ${isMapActive && isMobileScreen ? 'placeholder-slate-400' : 'placeholder-[#FF6467]/40'}`}
+                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-black outline-none text-[#171717] placeholder-[#A3A3A3]"
                     maxLength={10}
                     autoFocus
                   />
@@ -2375,7 +2373,7 @@ const handleWhatsAppConfirm = () => {
             </div>
 
             {/* Sticky Footer */}
-            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent' : ''} ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
+            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-[#E5E7EB]  bg-white/95  md:bg-transparent' : ''} ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
               <button
                 type="button"
                 onClick={() => {
@@ -2392,7 +2390,7 @@ const handleWhatsAppConfirm = () => {
                   }
                   setStep(3);
                 }}
-                className="w-full bg-[#FF7075] hover:bg-[#FF6467] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#FF7075]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-[#FFB300] hover:bg-[#FFC107] text-[#171717] font-bold py-4 rounded-2xl shadow-lg shadow-[#FFB300]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 Let’s Choose a Vehicle <ArrowRight size={14} />
               </button>
@@ -2439,8 +2437,8 @@ const handleWhatsAppConfirm = () => {
                   className={`
                     px-5 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-sm border
                     ${isActive 
-                      ? 'bg-brand-yellow text-white border-transparent shadow-brand-yellow/10' 
-                      : 'bg-white  text-slate-700  border-slate-200/80 '}
+                      ? 'bg-brand-yellow text-[#171717] border-transparent shadow-brand-yellow/10'
+                      : 'bg-white  text-slate-700  border-[#E5E7EB]/80 '}
                   `}
                 >
                   {cat.label}
@@ -2452,7 +2450,7 @@ const handleWhatsAppConfirm = () => {
   
           {/* Outstation Type Sub-selector (One Way vs Round Trip Toggle Switch) */}
           {(formData.tripType === TripType.ONE_WAY || formData.tripType === TripType.ROUND_TRIP) && (
-            <div className="relative flex bg-slate-100  p-1.5 rounded-xl border border-slate-200/40  gap-1 select-none">
+            <div className="relative flex bg-slate-100  p-1.5 rounded-xl border border-[#E5E7EB]/40  gap-1 select-none">
               {[
                 { id: TripType.ONE_WAY, label: 'One Way (Drop)' },
                 { id: TripType.ROUND_TRIP, label: 'Round Trip' }
@@ -2467,13 +2465,13 @@ const handleWhatsAppConfirm = () => {
                       relative flex-1 flex items-center justify-center py-2 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition-colors duration-200 z-10
                       ${isSelected 
                         ? 'text-slate-800  font-black' 
-                        : 'text-slate-400 hover:text-slate-600 '}
+                        : 'text-slate-400 hover:text-[#525252] '}
                     `}
                   >
                     {isSelected && (
                       <motion.div
                         layoutId="activeOutstationSubtype"
-                        className="absolute inset-0 bg-white  rounded-lg shadow-sm border border-slate-200/20 "
+                        className="absolute inset-0 bg-white  rounded-lg shadow-sm border border-[#E5E7EB]/20 "
                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                       />
                     )}
@@ -2491,7 +2489,7 @@ const handleWhatsAppConfirm = () => {
             {/* Pickup Location Card */}
             <div 
               onClick={() => openLocationSearch('pickup')}
-              className="relative bg-white  border border-slate-200/50  rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:border-slate-300  transition-all cursor-pointer min-h-[48px]"
+              className="relative bg-white  border border-[#E5E7EB]/50  rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:border-slate-300  transition-all cursor-pointer min-h-[48px]"
             >
               <MapPin className="text-brand-yellow shrink-0" size={18} />
               <div className="flex-1 min-w-0 text-left">
@@ -2512,7 +2510,7 @@ const handleWhatsAppConfirm = () => {
                       e.stopPropagation();
                       handleDesktopUseGPS();
                     }}
-                    className="w-7 h-7 bg-brand-yellow text-white hover:bg-[#FF6467] rounded-full flex items-center justify-center transition-all shadow-md active:scale-90 cursor-pointer"
+                    className="w-7 h-7 bg-brand-yellow text-[#171717] hover:bg-[#FFC107] rounded-full flex items-center justify-center transition-all shadow-md active:scale-90 cursor-pointer"
                     title="Use current GPS location"
                   >
                     <Locate size={13} className="stroke-[3px]" />
@@ -2526,7 +2524,7 @@ const handleWhatsAppConfirm = () => {
                       setFormData(prev => ({ ...prev, pickup: '', pickupData: undefined }));
                       if (pickupRef.current) pickupRef.current.value = '';
                     }}
-                    className="w-7 h-7 bg-slate-200/60  text-slate-500 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                    className="w-7 h-7 bg-slate-200/60  text-[#525252] rounded-full flex items-center justify-center transition-all cursor-pointer"
                   >
                     <X size={12} className="stroke-[3px]" />
                   </button>
@@ -2536,7 +2534,7 @@ const handleWhatsAppConfirm = () => {
 
             {gpsErrorPickup && (
               <div className="mt-2 p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-800 text-[11px] font-semibold">
-                <AlertTriangle size={14} className="shrink-0 text-[#FF6467]" />
+                <AlertTriangle size={14} className="shrink-0 text-rose-500" />
                 <span>{gpsErrorPickup}</span>
               </div>
             )}
@@ -2545,7 +2543,7 @@ const handleWhatsAppConfirm = () => {
               /* Destination Card */
               <div 
                 onClick={() => openLocationSearch('drop')}
-                className="relative bg-white  border border-slate-200/50  rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:border-slate-300  transition-all cursor-pointer min-h-[48px]"
+                className="relative bg-white  border border-[#E5E7EB]/50  rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:border-slate-300  transition-all cursor-pointer min-h-[48px]"
               >
                 <div className="w-4.5 h-4.5 rounded-full border-2 border-rose-500 flex items-center justify-center shrink-0">
                   <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
@@ -2564,7 +2562,7 @@ const handleWhatsAppConfirm = () => {
                       setFormData(prev => ({ ...prev, drop: '' }));
                       if (dropRef.current) dropRef.current.value = '';
                     }}
-                    className="w-7 h-7 bg-slate-200/60  text-slate-500 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                    className="w-7 h-7 bg-slate-200/60  text-[#525252] rounded-full flex items-center justify-center transition-all cursor-pointer"
                   >
                     <X size={12} className="stroke-[3px]" />
                   </button>
@@ -2575,8 +2573,8 @@ const handleWhatsAppConfirm = () => {
 
           {/* Local Package Select */}
           {formData.tripType === TripTypeRental && (
-            <div className="bg-slate-50  border border-slate-200/60  rounded-xl p-2 px-3 flex items-center gap-3 shadow-sm">
-              <Package size={14} className="text-[#FF6467]" />
+            <div className="bg-[#FFFDF5]  border border-[#E5E7EB]/60  rounded-xl p-2 px-3 flex items-center gap-3 shadow-sm">
+              <Package size={14} className="text-[#FFC107]" />
               <div className="flex-1">
                 <span className="block text-[8px] font-black text-slate-400  uppercase tracking-widest mb-0.5">Local Package</span>
                 <select
@@ -2613,12 +2611,12 @@ const handleWhatsAppConfirm = () => {
             </div>
 
             {/* Sticky Footer */}
-            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent' : ''} ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
+            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-[#E5E7EB]  bg-white/95  md:bg-transparent' : ''} ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
               <button 
                 type="button" 
                 id="btn-next-step"
                 onClick={handleNextStep} 
-                className="w-full bg-[#FF7075] hover:bg-[#FF6467] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#FF7075]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-[#FFB300] hover:bg-[#FFC107] text-[#171717] font-bold py-4 rounded-2xl shadow-lg shadow-[#FFB300]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 Continue <ArrowRight size={18} />
               </button>
@@ -2636,7 +2634,7 @@ const handleWhatsAppConfirm = () => {
                 setStep(2);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex items-center gap-1.5 text-[#FF6467] hover:bg-slate-50  p-1.5 -ml-1 rounded-lg transition-all"
+              className="flex items-center gap-1.5 text-[#FFC107] hover:bg-[#FFFDF5]  p-1.5 -ml-1 rounded-lg transition-all"
             >
               <ArrowLeft size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
@@ -2672,13 +2670,13 @@ const handleWhatsAppConfirm = () => {
                       ? v.type === VehicleType.CUSTOM ? 'p-3.5' : 'min-h-[112px] h-[112px] max-h-[112px] p-3.5'
                       : 'p-6'}
                     ${formData.vehicleType === v.type 
-                      ? 'border-[#FF6467] bg-[#FF6467]/5 ' 
-                      : 'border-slate-50  bg-white '}
+                      ? 'border-[#FFC107] bg-[#FFC107]/5 '
+                      : 'border-[#FFFDF5]  bg-white '}
                   `}
                 >
                   {v.type === VehicleType.CUSTOM ? (
                     <div className="flex-1 min-w-0 text-left overflow-hidden">
-                      <span className="text-xs font-bold text-slate-900  uppercase block truncate leading-tight">
+                      <span className="text-xs font-bold text-[#171717]  uppercase block truncate leading-tight">
                         {v.label}
                       </span>
                       <span className="text-[10px] text-slate-400 font-semibold leading-tight">
@@ -2716,7 +2714,7 @@ const handleWhatsAppConfirm = () => {
 
                   {/* Vehicle Info */}
                   <div className="flex-1 min-w-0 text-left overflow-hidden">
-                    <span className="text-xs font-bold text-slate-900  uppercase block truncate leading-tight">
+                    <span className="text-xs font-bold text-[#171717]  uppercase block truncate leading-tight">
                       {v.label}
                     </span>
                     <div className="flex items-center gap-2 mt-0.5 text-[10px]">
@@ -2737,18 +2735,18 @@ const handleWhatsAppConfirm = () => {
           </div>
 
           {/* Sticky Footer */}
-          <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent' : ''} flex gap-3 ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
+          <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-[#E5E7EB]  bg-white/95  md:bg-transparent' : ''} flex gap-3 ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="p-4 bg-slate-50  text-slate-400 rounded-xl border border-slate-100  active:scale-95 transition-all"
+              className="p-4 bg-[#FFFDF5]  text-slate-400 rounded-xl border border-[#E5E7EB]  active:scale-95 transition-all"
             >
               <ArrowLeft size={20} />
             </button>
             <button
               type="button"
               disabled={loading}
-              className="flex-1 bg-[#FF7075] hover:bg-[#FF6467] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#FF7075]/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
+              className="flex-1 bg-[#FFB300] hover:bg-[#FFC107] text-[#171717] font-bold py-4 rounded-2xl shadow-lg shadow-[#FFB300]/20 uppercase tracking-widest text-xs active:scale-95 transition-all"
               onClick={() => {
                 if (!formData.vehicleType) {
                   alert("Please select a vehicle.");
@@ -2775,35 +2773,24 @@ const handleWhatsAppConfirm = () => {
         <div className={`transition-all
           ${isMobileSummary
             ? 'bg-white border-0 rounded-none p-0 space-y-4'
-            : 'bg-slate-50 border border-slate-100 shadow-sm rounded-[2rem] p-5 space-y-4'
+            : 'bg-white border border-[#E5E7EB] shadow-sm rounded-[2rem] p-5 space-y-4 max-w-xl mx-auto'
           }
         `}>
-          <div className={isMobileSummary ? 'space-y-0' : 'space-y-3'}>
+          <div className="space-y-0">
             <div className="flex gap-3">
-              <div className={`flex flex-col items-center shrink-0
-                ${isMobileSummary 
-                  ? 'w-4 h-[76px] gap-1 py-1' 
-                  : 'w-10 h-10 gap-1.5 py-1'
-                }
-              `}>
-                <div className={`rounded-full border-2 border-[#FF6467]
-                  ${isMobileSummary ? 'w-2 h-2' : 'w-2 h-2'}
-                `} />
-                <div className={`w-px flex-1 ${isMobileSummary ? 'bg-[#FF6269]/30' : 'bg-slate-200'}`} />
-                <div className={`rounded-full bg-[#FF6467]
-                  ${isMobileSummary ? 'w-2 h-2' : 'w-2 h-2'}
-                `} />
+              <div className="flex flex-col items-center shrink-0 w-4 h-[76px] gap-1 py-1">
+                <div className="rounded-full border-2 border-[#FFC107] w-2 h-2" />
+                <div className="w-px flex-1 bg-[#FFC107]/30" />
+                <div className="rounded-full bg-[#FFC107] w-2 h-2" />
               </div>
-              <div className={`flex-1 pt-0.5 min-w-0
-                ${isMobileSummary ? 'space-y-0' : 'space-y-4'}
-              `}>
-                <div className={isMobileSummary ? 'pb-3 border-b border-slate-100' : ''}>
+              <div className="flex-1 pt-0.5 min-w-0 space-y-0">
+                <div className="pb-3 border-b border-[#E5E7EB]">
                   <span className="text-[8px] font-black text-slate-400  uppercase tracking-widest block mb-0.5">Pickup</span>
-                  <p className={`text-[10px] font-bold text-slate-900 leading-snug ${isMobileSummary ? 'line-clamp-2' : ''}`}>{formData.pickup}</p>
+                  <p className="text-[10px] font-bold text-[#171717] leading-snug line-clamp-2">{formData.pickup}</p>
                 </div>
-                <div className={isMobileSummary ? 'pt-3' : ''}>
+                <div className="pt-3">
                   <span className="text-[8px] font-black text-slate-400  uppercase tracking-widest block mb-0.5">Destination</span>
-                  <p className={`text-[10px] font-bold text-slate-900 leading-snug ${isMobileSummary ? 'line-clamp-2' : ''}`}>
+                  <p className="text-[10px] font-bold text-[#171717] leading-snug line-clamp-2">
                     {formData.tripType === TripTypeRental
                       ? LOCAL_PACKAGES.find(p => p.id === formData.localPackage)?.label
                       : formData.drop}
@@ -2813,68 +2800,35 @@ const handleWhatsAppConfirm = () => {
             </div>
           </div>
 
-          {isMobileSummary ? (
-            <div className="grid grid-cols-3 gap-2 border-y border-slate-100 py-3">
-              <div className="min-w-0">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Departure</span>
-                <p className="text-[10px] font-bold text-slate-900 truncate">{formData.date}</p>
-                <p className="text-[10px] font-bold text-slate-500 truncate mt-0.5">{formData.time}</p>
-              </div>
-              <div className="min-w-0 border-l border-slate-100 pl-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Vehicle</span>
-                <p className="text-[10px] font-bold text-slate-900 uppercase truncate">{formData.vehicleType}</p>
-              </div>
-              <div className="min-w-0 border-l border-slate-100 pl-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Mobile</span>
-                <p className="text-[10px] font-bold text-slate-900 truncate">{formData.phone}</p>
-              </div>
+          <div className="grid grid-cols-3 gap-2 border-y border-[#E5E7EB] py-3">
+            <div className="min-w-0">
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Departure</span>
+              <p className="text-[10px] font-bold text-[#171717] truncate">{formData.date}</p>
+              <p className="text-[10px] font-bold text-[#525252] truncate mt-0.5">{formData.time}</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div>
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Departure</span>
-                <div className="flex items-center gap-1.5">
-                  <Calendar size={12} className="text-[#FF6467]" />
-                  <p className="text-[10px] font-bold text-slate-900">{formData.date}</p>
-                </div>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <Clock size={12} className="text-[#FF6467]" />
-                  <p className="text-[10px] font-bold text-slate-900">{formData.time}</p>
-                </div>
-              </div>
-              <div>
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Vehicle</span>
-                <div className="flex items-center gap-1.5">
-                  <Car size={12} className="text-[#FF6467]" />
-                  <p className="text-[10px] font-bold text-slate-900 uppercase truncate">{formData.vehicleType}</p>
-                </div>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <Phone size={12} className="text-[#FF6467]" />
-                  <p className="text-[10px] font-bold text-slate-900">{formData.phone}</p>
-                </div>
-              </div>
+            <div className="min-w-0 border-l border-[#E5E7EB] pl-2">
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Vehicle</span>
+              <p className="text-[10px] font-bold text-[#171717] uppercase truncate">{formData.vehicleType}</p>
             </div>
-          )}
-
-          <div className={`flex justify-between items-end
-            ${isMobileSummary ? 'pt-1' : 'border-t border-slate-100 pt-4'}
-          `}>
-            <div>
-              <span className="text-[8px] font-black text-slate-400  uppercase tracking-widest block mb-0.5">Estimated Distance</span>
-              <span className="text-xs font-black text-[#FF6269]">{formData.distance}</span>
-            </div>
-            <div className="text-right">
-              <span className="text-[8px] font-black text-slate-400  uppercase tracking-widest block mb-0.5">Estimated Fare</span>
-              <span className={`font-black text-slate-900 ${isMobileSummary ? 'text-lg' : 'text-2xl'}`}>{formData.estimatedFare}</span>
+            <div className="min-w-0 border-l border-[#E5E7EB] pl-2">
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Mobile</span>
+              <p className="text-[10px] font-bold text-[#171717] truncate">{formData.phone}</p>
             </div>
           </div>
 
-          <div className={`text-left
-            ${isMobileSummary ? 'pt-1' : 'border-t border-slate-100 pt-2.5 text-center'}
-          `}>
-            <p className={`font-black text-slate-400  uppercase tracking-widest
-              ${isMobileSummary ? 'text-[7px] leading-relaxed' : 'text-[9px]'}
-            `}>
+          <div className="flex justify-between items-end pt-1">
+            <div>
+              <span className="text-[8px] font-black text-slate-400  uppercase tracking-widest block mb-0.5">Estimated Distance</span>
+              <span className="text-xs font-black text-[#FFC107]">{formData.distance}</span>
+            </div>
+            <div className="text-right">
+              <span className="text-[8px] font-black text-slate-400  uppercase tracking-widest block mb-0.5">Estimated Fare</span>
+              <span className="font-black text-[#171717] text-lg">{formData.estimatedFare}</span>
+            </div>
+          </div>
+
+          <div className="text-left pt-1">
+            <p className="font-black text-slate-400 uppercase tracking-widest text-[7px] leading-relaxed">
               * Tolls, permit, parking & other charges extra. T&C apply.
             </p>
           </div>
@@ -2882,21 +2836,21 @@ const handleWhatsAppConfirm = () => {
 
             </div>
             {/* Sticky Footer */}
-            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent shrink-0' : ''} flex gap-3 ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
+            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-[#E5E7EB]  bg-white/95  md:bg-transparent shrink-0' : ''} flex gap-3 ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
               <button
                 type="button"
                 onClick={() => {
                   setStep(3);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="p-4 bg-slate-50  text-slate-400 rounded-xl border border-slate-100  active:scale-95 transition-all"
+                className="p-4 bg-[#FFFDF5]  text-slate-400 rounded-xl border border-[#E5E7EB]  active:scale-95 transition-all"
               >
                 <ArrowLeft size={20} />
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-[#FF7075] hover:bg-[#FF6467] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#FF7075]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-[#FFB300] hover:bg-[#FFC107] text-[#171717] font-bold py-4 rounded-2xl shadow-lg shadow-[#FFB300]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 {loading ? 'Booking...' : (
                   <>

@@ -43,7 +43,7 @@ if ('serviceWorker' in navigator) {
     const cacheNames = await caches.keys();
     await Promise.all(
       cacheNames
-        .filter((cacheName) => cacheName.startsWith('fastpointcab-'))
+        .filter((cacheName) => cacheName.startsWith('TrustyYellowCabs-'))
         .map((cacheName) => caches.delete(cacheName))
     );
   })().catch(() => {

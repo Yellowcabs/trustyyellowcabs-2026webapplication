@@ -26,7 +26,7 @@ export const MobileTabBar: React.FC = () => {
       action: () => navigate('/book-a-trip') 
     },
     { 
-      path: 'tel:+919488834020', 
+      path: 'tel:+918870088020',
       label: 'Call', 
       icon: Phone, 
       isExternal: true,
@@ -48,10 +48,10 @@ export const MobileTabBar: React.FC = () => {
               <button
                 key={item.label}
                 onClick={item.action}
-                className="flex h-full min-w-0 flex-col items-center justify-end pb-2 text-[#FF6269] transition-all active:scale-95 group"
+                className="flex h-full min-w-0 flex-col items-center justify-end pb-2 text-[#FFC107] transition-all active:scale-95 group"
               >
                 <Icon size={22} strokeWidth={2.5} className="group-active:scale-110 transition-transform" />
-                <span className="mt-1 text-[9px] font-bold uppercase tracking-tighter text-[#FF6269]">
+                <span className="mt-1 text-[9px] font-bold uppercase tracking-tighter text-[#FFC107]">
                   {item.label}
                 </span>
               </button>
@@ -64,7 +64,7 @@ export const MobileTabBar: React.FC = () => {
               <a
                 key={item.label}
                 href={item.path}
-                className="flex h-full min-w-0 flex-col items-center justify-end pb-2 text-[#0B1733] transition-all active:bg-slate-50 group"
+                className="flex h-full min-w-0 flex-col items-center justify-end pb-2 text-[#171717] transition-all active:bg-[#FFFDF5] group"
               >
                 <Icon size={22} strokeWidth={2.2} className="fp-call-ring text-black" />
                 <span className="text-[9px] font-bold uppercase tracking-wider text-black">

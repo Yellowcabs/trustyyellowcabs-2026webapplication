@@ -42,16 +42,16 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className={`${isOpen ? 'fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-white' : 'sticky top-0 z-40 bg-white/95 backdrop-blur-xl'} w-full border-b border-slate-50 transition-all`}>
+    <nav className={`${isOpen ? 'fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-white' : 'sticky top-0 z-40 bg-white/95 backdrop-blur-xl'} w-full border-b border-[#FFFDF5] transition-all`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           
           <Link to="/" className="flex items-center group gap-0.5">
-             <span className="text-xl font-extrabold tracking-tighter text-slate-900 transition-colors">
-              Book  
+             <span className="text-xl font-extrabold tracking-tighter text-[#171717] transition-colors">
+              Trusty 
              </span>
              <span className="text-xl font-extrabold tracking-tighter text-brand-yellow transition-colors">
-              -Your Taxi
+              Yellow Cabs
              </span>
           </Link>
 
@@ -65,7 +65,7 @@ export const Navbar: React.FC = () => {
                 className={`text-[11px] font-bold uppercase tracking-widest transition-all ${
                   isActive(link.path) 
                     ? 'text-brand-yellow' 
-                    : 'text-slate-500 hover:text-slate-900'
+                    : 'text-[#525252] hover:text-[#171717]'
                 }`}
               >
                 {link.label}
@@ -74,7 +74,7 @@ export const Navbar: React.FC = () => {
             <Link 
               to="/" 
               state={{ scrollToBook: true }}
-              className="bg-brand-yellow hover:bg-yellow-400 text-slate-950 px-8 py-3.5 rounded-lg font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
+              className="bg-brand-yellow hover:bg-[#FFB300] text-[#171717] px-8 py-3.5 rounded-lg font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
             >
               Book Now
             </Link>
@@ -86,8 +86,8 @@ export const Navbar: React.FC = () => {
               onClick={() => setIsOpen(!isOpen)}
               className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all duration-300 active:scale-95 ${
                 isOpen 
-                  ? 'bg-brand-yellow border-brand-yellow text-white hover:text-white active:text-white focus:text-white shadow-lg shadow-brand-yellow/20' 
-                  : 'bg-white border-slate-100 text-slate-900'
+                  ? 'bg-brand-yellow border-brand-yellow text-[#171717] hover:text-[#171717] active:text-[#171717] focus:text-[#171717] shadow-lg shadow-brand-yellow/20'
+                  : 'bg-white border-[#E5E7EB] text-[#171717]'
               }`}
               aria-expanded={isOpen}
               aria-label="Toggle navigation menu"
@@ -105,7 +105,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Nav Drawer */}
       {isOpen && (
-        <div className="md:hidden bg-white border-b border-slate-50 pb-12 transition-all animate-fade-in">
+        <div className="md:hidden bg-white border-b border-[#FFFDF5] pb-12 transition-all animate-fade-in">
           <div className="px-4 pt-6 space-y-2">
             {links.map((link) => (
               <Link
@@ -117,8 +117,8 @@ export const Navbar: React.FC = () => {
                 }}
                 className={`block px-5 py-4 rounded-xl text-sm font-bold uppercase tracking-widest ${
                   isActive(link.path)
-                    ? 'bg-slate-50 text-brand-yellow'
-                    : 'text-slate-600 hover:bg-slate-50'
+                    ? 'bg-[#FFFDF5] text-brand-yellow'
+                    : 'text-[#525252] hover:bg-[#FFFDF5]'
                 }`}
               >
                 {link.label}
@@ -129,7 +129,7 @@ export const Navbar: React.FC = () => {
                 to="/"
                 state={{ scrollToBook: true }}
                 onClick={() => setIsOpen(false)}
-                className="block w-full text-center bg-brand-yellow text-white hover:text-white active:text-white focus:text-white px-6 py-5 rounded-xl font-extrabold uppercase tracking-widest shadow-lg shadow-brand-yellow/20 transition-transform active:scale-[0.98]"
+                className="block w-full text-center bg-brand-yellow text-[#171717] hover:text-[#171717] active:text-[#171717] focus:text-[#171717] px-6 py-5 rounded-xl font-extrabold uppercase tracking-widest shadow-lg shadow-brand-yellow/20 transition-transform active:scale-[0.98]"
               >
                 Book Your Ride
               </Link>

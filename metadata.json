@@ -1,5 +1,5 @@
 {
-  "name": "FastPointCab",
+  "name": "TrustyYellowCabs",
   "description": "Taxi Coimbatore. Airport transfers, outstation, and city Cabs.",
  "requestFramePermissions": ["geolocation"]
 }

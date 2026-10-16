@@ -10,7 +10,7 @@ export const Logo: React.FC<LogoProps> = ({
   return (
     <img
       src="/images/taxi-icon-512.png"
-      alt="FastPointCab Logo"
+      alt="TrustyYellowCabs Logo"
       width="512"
       height="512"
       decoding="async"

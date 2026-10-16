@@ -29,10 +29,10 @@ const ScrollToTop = () => {
 
 const NotFound: React.FC = () => (
   <div className="flex min-h-[60vh] flex-col items-center justify-center bg-white px-6 text-center">
-    <p className="text-xs font-bold uppercase tracking-widest text-[#FF5F68]">FastPointCab</p>
-    <h1 className="mt-3 text-4xl font-extrabold text-[#0B1733]">Page not found</h1>
-    <p className="mt-3 max-w-md text-sm leading-6 text-slate-600">The page you requested does not exist.</p>
-    <a href="/" className="mt-6 rounded-lg bg-[#FF5F68] px-5 py-3 text-xs font-bold uppercase tracking-widest text-white">Return home</a>
+    <p className="text-xs font-bold uppercase tracking-widest text-[#FFC107]">TrustyYellowCabs</p>
+    <h1 className="mt-3 text-4xl font-extrabold text-[#171717]">Page not found</h1>
+    <p className="mt-3 max-w-md text-sm leading-6 text-[#525252]">The page you requested does not exist.</p>
+    <a href="/" className="mt-6 rounded-lg bg-[#FFC107] px-5 py-3 text-xs font-bold uppercase tracking-widest text-[#171717]">Return home</a>
   </div>
 );
 

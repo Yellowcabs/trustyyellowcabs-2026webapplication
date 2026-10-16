@@ -1,17 +1,17 @@
-# FastPointCab
+# TrustyYellowCabs
 
-FastPointCab provides taxi booking services in Coimbatore, Tamil Nadu, including local rides, airport transfers, hourly rentals, outstation trips, and corporate travel.
+TrustyYellowCabs provides taxi booking services in Coimbatore, Tamil Nadu, including local rides, airport transfers, hourly rentals, outstation trips, and corporate travel.
 
 ## Public pages
 
-- [Home](https://www.fastpointcab.in/)
-- [About FastPointCab](https://www.fastpointcab.in/about)
-- [Taxi fleet](https://www.fastpointcab.in/fleet)
-- [Taxi services](https://www.fastpointcab.in/services)
-- [Contact](https://www.fastpointcab.in/contact)
-- [Taxi service in Coimbatore](https://www.fastpointcab.in/taxi-service-in-coimbatore)
+- [Home](https://www.trustyyellowcabs.in/)
+- [About TrustyYellowCabs](https://www.trustyyellowcabs.in/about)
+- [Taxi fleet](https://www.trustyyellowcabs.in/fleet)
+- [Taxi services](https://www.trustyyellowcabs.in/services)
+- [Contact](https://www.trustyyellowcabs.in/contact)
+- [Taxi service in Coimbatore](https://www.trustyyellowcabs.in/taxi-service-in-coimbatore)
 
 ## Contact
 
-Phone: +91 94888 34020
+Phone: +91 88700 88020
 Service area: Coimbatore, Tamil Nadu

@@ -10,7 +10,7 @@ const categoryHub: Partial<Record<SeoPageCandidate['category'], SeoRelatedLink>>
   area: { path: '/local-taxi-coimbatore', label: 'Local taxi in Coimbatore' },
   'airport-route': { path: '/airport-taxi-coimbatore', label: 'Airport taxi in Coimbatore' },
   'outstation-route': { path: '/outstation-taxi-coimbatore', label: 'Outstation taxi from Coimbatore' },
-  'vehicle-rental': { path: '/fleet', label: 'Explore the FastPointCab fleet' },
+  'vehicle-rental': { path: '/fleet', label: 'Explore the TrustyYellowCabs fleet' },
 };
 
 export const getSeoRelatedLinks = (

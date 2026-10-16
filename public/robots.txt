@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://www.fastpointcab.in/sitemap.xml
+Sitemap: https://www.trustyyellowcabs.in/sitemap.xml

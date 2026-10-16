@@ -10,7 +10,7 @@ export const BookingConfirmed: React.FC = () => {
 
   const handleWhatsAppConfirm = () => {
     if (!booking) {
-      window.open('https://wa.me/919488834020', '_blank', 'noopener,noreferrer');
+      window.open('https://wa.me/918870088020', '_blank', 'noopener,noreferrer');
       return;
     }
 
@@ -30,7 +30,7 @@ export const BookingConfirmed: React.FC = () => {
       `%0A*Vehicle:* ${booking.vehicleType}` +
       `%0A*Estimated Fare:* ${booking.estimatedFare || 'Not specified'}`;
 
-    window.open(`https://wa.me/919488834020?text=${message}`, '_blank', 'noopener,noreferrer');
+    window.open(`https://wa.me/918870088020?text=${message}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -39,8 +39,8 @@ export const BookingConfirmed: React.FC = () => {
         <div className="booking-confirmed-icon relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/10 text-green-500">
           <CheckCircle2 size={40} className="booking-confirmed-mark" />
         </div>
-        <h1 className="mb-2 text-2xl font-black uppercase tracking-tight text-slate-900">Booking Confirmed!</h1>
-        <p className="mb-8 text-[11px] font-bold uppercase leading-relaxed tracking-widest text-slate-500">Driver will call you shortly.</p>
+        <h1 className="mb-2 text-2xl font-black uppercase tracking-tight text-[#171717]">Booking Confirmed!</h1>
+        <p className="mb-8 text-[11px] font-bold uppercase leading-relaxed tracking-widest text-[#525252]">Driver will call you shortly.</p>
 
         <button
           onClick={handleWhatsAppConfirm}
@@ -51,7 +51,7 @@ export const BookingConfirmed: React.FC = () => {
         <button
           type="button"
           onClick={() => navigate('/', { replace: true })}
-          className="w-full cursor-pointer rounded-2xl border border-slate-300 py-4 text-[10px] font-bold uppercase text-slate-900 transition-all hover:bg-slate-100"
+          className="w-full cursor-pointer rounded-2xl border border-slate-300 py-4 text-[10px] font-bold uppercase text-[#171717] transition-all hover:bg-slate-100"
         >
           BACK TO HOME
         </button>

@@ -98,7 +98,7 @@ export const SERVICES_DATA: Service[] = [
   {
     id: '3',
     title: 'Outstation Trips',
-    description: 'Book FastPointCab for prompt outstation taxi services in Coimbatore. Enjoy a safe and smooth journey, whether for business or leisure',
+    description: 'Book TrustyYellowCabs for prompt outstation taxi services in Coimbatore. Enjoy a safe and smooth journey, whether for business or leisure',
     icon: 'map-pin',
     image: '/images/OutstationTrips.webp',
     features: [
@@ -110,7 +110,7 @@ export const SERVICES_DATA: Service[] = [
   {
     id: '4',
     title: 'Corporate Travel',
-    description: 'Traveling for work in Coimbatore? FastPointCab has you covered with timely, safe, and comfortable corporate and outstation rides.',
+    description: 'Traveling for work in Coimbatore? TrustyYellowCabs has you covered with timely, safe, and comfortable corporate and outstation rides.',
     icon: 'briefcase',
      image: '/images/Corporate Travel.webp',
     features: [

@@ -5,19 +5,22 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { PUBLISHED_SEO_PAGES } from "./data/seoPageCandidates";
 import { getSeoRelatedLinks } from "./data/seoInternalLinks";
+import {
+  CORE_SEO_ROUTES,
+  getSiteStructuredData,
+  SITE_URL,
+  SeoHead,
+  TAXI_SERVICE_FAQ,
+} from "./data/siteSeo";
 
-const baseSeoRouteHeads: Record<string, { title: string; description: string; robots: string; canonical: string }> = {
-  about: { title: 'About FastPointCab | Coimbatore Taxi Service', description: 'Learn about FastPointCab and our approach to dependable city, airport, and outstation taxi services in Coimbatore.', robots: 'index, follow', canonical: 'https://www.fastpointcab.in/about' },
-  fleet: { title: 'Taxi Fleet in Coimbatore | FastPointCab', description: 'Explore FastPointCab vehicles for Coimbatore city rides, airport transfers, rentals, and outstation travel.', robots: 'index, follow', canonical: 'https://www.fastpointcab.in/fleet' },
-  services: { title: 'Local, Airport & Outstation Taxi Services | FastPointCab', description: 'View FastPointCab taxi services in Coimbatore, including local rides, airport transfers, hourly rentals, and outstation trips.', robots: 'index, follow', canonical: 'https://www.fastpointcab.in/services' },
-  contact: { title: 'Contact FastPointCab | Coimbatore Taxi Booking', description: 'Contact FastPointCab for taxi booking, WhatsApp support, and reliable travel services in Coimbatore, Tamil Nadu.', robots: 'index, follow', canonical: 'https://www.fastpointcab.in/contact' },
-  'taxi-service-in-coimbatore': { title: 'Taxi Service in Coimbatore | FastPointCab', description: 'Book a Coimbatore taxi with FastPointCab for local rides, airport transfers, hourly rentals, outstation trips, and business travel.', robots: 'index, follow', canonical: 'https://www.fastpointcab.in/taxi-service-in-coimbatore' },
-  'book-a-trip': { title: 'Book a Trip | FastPointCab', description: 'Book a taxi trip with FastPointCab in Coimbatore.', robots: 'noindex, nofollow', canonical: 'https://www.fastpointcab.in/book-a-trip' },
-  'booking-confirmed': { title: 'Booking Confirmed | FastPointCab', description: 'Your FastPointCab booking confirmation.', robots: 'noindex, nofollow', canonical: 'https://www.fastpointcab.in/booking-confirmed' },
-};
-
-const seoRouteHeads = {
-  ...baseSeoRouteHeads,
+const seoRouteHeads: Record<string, SeoHead> = {
+  about: CORE_SEO_ROUTES['/about'],
+  fleet: CORE_SEO_ROUTES['/fleet'],
+  services: CORE_SEO_ROUTES['/services'],
+  contact: CORE_SEO_ROUTES['/contact'],
+  'taxi-service-in-coimbatore': CORE_SEO_ROUTES['/taxi-service-in-coimbatore'],
+  'book-a-trip': CORE_SEO_ROUTES['/book-a-trip'],
+  'booking-confirmed': CORE_SEO_ROUTES['/booking-confirmed'],
   ...Object.fromEntries(
     PUBLISHED_SEO_PAGES
       .filter((page) => page.path !== '/')
@@ -25,17 +28,12 @@ const seoRouteHeads = {
         title: page.title,
         description: page.description,
         robots: 'index, follow',
-        canonical: `https://www.fastpointcab.in${page.path}`,
+        canonical: `${SITE_URL}${page.path}`,
       }])
   ),
 };
 
-const rootSeoHead = {
-  title: 'Taxi Service in Coimbatore | FastPointCab',
-  description: 'Book FastPointCab for city taxi rides, airport transfers, outstation trips, and hourly rentals in Coimbatore.',
-  robots: 'index, follow',
-  canonical: 'https://www.fastpointcab.in/',
-};
+const rootSeoHead = CORE_SEO_ROUTES['/'];
 
 const escapeHtml = (value: string) => value
   .replace(/&/g, '&amp;')
@@ -67,21 +65,15 @@ const staticSeoBody = (routePath: string, seo: { title: string; description: str
         ? 'Prepare for this outstation journey'
         : category === 'vehicle-rental'
           ? 'Choose a vehicle or rental option'
-          : 'How this FastPointCab service works';
+          : 'How this TrustyYellowCabs service works';
 
-  return `<main id="seo-static-content" class="min-h-screen bg-white"><div class="container mx-auto max-w-7xl px-4 py-10 sm:px-5 md:px-6 lg:px-8"><nav aria-label="Breadcrumb" class="mb-6 text-xs font-semibold text-slate-500"><a href="/">Home</a><span aria-hidden="true"> / </span><span>${escapeHtml(heading)}</span></nav><header class="max-w-4xl"><p class="mb-3 text-xs font-bold uppercase tracking-widest text-[#FF5F68]">Coimbatore taxi booking</p><h1 class="text-4xl font-extrabold leading-tight text-[#0B1733]">${escapeHtml(heading)}</h1><p class="mt-5 max-w-2xl text-base leading-7 text-slate-600">${escapeHtml(seo.description)}</p></header><section class="mt-10 max-w-3xl border-y border-slate-200 py-8"><h2 class="text-2xl font-extrabold text-[#0B1733]">Plan your FastPointCab trip</h2><p class="mt-4 text-base leading-7 text-slate-600">${escapeHtml(planning)}</p><nav class="mt-6 flex flex-wrap gap-x-5 gap-y-3 text-sm font-bold text-[#0B1733]" aria-label="Related FastPointCab pages"><a href="/">Start a booking</a><a href="/services">View taxi services</a><a href="/fleet">Explore the fleet</a><a href="/contact">Contact FastPointCab</a></nav></section><section class="mt-10 max-w-4xl border-t border-slate-200 py-8"><h2 class="text-2xl font-extrabold text-[#0B1733]">${escapeHtml(sectionHeading)}</h2><p class="mt-4 max-w-3xl text-base leading-7 text-slate-600">${escapeHtml(planning)}</p></section><section class="max-w-4xl border-t border-slate-200 py-8"><h2 class="text-2xl font-extrabold text-[#0B1733]">Related FastPointCab pages</h2><ul class="mt-4 grid gap-3 sm:grid-cols-2">${relatedMarkup}</ul></section></div></main>`;
+  return `<main id="seo-static-content" class="min-h-screen bg-white"><div class="container mx-auto max-w-7xl px-4 py-10 sm:px-5 md:px-6 lg:px-8"><nav aria-label="Breadcrumb" class="mb-6 text-xs font-semibold text-[#525252]"><a href="/">Home</a><span aria-hidden="true"> / </span><span>${escapeHtml(heading)}</span></nav><header class="max-w-4xl"><p class="mb-3 text-xs font-bold uppercase tracking-widest text-[#FFC107]">Coimbatore taxi booking</p><h1 class="text-4xl font-extrabold leading-tight text-[#171717]">${escapeHtml(heading)}</h1><p class="mt-5 max-w-2xl text-base leading-7 text-[#525252]">${escapeHtml(seo.description)}</p></header><section class="mt-10 max-w-3xl border-y border-[#E5E7EB] py-8"><h2 class="text-2xl font-extrabold text-[#171717]">Plan your TrustyYellowCabs trip</h2><p class="mt-4 text-base leading-7 text-[#525252]">${escapeHtml(planning)}</p><nav class="mt-6 flex flex-wrap gap-x-5 gap-y-3 text-sm font-bold text-[#171717]" aria-label="Related TrustyYellowCabs pages"><a href="/">Start a booking</a><a href="/services">View taxi services</a><a href="/fleet">Explore the fleet</a><a href="/contact">Contact TrustyYellowCabs</a></nav></section><section class="mt-10 max-w-4xl border-t border-[#E5E7EB] py-8"><h2 class="text-2xl font-extrabold text-[#171717]">${escapeHtml(sectionHeading)}</h2><p class="mt-4 max-w-3xl text-base leading-7 text-[#525252]">${escapeHtml(planning)}</p></section><section class="max-w-4xl border-t border-[#E5E7EB] py-8"><h2 class="text-2xl font-extrabold text-[#171717]">Related TrustyYellowCabs pages</h2><ul class="mt-4 grid gap-3 sm:grid-cols-2">${relatedMarkup}</ul></section></div></main>`;
 };
 
-const staticJsonLd = (seo: { canonical: string; description: string }) => JSON.stringify({
-  '@context': 'https://schema.org',
-  '@graph': [
-    { '@type': 'Organization', '@id': 'https://www.fastpointcab.in/#organization', name: 'FastPointCab', url: 'https://www.fastpointcab.in', logo: 'https://www.fastpointcab.in/images/taxi-icon-512.png', telephone: '+919488834020' },
-    { '@type': 'TaxiService', '@id': 'https://www.fastpointcab.in/#taxi-service', name: 'FastPointCab', url: 'https://www.fastpointcab.in', telephone: '+919488834020', areaServed: { '@type': 'City', name: 'Coimbatore' }, parentOrganization: { '@id': 'https://www.fastpointcab.in/#organization' } },
-    { '@type': 'WebSite', '@id': 'https://www.fastpointcab.in/#website', name: 'FastPointCab', url: 'https://www.fastpointcab.in', publisher: { '@id': 'https://www.fastpointcab.in/#organization' } },
-    ...(!['/about', '/fleet', '/contact', '/book-a-trip', '/booking-confirmed'].some((path) => seo.canonical.endsWith(path)) ? [{ '@type': 'Service', '@id': `${seo.canonical}#service`, name: 'Taxi service in Coimbatore', serviceType: 'Taxi service', provider: { '@id': 'https://www.fastpointcab.in/#taxi-service' }, areaServed: { '@type': 'City', name: 'Coimbatore' }, description: seo.description }] : []),
-    ...(seo.canonical !== 'https://www.fastpointcab.in/' && !seo.canonical.endsWith('/book-a-trip') && !seo.canonical.endsWith('/booking-confirmed') ? [{ '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.fastpointcab.in/' }, { '@type': 'ListItem', position: 2, name: seo.canonical.split('/').pop()?.replace(/-/g, ' '), item: seo.canonical }] }] : []),
-  ],
-});
+const staticJsonLd = (routePath: string, seo: SeoHead) => JSON.stringify(getSiteStructuredData(seo, {
+  includeService: !['/about', '/fleet', '/contact', '/book-a-trip', '/booking-confirmed'].includes(routePath),
+  faq: routePath === '/taxi-service-in-coimbatore' ? TAXI_SERVICE_FAQ : undefined,
+}));
 
 const staticSeoPlugin = () => ({
   name: 'generate-static-seo-route-heads',
@@ -91,23 +83,24 @@ const staticSeoPlugin = () => ({
     const template = fs.readFileSync(distIndex, 'utf8');
     const writeRoute = (route: string, seo: { title: string; description: string; robots: string; canonical: string }, source: string, includeStaticBody = false) => {
       const routeHead = source
-        .replace(/<title[^>]*>.*?<\/title>/s, `<title data-rh="true">${seo.title}</title>`)
-        .replace(/<meta[^>]*name="description"[^>]*>/, `<meta data-rh="true" name="description" content="${seo.description}">`)
+        .replace(/<title[^>]*>.*?<\/title>/s, `<title data-rh="true">${escapeHtml(seo.title)}</title>`)
+        .replace(/<meta[^>]*name="description"[^>]*>/, `<meta data-rh="true" name="description" content="${escapeHtml(seo.description)}">`)
         .replace(/<meta[^>]*name="robots"[^>]*>/, `<meta data-rh="true" name="robots" content="${seo.robots}">`)
         .replace(/<link[^>]*rel="canonical"[^>]*>/, `<link data-rh="true" rel="canonical" href="${seo.canonical}">`)
-        .replace(/<meta[^>]*property="og:title"[^>]*>/, `<meta data-rh="true" property="og:title" content="${seo.title}">`)
-        .replace(/<meta[^>]*property="og:description"[^>]*>/, `<meta data-rh="true" property="og:description" content="${seo.description}">`)
+        .replace(/<meta[^>]*property="og:site_name"[^>]*>/, `<meta data-rh="true" property="og:site_name" content="TrustyYellowCabs">`)
+        .replace(/<meta[^>]*property="og:title"[^>]*>/, `<meta data-rh="true" property="og:title" content="${escapeHtml(seo.title)}">`)
+        .replace(/<meta[^>]*property="og:description"[^>]*>/, `<meta data-rh="true" property="og:description" content="${escapeHtml(seo.description)}">`)
         .replace(/<meta[^>]*property="og:url"[^>]*>/, `<meta data-rh="true" property="og:url" content="${seo.canonical}">`)
-        .replace(/<meta[^>]*name="twitter:title"[^>]*>/, `<meta data-rh="true" name="twitter:title" content="${seo.title}">`)
-        .replace(/<meta[^>]*name="twitter:description"[^>]*>/, `<meta data-rh="true" name="twitter:description" content="${seo.description}">`)
-        .replace(/<script id="seo-jsonld" type="application\/ld\+json">.*?<\/script>/s, `<script id="seo-jsonld" type="application/ld+json">${staticJsonLd(seo)}</script>`)
+        .replace(/<meta[^>]*name="twitter:title"[^>]*>/, `<meta data-rh="true" name="twitter:title" content="${escapeHtml(seo.title)}">`)
+        .replace(/<meta[^>]*name="twitter:description"[^>]*>/, `<meta data-rh="true" name="twitter:description" content="${escapeHtml(seo.description)}">`)
+        .replace(/<script id="seo-jsonld" type="application\/ld\+json">.*?<\/script>/s, `<script id="seo-jsonld" type="application/ld+json">${staticJsonLd(route ? `/${route}` : '/', seo)}</script>`)
         .replace('<div id="root"></div>', `${includeStaticBody ? staticSeoBody(route ? `/${route}` : '/', seo) : ''}<div id="root"></div>`);
       const routeDir = route ? path.resolve(__dirname, 'dist', route) : path.resolve(__dirname, 'dist');
       fs.mkdirSync(routeDir, { recursive: true });
       fs.writeFileSync(path.join(routeDir, 'index.html'), routeHead);
     };
 
-    writeRoute('', rootSeoHead, template, false);
+    writeRoute('', rootSeoHead, template, true);
     for (const [route, seo] of Object.entries(seoRouteHeads)) {
       writeRoute(route, seo, template, seo.robots === 'index, follow');
     }

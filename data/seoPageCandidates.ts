@@ -1,3 +1,5 @@
+import { CORE_SEO_ROUTES, SITE_NAME } from './siteSeo';
+
 export type SeoPageCategory =
   | 'existing'
   | 'coimbatore-service'
@@ -46,8 +48,8 @@ const draft = (
   path,
   category,
   label,
-  title: `${label} | FastPointCab`,
-  description: `Information about ${label.toLowerCase()} from FastPointCab, including booking guidance and service details for ${focus}.`,
+  title: `${label} | ${SITE_NAME}`,
+  description: `Plan ${label.toLowerCase()} with ${SITE_NAME} in Coimbatore. Review booking guidance and trip details for ${focus}.`,
   heading: label,
   status: 'draft',
   indexable: false,
@@ -55,12 +57,12 @@ const draft = (
 });
 
 const existingPages: SeoPageCandidate[] = [
-  published('/', 'Home', 'Taxi Service in Coimbatore | FastPointCab', 'Book FastPointCab for city taxi rides, airport transfers, outstation trips, and hourly rentals in Coimbatore.', 'Taxi Service in Coimbatore'),
-  published('/about', 'About FastPointCab', 'About FastPointCab | Coimbatore Taxi Service', 'Learn about FastPointCab and our approach to dependable city, airport, and outstation taxi services in Coimbatore.', 'About FastPointCab'),
-  published('/fleet', 'Taxi Fleet', 'Taxi Fleet in Coimbatore | FastPointCab', 'Explore FastPointCab vehicles for Coimbatore city rides, airport transfers, rentals, and outstation travel.', 'Taxi Fleet in Coimbatore'),
-  published('/services', 'Taxi Services', 'Local, Airport & Outstation Taxi Services | FastPointCab', 'View FastPointCab taxi services in Coimbatore, including local rides, airport transfers, hourly rentals, and outstation trips.', 'Taxi Services in Coimbatore'),
-  published('/contact', 'Contact FastPointCab', 'Contact FastPointCab | Coimbatore Taxi Booking', 'Contact FastPointCab for taxi booking, WhatsApp support, and reliable travel services in Coimbatore, Tamil Nadu.', 'Contact FastPointCab'),
-  published('/taxi-service-in-coimbatore', 'Taxi Service in Coimbatore', 'Taxi Service in Coimbatore | FastPointCab', 'Book a Coimbatore taxi with FastPointCab for local rides, airport transfers, hourly rentals, outstation trips, and business travel.', 'Taxi Service in Coimbatore'),
+  published('/', 'Home', CORE_SEO_ROUTES['/'].title, CORE_SEO_ROUTES['/'].description, 'Taxi Service in Coimbatore'),
+  published('/about', 'About TrustyYellowCabs', CORE_SEO_ROUTES['/about'].title, CORE_SEO_ROUTES['/about'].description, 'About TrustyYellowCabs'),
+  published('/fleet', 'Taxi Fleet', CORE_SEO_ROUTES['/fleet'].title, CORE_SEO_ROUTES['/fleet'].description, 'Taxi Fleet in Coimbatore'),
+  published('/services', 'Taxi Services', CORE_SEO_ROUTES['/services'].title, CORE_SEO_ROUTES['/services'].description, 'Taxi Services in Coimbatore'),
+  published('/contact', 'Contact TrustyYellowCabs', CORE_SEO_ROUTES['/contact'].title, CORE_SEO_ROUTES['/contact'].description, 'Contact TrustyYellowCabs'),
+  published('/taxi-service-in-coimbatore', 'Taxi Service in Coimbatore', CORE_SEO_ROUTES['/taxi-service-in-coimbatore'].title, CORE_SEO_ROUTES['/taxi-service-in-coimbatore'].description, 'Taxi Service in Coimbatore'),
 ];
 
 const coimbatoreServicePages = [
@@ -236,7 +238,7 @@ export const SEO_PAGE_CANDIDATES: SeoPageCandidate[] = [
   ...areaPages.map(([slug, label]) => draft('area', `/taxi-${slug}`, label, `${label.replace(' Taxi Service', '')}, Coimbatore`)),
   ...airportRoutePages.map(([slug, label]) => draft('airport-route', `/${slug}`, label, 'Coimbatore International Airport')),
   ...outstationRoutePages.map(([slug, label]) => draft('outstation-route', `/${slug}`, label, 'Coimbatore and the named destination')),
-  ...vehicleRentalPages.map(([slug, label]) => draft('vehicle-rental', `/${slug}`, label, 'FastPointCab vehicle and rental services')),
+  ...vehicleRentalPages.map(([slug, label]) => draft('vehicle-rental', `/${slug}`, label, `${SITE_NAME} vehicle and rental services`)),
 ];
 
 const firstBatchPaths = new Set([
