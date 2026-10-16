@@ -64,6 +64,18 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[#525252]">
           <p>&copy; 2026 TrustyYellowCabs. All Rights Reserved.</p>
           <div className="flex items-center gap-1">
+             <Link
+               to="/privacy-policy"
+               className="hover:text-[#FFB300] transition-colors font-medium flex items-center gap-1"
+             >
+               Privacy Policy
+             </Link>
+             <Link
+               to="/account-deletion"
+               className="hover:text-[#FFB300] transition-colors font-medium flex items-center gap-1"
+             >
+               Account Deletion
+             </Link>
              <a 
                href="https://www.fastpointcab.in/"
                target="_blank" 

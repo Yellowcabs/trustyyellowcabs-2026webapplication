@@ -10,6 +10,8 @@ const About = React.lazy(() => import('./pages/About').then((module) => ({ defau
 const Contact = React.lazy(() => import('./pages/Contact').then((module) => ({ default: module.Contact })));
 const BookATrip = React.lazy(() => import('./pages/BookATrip').then((module) => ({ default: module.BookATrip })));
 const BookingConfirmed = React.lazy(() => import('./pages/BookingConfirmed').then((module) => ({ default: module.BookingConfirmed })));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy').then((module) => ({ default: module.PrivacyPolicy })));
+const AccountDeletion = React.lazy(() => import('./pages/AccountDeletion').then((module) => ({ default: module.AccountDeletion })));
 import { FloatingCallButton } from './components/FloatingCallButton';
 import { MobileTabBar } from './components/MobileTabBar';
 const TaxiServiceCoimbatore = React.lazy(() => import('./pages/TaxiServiceCoimbatore').then((module) => ({ default: module.TaxiServiceCoimbatore })));
@@ -66,6 +68,8 @@ const App: React.FC = () => {
               .map((page) => <Route key={page.path} path={page.path} element={<SeoLandingPage />} />)}
             <Route path="/book-a-trip" element={<BookATrip />} />
             <Route path="/booking-confirmed" element={<BookingConfirmed />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/account-deletion" element={<AccountDeletion />} />
             <Route path="/bill-request" element={<Navigate to="/" replace />} />
             <Route path="*" element={<NotFound />} />
            

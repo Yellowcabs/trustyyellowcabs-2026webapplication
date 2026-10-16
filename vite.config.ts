@@ -21,6 +21,8 @@ const seoRouteHeads: Record<string, SeoHead> = {
   'taxi-service-in-coimbatore': CORE_SEO_ROUTES['/taxi-service-in-coimbatore'],
   'book-a-trip': CORE_SEO_ROUTES['/book-a-trip'],
   'booking-confirmed': CORE_SEO_ROUTES['/booking-confirmed'],
+  'privacy-policy': CORE_SEO_ROUTES['/privacy-policy'],
+  'account-deletion': CORE_SEO_ROUTES['/account-deletion'],
   ...Object.fromEntries(
     PUBLISHED_SEO_PAGES
       .filter((page) => page.path !== '/')
