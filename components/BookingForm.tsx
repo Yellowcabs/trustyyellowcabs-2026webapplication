@@ -25,7 +25,6 @@ const TripTypeRental = (TripType as any).RENTAL || 'Rental' as TripType;
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const IST_TIME_ZONE = 'Asia/Kolkata';
-const IST_OFFSET_MINUTES = 330;
 
 type IstDateTime = { date: string; time: string };
 
@@ -49,17 +48,6 @@ const formatIstDateTime = (timestamp: number): IstDateTime => {
   };
 };
 
-const parseIstDateTime = (date: string, time: string) => {
-  const dateParts = date.split('-').map(Number);
-  const timeParts = time.split(':').map(Number);
-  if (dateParts.length !== 3 || timeParts.length < 2 || dateParts.some(Number.isNaN) || timeParts.slice(0, 2).some(Number.isNaN)) {
-    return null;
-  }
-
-  const [year, month, day] = dateParts;
-  const [hour, minute] = timeParts;
-  return Date.UTC(year, month - 1, day, hour, minute) - IST_OFFSET_MINUTES * 60 * 1000;
-};
 
 const ONE_WAY_PRICING: Record<VehicleType, number> = {
   [VehicleType.MINI]: 23,
@@ -1737,27 +1725,13 @@ style.innerHTML = `
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const getAuthoritativeNow = () => {
-    const clock = authoritativeClockRef.current;
-    if (!clock) return null;
-    return clock.timestamp + (performance.now() - clock.receivedAt);
-  };
-
-  const getDateTimeValidationError = () => {
+  const getDateTimeRequiredValidationError = () => {
     if (serverTimeStatus === 'loading') return 'Official IST time is still loading. Please wait and try again.';
     if (serverTimeStatus !== 'ready' || !authoritativeClockRef.current) {
       return serverTimeError || 'Official IST time is unavailable. Please retry before continuing.';
     }
     if (!formData.date || !formData.time) return 'Please select a pickup date and time.';
-
-    const selectedTimestamp = parseIstDateTime(formData.date, formData.time);
-    const authoritativeNow = getAuthoritativeNow();
-    if (selectedTimestamp === null || authoritativeNow === null) {
-      return 'Please select a valid pickup date and time.';
-    }
-
-    const currentMinute = Math.floor(authoritativeNow / 60000) * 60000;
-    return selectedTimestamp < currentMinute ? 'Pickup date and time cannot be in the past.' : '';
+    return '';
   };
 
   const handleNextStep = async () => {
@@ -1925,7 +1899,7 @@ style.innerHTML = `
       return;
     }
 
-    const dateTimeError = getDateTimeValidationError();
+    const dateTimeError = getDateTimeRequiredValidationError();
     if (dateTimeError) {
       alert(dateTimeError);
       return;
@@ -2277,7 +2251,6 @@ const handleWhatsAppConfirm = () => {
                       <input
                         type="date"
                         name="date"
-                        min={indiaToday}
                         value={formData.date}
                         onChange={handleChange}
                         className="w-full bg-transparent border-none p-0 focus:ring-0 text-[11px] sm:text-xs font-bold outline-none  cursor-pointer min-w-0"
@@ -2412,7 +2385,7 @@ const handleWhatsAppConfirm = () => {
                     alert("Please enter a valid 10-digit Indian mobile number.");
                     return;
                   }
-                  const dateTimeError = getDateTimeValidationError();
+                  const dateTimeError = getDateTimeRequiredValidationError();
                   if (dateTimeError) {
                     alert(dateTimeError);
                     return;
