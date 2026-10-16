@@ -862,6 +862,36 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
   const [mapError, setMapError] = useState<string | null>(null);
   const [mapReady, setMapReady] = useState(false);
 
+  const loadGoogleMaps = useCallback(() => {
+    if ((window as any).google?.maps) {
+      setGoogleLoaded(true);
+      return Promise.resolve();
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>(`script[src*="maps.googleapis.com/maps/api/js"]`);
+    if (existingScript) {
+      return new Promise<void>((resolve) => {
+        existingScript.addEventListener('load', () => {
+          setGoogleLoaded(true);
+          resolve();
+        }, { once: true });
+      });
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        setGoogleLoaded(true);
+        resolve();
+      };
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }, []);
+
   const getTomorrowDate = () => {
     if (!indiaToday) return '';
     const parts = indiaToday.split('-');
@@ -999,24 +1029,6 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     setIndiaToday(dateStr);
     setFormData(prev => ({ ...prev, date: dateStr }));
 
-    if ((window as any).google?.maps) {
-      setGoogleLoaded(true);
-      return;
-    }
-
-    // Check if script already exists
-    const existingScript = document.querySelector(`script[src*="maps.googleapis.com/maps/api/js"]`);
-    if (existingScript) {
-      existingScript.addEventListener('load', () => setGoogleLoaded(true));
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setGoogleLoaded(true);
-    document.head.appendChild(script);
   }, []);
 
   // 🔥 Google Autocomplete Light Theme Injection
@@ -1699,6 +1711,17 @@ const handleWhatsAppConfirm = () => {
   const isMobileSummary = isMapActive && isMobileScreen;
 
   useEffect(() => {
+    if (isMapActive) {
+      loadGoogleMaps().catch(() => setMapError('Map could not be loaded.'));
+    }
+  }, [isMapActive, loadGoogleMaps]);
+
+  const openLocationSearch = useCallback((type: 'pickup' | 'drop') => {
+    loadGoogleMaps().catch(() => setMapError('Location search could not be loaded.'));
+    setMobileSearchType(type);
+  }, [loadGoogleMaps]);
+
+  useEffect(() => {
     onMapActiveChange?.(isMapActive);
 
     const checkAndToggleClass = () => {
@@ -2161,7 +2184,7 @@ const handleWhatsAppConfirm = () => {
           <div className="space-y-3 animate-fade-in select-none">
             {/* Pickup Location Card */}
             <div 
-              onClick={() => setMobileSearchType('pickup')}
+              onClick={() => openLocationSearch('pickup')}
               className="relative bg-white  border border-slate-200/50  rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:border-slate-300  transition-all cursor-pointer min-h-[48px]"
             >
               <MapPin className="text-brand-yellow shrink-0" size={18} />
@@ -2208,7 +2231,7 @@ const handleWhatsAppConfirm = () => {
             {formData.tripType !== TripTypeRental && (
               /* Destination Card */
               <div 
-                onClick={() => setMobileSearchType('drop')}
+                onClick={() => openLocationSearch('drop')}
                 className="relative bg-white  border border-slate-200/50  rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:border-slate-300  transition-all cursor-pointer min-h-[48px]"
               >
                 <div className="w-4.5 h-4.5 rounded-full border-2 border-rose-500 flex items-center justify-center shrink-0">
