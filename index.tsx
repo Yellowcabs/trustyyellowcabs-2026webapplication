@@ -6,6 +6,11 @@ import App from './App';
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 
+// Start the homepage chunk in parallel with the app bootstrap without loading it on other routes.
+if (window.location.pathname === '/') {
+  void import('./pages/Home');
+}
+
 // Build-time SEO content is served outside the React root for crawler visibility.
 // Remove it before the existing app mounts so React remains the sole interactive UI.
 document.getElementById('seo-static-content')?.remove();

@@ -535,10 +535,11 @@ const LocationSearchOverlay = ({ type, onSelect, onClose, googleLoaded, initialV
 
   // Handle body scroll lock and hiding other layout components on mobile
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     document.body.classList.add('mobile-search-active');
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = previousOverflow;
       document.body.classList.remove('mobile-search-active');
     };
   }, []);
@@ -1066,7 +1067,7 @@ style.innerHTML = `
   .dark .app-scroll::-webkit-scrollbar-thumb {
     background: #334155;
   }
-  .app-scroll { scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent; }
+  .app-scroll { scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
   .dark .app-scroll { scrollbar-color: #334155 transparent; }
 `;
   document.head.appendChild(style);
