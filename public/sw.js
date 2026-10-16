@@ -1,75 +1,21 @@
-const CACHE_NAME = "fastpointcab-v4";
-
-const PRECACHE_ASSETS = [
-  "./",
-  "./index.html",
-  "./manifest.json"
-];
-
-// Install: Cache important files
+// This legacy worker is intentionally self-disabling. FastPointCab does not
+// provide an offline booking experience, so it must not serve cached HTML or
+// stale booking/API responses.
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_ASSETS))
-  );
-
   self.skipWaiting();
 });
 
-
-// Activate: Remove old cache
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      )
-    )
-  );
-
-  self.clients.claim();
-});
-
-
-// Fetch: Fast loading strategy
-self.addEventListener("fetch", (event) => {
-
-  if (event.request.method !== "GET") return;
-
-
-  event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-
-        const fetchPromise = fetch(event.request)
-          .then((networkResponse) => {
-
-            if (
-              networkResponse &&
-              networkResponse.status === 200 &&
-              networkResponse.type === "basic"
-            ) {
-
-              const clone = networkResponse.clone();
-
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(event.request, clone);
-                });
-            }
-
-            return networkResponse;
-          })
-          .catch(() => cachedResponse);
-
-
-        // Instant cache response, update silently
-        return cachedResponse || fetchPromise;
-
-      })
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((key) => key.startsWith("fastpointcab-"))
+          .map((key) => caches.delete(key))
+      );
+      await self.clients.claim();
+      await self.registration.unregister();
+    })()
   );
 });

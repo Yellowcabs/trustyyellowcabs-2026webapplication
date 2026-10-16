@@ -2,14 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import './index.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
-
-// Start the homepage chunk in parallel with the app bootstrap without loading it on other routes.
-if (window.location.pathname === '/') {
-  void import('./pages/Home');
-}
 
 // Build-time SEO content is served outside the React root for crawler visibility.
 // Remove it before the existing app mounts so React remains the sole interactive UI.
@@ -25,22 +21,32 @@ root.render(
   </React.StrictMode>
 );
 
-// TEMP: disable service worker while fixing routing
-// if ('serviceWorker' in navigator) {
-//   window.addEventListener('load', () => {
-//     navigator.serviceWorker.register('./sw.js');
-//   });
-// }
-
-// Register Service Worker for PWA Installability
+// Remove the site's obsolete offline worker and only its own caches. This is
+// intentionally non-blocking so it cannot delay the first render.
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(registration => {
-        console.log('SW registered: ', registration);
-      })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
-      });
+  void (async () => {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(
+      registrations
+        .filter((registration) => {
+          const scriptUrl = registration.active?.scriptURL
+            || registration.installing?.scriptURL
+            || registration.waiting?.scriptURL;
+          return scriptUrl
+            ? new URL(scriptUrl).origin === window.location.origin
+              && new URL(scriptUrl).pathname.endsWith('/sw.js')
+            : false;
+        })
+        .map((registration) => registration.unregister())
+    );
+
+    const cacheNames = await caches.keys();
+    await Promise.all(
+      cacheNames
+        .filter((cacheName) => cacheName.startsWith('fastpointcab-'))
+        .map((cacheName) => caches.delete(cacheName))
+    );
+  })().catch(() => {
+    // Storage or service-worker cleanup can be unavailable in restricted contexts.
   });
 }

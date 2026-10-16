@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { PUBLISHED_SEO_PAGES } from "./data/seoPageCandidates";
 import { getSeoRelatedLinks } from "./data/seoInternalLinks";
 
@@ -122,7 +123,7 @@ export default defineConfig(({ mode }) => {
       host: "0.0.0.0",
     },
 
-    plugins: [staticSeoPlugin(), react()],
+    plugins: [staticSeoPlugin(), tailwindcss(), react()],
 
     resolve: {
       alias: {

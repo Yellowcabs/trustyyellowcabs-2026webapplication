@@ -3,7 +3,7 @@ import { Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import { SEO } from './components/SEO';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-const Home = React.lazy(() => import('./pages/Home').then((module) => ({ default: module.Home })));
+import { Home } from './pages/Home';
 const Fleet = React.lazy(() => import('./pages/Fleet').then((module) => ({ default: module.Fleet })));
 const Services = React.lazy(() => import('./pages/Services').then((module) => ({ default: module.Services })));
 const About = React.lazy(() => import('./pages/About').then((module) => ({ default: module.About })));
