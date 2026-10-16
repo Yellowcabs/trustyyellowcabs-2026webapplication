@@ -172,7 +172,21 @@ export const Home: React.FC<{ onBookingMapChange?: (active: boolean) => void }> 
               </div>
             </div>
 
-           <div className="relative flex justify-center lg:justify-end order-1 lg:order-2 w-full lg:w-auto mt-0 lg:mt-0" id="book">
+           <div className="home-booking-form relative flex justify-center lg:justify-end order-1 lg:order-2 w-full lg:w-auto mt-0 lg:mt-0" id="book">
+              <style>{`
+                @media (max-width: 767px) {
+                  #book.home-booking-form > div:not(.fixed) [data-sheet-drag-surface="blank"] {
+                    display: none !important;
+                    height: 0 !important;
+                    margin-top: 0 !important;
+                  }
+
+                  #book.home-booking-form > div:not(.fixed) form > div:has([data-sheet-drag-surface="blank"]) > div:has([data-sheet-drag-surface="blank"]) {
+                    padding-bottom: 8px !important;
+                    margin-bottom: 0 !important;
+                  }
+                }
+              `}</style>
               <BookingForm onMapActiveChange={onBookingMapChange} />
             </div>
           </div>
