@@ -36,11 +36,11 @@ export const BookingConfirmed: React.FC = () => {
   return (
     <main className="flex min-h-[100dvh] items-center justify-center bg-white px-6">
       <div className="w-full max-w-sm text-center animate-fade-in">
-        <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/10 text-green-500">
-          <CheckCircle2 size={40} />
+        <div className="booking-confirmed-icon relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/10 text-green-500">
+          <CheckCircle2 size={40} className="booking-confirmed-mark" />
         </div>
-        <h1 className="mb-2 text-2xl font-black uppercase tracking-tight text-slate-900">Booking Sent!</h1>
-        <p className="mb-8 text-[11px] font-bold uppercase leading-relaxed tracking-widest text-slate-500">driver will call you shortly.</p>
+        <h1 className="mb-2 text-2xl font-black uppercase tracking-tight text-slate-900">Booking Confirmed!</h1>
+        <p className="mb-8 text-[11px] font-bold uppercase leading-relaxed tracking-widest text-slate-500">Driver will call you shortly.</p>
 
         <button
           onClick={handleWhatsAppConfirm}

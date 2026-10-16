@@ -114,6 +114,25 @@ const staticSeoPlugin = () => ({
   },
 });
 
+const localCurrentTimePlugin = () => ({
+  name: 'local-current-time-api',
+  configureServer(server: any) {
+    server.middlewares.use('/api/current-time', (req: any, res: any) => {
+      if (req.method !== 'GET') {
+        res.statusCode = 405;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: 'Method not allowed' }));
+        return;
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Cache-Control', 'no-store, max-age=0');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ timestamp: Date.now() }));
+    });
+  },
+});
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
@@ -123,7 +142,7 @@ export default defineConfig(({ mode }) => {
       host: "0.0.0.0",
     },
 
-    plugins: [staticSeoPlugin(), tailwindcss(), react()],
+    plugins: [localCurrentTimePlugin(), staticSeoPlugin(), tailwindcss(), react()],
 
     resolve: {
       alias: {

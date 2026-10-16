@@ -24,6 +24,42 @@ const getGeolocationErrorMessage = (error: GeolocationPositionError | any) => {
 const TripTypeRental = (TripType as any).RENTAL || 'Rental' as TripType;
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const IST_TIME_ZONE = 'Asia/Kolkata';
+const IST_OFFSET_MINUTES = 330;
+
+type IstDateTime = { date: string; time: string };
+
+const getIntlPart = (parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes) =>
+  parts.find(part => part.type === type)?.value || '';
+
+const formatIstDateTime = (timestamp: number): IstDateTime => {
+  const parts = new Intl.DateTimeFormat('en-IN', {
+    timeZone: IST_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(timestamp));
+
+  return {
+    date: `${getIntlPart(parts, 'year')}-${getIntlPart(parts, 'month')}-${getIntlPart(parts, 'day')}`,
+    time: `${getIntlPart(parts, 'hour')}:${getIntlPart(parts, 'minute')}`,
+  };
+};
+
+const parseIstDateTime = (date: string, time: string) => {
+  const dateParts = date.split('-').map(Number);
+  const timeParts = time.split(':').map(Number);
+  if (dateParts.length !== 3 || timeParts.length < 2 || dateParts.some(Number.isNaN) || timeParts.slice(0, 2).some(Number.isNaN)) {
+    return null;
+  }
+
+  const [year, month, day] = dateParts;
+  const [hour, minute] = timeParts;
+  return Date.UTC(year, month - 1, day, hour, minute) - IST_OFFSET_MINUTES * 60 * 1000;
+};
 
 const ONE_WAY_PRICING: Record<VehicleType, number> = {
   [VehicleType.MINI]: 23,
@@ -745,6 +781,7 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
   useEffect(() => { stepRef.current = step; }, [step]);
 
   const [isMobileScreen, setIsMobileScreen] = useState(false);
+  const isAndroidBrowser = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 
   useEffect(() => {
     const handleResize = () => {
@@ -766,7 +803,13 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
   const sheetPointerStartPosition = useRef<SheetPosition>('half');
   const sheetPointerScrollContainer = useRef<HTMLElement | null>(null);
   const sheetPointerActive = useRef(false);
+  const sheetPointerIsAndroid = useRef(false);
+  const sheetPointerStartOffset = useRef(0);
   const sheetDragOffsetRef = useRef(0);
+  const sheetPendingOffsetRef = useRef<number | null>(null);
+  const sheetDragFrameRef = useRef<number | null>(null);
+  const sheetSnapFrameRef = useRef<number | null>(null);
+  const sheetCleanupTimerRef = useRef<number | null>(null);
   const [isSheetDragging, setIsSheetDragging] = useState(false);
 
   const getSheetHeights = () => {
@@ -800,16 +843,90 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     , 'half' as SheetPosition);
   };
 
-  const resetSheetPointer = () => {
+  const clearSheetCleanupTimer = () => {
+    if (sheetCleanupTimerRef.current !== null) {
+      window.clearTimeout(sheetCleanupTimerRef.current);
+      sheetCleanupTimerRef.current = null;
+    }
+  };
+
+  const cancelSheetFrames = () => {
+    if (sheetDragFrameRef.current !== null) {
+      window.cancelAnimationFrame(sheetDragFrameRef.current);
+      sheetDragFrameRef.current = null;
+    }
+    if (sheetSnapFrameRef.current !== null) {
+      window.cancelAnimationFrame(sheetSnapFrameRef.current);
+      sheetSnapFrameRef.current = null;
+    }
+  };
+
+  const getSheetVisualOffset = () => {
+    if (!sheetRef.current) return 0;
+    const transform = window.getComputedStyle(sheetRef.current).transform;
+    if (!transform || transform === 'none') return 0;
+    return new DOMMatrixReadOnly(transform).m42;
+  };
+
+  const flushAndroidSheetTransform = () => {
+    if (sheetDragFrameRef.current !== null) {
+      window.cancelAnimationFrame(sheetDragFrameRef.current);
+      sheetDragFrameRef.current = null;
+    }
+    const pendingOffset = sheetPendingOffsetRef.current;
+    if (pendingOffset !== null && sheetRef.current && sheetPointerIsAndroid.current) {
+      sheetRef.current.style.transform = `translate3d(0, ${pendingOffset}px, 0)`;
+    }
+    sheetPendingOffsetRef.current = null;
+  };
+
+  const scheduleAndroidSheetTransform = (offset: number) => {
+    sheetPendingOffsetRef.current = offset;
+    if (sheetDragFrameRef.current !== null) return;
+
+    sheetDragFrameRef.current = window.requestAnimationFrame(() => {
+      sheetDragFrameRef.current = null;
+      const pendingOffset = sheetPendingOffsetRef.current;
+      if (pendingOffset === null || !sheetRef.current || !sheetPointerActive.current) return;
+      sheetRef.current.style.transform = `translate3d(0, ${pendingOffset}px, 0)`;
+      sheetPendingOffsetRef.current = null;
+    });
+  };
+
+  const resetSheetPointer = (animateBack = false) => {
+    const wasActive = sheetPointerActive.current;
+    const wasAndroid = sheetPointerIsAndroid.current;
+    if (wasAndroid) flushAndroidSheetTransform();
+    else cancelSheetFrames();
+    clearSheetCleanupTimer();
+
     sheetPointerId.current = null;
     sheetPointerStartY.current = null;
     sheetPointerScrollContainer.current = null;
     sheetPointerActive.current = false;
+    sheetPointerIsAndroid.current = false;
+    sheetPointerStartOffset.current = 0;
     sheetDragOffsetRef.current = 0;
     if (sheetRef.current) {
-      sheetRef.current.style.transform = 'translateY(0px)';
-      sheetRef.current.style.touchAction = '';
-      sheetRef.current.style.transition = '';
+      const restingTransform = wasAndroid ? 'translate3d(0, 0, 0)' : 'translateY(0px)';
+      if (animateBack && wasActive) {
+        sheetRef.current.style.transition = 'transform 180ms cubic-bezier(0.22, 1, 0.36, 1)';
+        sheetSnapFrameRef.current = window.requestAnimationFrame(() => {
+          sheetSnapFrameRef.current = null;
+          if (sheetRef.current) sheetRef.current.style.transform = restingTransform;
+        });
+        sheetCleanupTimerRef.current = window.setTimeout(() => {
+          sheetCleanupTimerRef.current = null;
+          if (sheetRef.current) {
+            sheetRef.current.style.touchAction = '';
+            sheetRef.current.style.transition = '';
+          }
+        }, 200);
+      } else {
+        sheetRef.current.style.transform = restingTransform;
+        sheetRef.current.style.touchAction = '';
+        sheetRef.current.style.transition = '';
+      }
     }
     setIsSheetDragging(false);
   };
@@ -820,23 +937,31 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     const target = e.target as HTMLElement;
     const scrollContainer = target.closest<HTMLElement>('.app-scroll');
     const dragSurface = target.closest<HTMLElement>('[data-sheet-drag-surface]');
+    const androidDragSurface = isAndroidBrowser
+      ? target.closest<HTMLElement>('[data-sheet-android-drag-surface]')
+      : null;
     if (target.closest('input, textarea, select, button, a')) return;
 
     // Claim the primary pointer immediately on the sheet's blank surface.
     // Form content remains available for native scrolling and text input.
-    const canDragSheet = Boolean(dragSurface) || !isSheetExpanded || !scrollContainer || target === scrollContainer;
+    const canDragSheet = Boolean(dragSurface || androidDragSurface) || !isSheetExpanded || !scrollContainer || target === scrollContainer;
     if (isSheetExpanded && scrollContainer && !canDragSheet) return;
 
     // If the form is already scrolled, let Android consume this gesture to
     // return the form to its top before a later downward gesture collapses it.
     if (isSheetExpanded && scrollContainer && scrollContainer.scrollTop > 0) return;
 
+    clearSheetCleanupTimer();
+    cancelSheetFrames();
+    const startOffset = getSheetVisualOffset();
+    sheetPointerIsAndroid.current = isAndroidBrowser && e.pointerType === 'touch';
     sheetPointerId.current = e.pointerId;
     sheetPointerStartY.current = e.clientY;
     sheetPointerStartTime.current = Date.now();
     sheetPointerStartPosition.current = sheetPosition;
     sheetPointerScrollContainer.current = scrollContainer;
     sheetPointerActive.current = canDragSheet;
+    sheetPointerStartOffset.current = startOffset;
 
     if (canDragSheet) {
       if (sheetRef.current) {
@@ -870,12 +995,23 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     // Prevent page movement only after a deliberate sheet drag has started.
     e.preventDefault();
     const bounds = getSheetOffsetBounds(sheetPointerStartPosition.current);
-    const offset = Math.min(bounds.max, Math.max(bounds.min, diff));
+    const offset = Math.min(bounds.max, Math.max(bounds.min, sheetPointerStartOffset.current + diff));
     sheetDragOffsetRef.current = offset;
-    if (sheetRef.current) sheetRef.current.style.transform = `translateY(${offset}px)`;
+    if (sheetRef.current) {
+      if (sheetPointerIsAndroid.current) {
+        scheduleAndroidSheetTransform(offset);
+      } else {
+        sheetRef.current.style.transform = `translateY(${offset}px)`;
+      }
+    }
   };
 
   const finishSheetGesture = (position: SheetPosition, e: React.PointerEvent<HTMLDivElement>) => {
+    const wasAndroid = sheetPointerIsAndroid.current;
+    if (wasAndroid) flushAndroidSheetTransform();
+    else cancelSheetFrames();
+    clearSheetCleanupTimer();
+
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {
@@ -886,17 +1022,23 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     sheetPointerStartY.current = null;
     sheetPointerScrollContainer.current = null;
     sheetPointerActive.current = false;
+    sheetPointerIsAndroid.current = false;
+    sheetPointerStartOffset.current = 0;
     setSheetPosition(position);
     setIsSheetDragging(false);
 
     if (sheetRef.current) {
       sheetRef.current.style.transition = 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)';
-      requestAnimationFrame(() => {
-        if (sheetRef.current) sheetRef.current.style.transform = 'translateY(0px)';
+      sheetSnapFrameRef.current = requestAnimationFrame(() => {
+        sheetSnapFrameRef.current = null;
+        if (sheetRef.current) {
+          sheetRef.current.style.transform = wasAndroid ? 'translate3d(0, 0, 0)' : 'translateY(0px)';
+        }
       });
     }
 
-    window.setTimeout(() => {
+    sheetCleanupTimerRef.current = window.setTimeout(() => {
+      sheetCleanupTimerRef.current = null;
       sheetDragOffsetRef.current = 0;
       if (sheetRef.current) {
         sheetRef.current.style.touchAction = '';
@@ -935,8 +1077,13 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     resetSheetPointer();
   };
 
-  const handleSheetPointerCancel = () => {
-    resetSheetPointer();
+  const handleSheetPointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // Pointer capture may already be released by the browser.
+    }
+    resetSheetPointer(true);
   };
 
   const [mapNode, setMapNode] = useState<HTMLDivElement | null>(null);
@@ -953,6 +1100,8 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
   const [googleLoaded, setGoogleLoaded] = useState(false);
   const [loadingFare, setLoadingFare] = useState(false);
   const [indiaToday, setIndiaToday] = useState('');
+  const [serverTimeStatus, setServerTimeStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [serverTimeError, setServerTimeError] = useState('');
   const [mapError, setMapError] = useState<string | null>(null);
   const [mapReady, setMapReady] = useState(false);
 
@@ -1015,8 +1164,13 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     estimatedFare: '',
   });
 
+  const authoritativeClockRef = useRef<{ timestamp: number; receivedAt: number } | null>(null);
+  const manualDateRef = useRef(false);
+  const manualTimeRef = useRef(false);
+
   const [mobileSearchType, setMobileSearchType] = useState<null | 'pickup' | 'drop'>(null);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const phoneFocusScrollTimerRef = useRef<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   
@@ -1093,18 +1247,44 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
     setFormData(prev => ({ ...prev, leadId: sessionLeadId.current }));
   }, []);
 
-  useEffect(() => {
-    const now = new Date();
-    const dateStr = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    }).format(now);
-    setIndiaToday(dateStr);
-    setFormData(prev => ({ ...prev, date: dateStr }));
+  const syncAuthoritativeTime = useCallback(async () => {
+    setServerTimeStatus('loading');
+    setServerTimeError('');
 
+    const requestStartedAt = performance.now();
+    try {
+      const response = await fetch('/api/current-time', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Time service returned ${response.status}`);
+
+      const payload = await response.json() as { timestamp?: number };
+      const serverTimestamp = Number(payload.timestamp);
+      const receivedAt = performance.now();
+      if (!Number.isFinite(serverTimestamp)) throw new Error('Time service returned an invalid timestamp');
+
+      // Approximate the timestamp at the midpoint of the request so validation
+      // remains independent of the device wall clock after the response arrives.
+      const midpointTimestamp = serverTimestamp + (receivedAt - requestStartedAt) / 2;
+      authoritativeClockRef.current = { timestamp: midpointTimestamp, receivedAt };
+      const { date, time } = formatIstDateTime(midpointTimestamp);
+
+      setIndiaToday(date);
+      setFormData(prev => ({
+        ...prev,
+        date: manualDateRef.current ? prev.date : date,
+        time: manualTimeRef.current ? prev.time : time,
+      }));
+      setServerTimeStatus('ready');
+    } catch (error) {
+      authoritativeClockRef.current = null;
+      setServerTimeStatus('error');
+      setServerTimeError('Official IST time could not be loaded. Please retry before continuing.');
+      console.error('Authoritative time sync failed:', error);
+    }
   }, []);
+
+  useEffect(() => {
+    void syncAuthoritativeTime();
+  }, [syncAuthoritativeTime]);
 
   // 🔥 Google Autocomplete Light Theme Injection
 useEffect(() => {
@@ -1552,7 +1732,32 @@ style.innerHTML = `
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'date') manualDateRef.current = true;
+    if (name === 'time') manualTimeRef.current = true;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const getAuthoritativeNow = () => {
+    const clock = authoritativeClockRef.current;
+    if (!clock) return null;
+    return clock.timestamp + (performance.now() - clock.receivedAt);
+  };
+
+  const getDateTimeValidationError = () => {
+    if (serverTimeStatus === 'loading') return 'Official IST time is still loading. Please wait and try again.';
+    if (serverTimeStatus !== 'ready' || !authoritativeClockRef.current) {
+      return serverTimeError || 'Official IST time is unavailable. Please retry before continuing.';
+    }
+    if (!formData.date || !formData.time) return 'Please select a pickup date and time.';
+
+    const selectedTimestamp = parseIstDateTime(formData.date, formData.time);
+    const authoritativeNow = getAuthoritativeNow();
+    if (selectedTimestamp === null || authoritativeNow === null) {
+      return 'Please select a valid pickup date and time.';
+    }
+
+    const currentMinute = Math.floor(authoritativeNow / 60000) * 60000;
+    return selectedTimestamp < currentMinute ? 'Pickup date and time cannot be in the past.' : '';
   };
 
   const handleNextStep = async () => {
@@ -1717,6 +1922,12 @@ style.innerHTML = `
 
     if (!phoneRegex.test(phone)) {
       alert("Please enter a valid 10-digit Indian phone number.");
+      return;
+    }
+
+    const dateTimeError = getDateTimeValidationError();
+    if (dateTimeError) {
+      alert(dateTimeError);
       return;
     }
 
@@ -1890,7 +2101,7 @@ const handleWhatsAppConfirm = () => {
   }
 
   return (
-    <div className={`
+    <div className={`booking-form-root
       transition-all duration-500 relative
       ${isMapActive 
         ? 'fixed inset-0 w-full max-w-full overflow-hidden md:relative md:w-full md:max-w-3xl md:min-h-[500px] pointer-events-auto bg-slate-50  md:bg-white  md:p-5 md:rounded-[2.5rem] shadow-none md:shadow-2xl md:border md:border-slate-100  mx-auto flex flex-col md:flex-row gap-5 z-[80]' 
@@ -1898,7 +2109,7 @@ const handleWhatsAppConfirm = () => {
       }
     `}>
       {isMapActive && (
-        <div className="fixed inset-0 md:relative md:w-[45%] md:h-[460px] md:rounded-[2rem] overflow-hidden border-none md:border md:border-slate-100  shadow-none md:shadow-inner z-0 pointer-events-auto">
+        <div className="booking-form-map fixed inset-0 md:relative md:w-[45%] md:h-[460px] md:rounded-[2rem] overflow-hidden border-none md:border md:border-slate-100  shadow-none md:shadow-inner z-0 pointer-events-auto">
           <div ref={setMapNode} className="w-full h-full" />
           {mapError && (
             <div className="absolute top-[calc(env(safe-area-inset-top,16px)+190px)] md:top-auto md:bottom-2 left-4 right-4 md:left-2 md:right-2 bg-rose-50/95  border border-rose-200  p-1.5 px-2.5 rounded-xl flex items-center gap-2 shadow-md animate-in fade-in slide-in-from-bottom-1 z-10">
@@ -1932,7 +2143,7 @@ const handleWhatsAppConfirm = () => {
             }));
             setStep(1);
           }}
-          className="md:hidden fixed top-[calc(env(safe-area-inset-top,16px)+16px)] left-4 z-50 bg-white/95  p-3 rounded-full shadow-xl border border-slate-200  flex items-center justify-center active:scale-95 transition-all pointer-events-auto"
+          className="booking-form-back md:hidden fixed top-[calc(env(safe-area-inset-top,16px)+16px)] left-4 z-50 bg-white/95  p-3 rounded-full shadow-xl border border-slate-200  flex items-center justify-center active:scale-95 transition-all pointer-events-auto"
           title="Back"
         >
           <ArrowLeft size={18} className="text-slate-700  stroke-[3px]" />
@@ -1945,7 +2156,7 @@ const handleWhatsAppConfirm = () => {
         onPointerMove={handleSheetPointerMove}
         onPointerUp={handleSheetPointerUp}
         onPointerCancel={handleSheetPointerCancel}
-        className={`
+        className={`booking-form-sheet
           ${isSheetDragging ? 'transition-none touch-none' : !isSheetExpanded ? 'transition-all duration-300 ease-in-out touch-none' : 'transition-all duration-300 ease-in-out [touch-action:pan-y]'}
           ${isMapActive 
             ? `fixed bottom-0 left-0 right-0 z-30 box-border w-full max-w-none bg-white/95  backdrop-blur-md border-t border-slate-100  flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent  md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-[460px] md:max-h-[460px] md:flex md:flex-col md:flex-1 md:pr-1 pointer-events-auto
@@ -1987,7 +2198,7 @@ const handleWhatsAppConfirm = () => {
         )}
 
         {isMapActive && !isSheetExpanded ? (
-          <div className="flex items-center justify-between mt-1 md:hidden animate-fade-in w-full">
+          <div data-sheet-android-drag-surface="collapsed" className="flex items-center justify-between mt-1 md:hidden animate-fade-in w-full">
             <div className="flex items-center gap-2 min-w-0">
               <div className="min-w-0">
                 <p className="text-[10px] font-black text-slate-900  uppercase tracking-tight truncate">
@@ -2014,7 +2225,10 @@ const handleWhatsAppConfirm = () => {
             </button>
           </div>
         ) : (
-          <div className={`justify-between items-center mb-1 ${isMapActive && !isSheetExpanded ? 'hidden md:flex' : 'flex'} ${step === 1 && !isMapActive ? 'hidden lg:flex' : 'flex'}`}>
+          <div
+            data-sheet-android-drag-surface="header"
+            className={`justify-between items-center mb-1 ${isMapActive && !isSheetExpanded ? 'hidden md:flex' : 'flex'} ${step === 1 && !isMapActive ? 'hidden lg:flex' : 'flex'} ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}
+          >
             <h3 className={`${step === 2 && isMapActive && isMobileScreen ? 'text-[13px] tracking-wider' : 'text-md tracking-tight'} font-black text-slate-900 uppercase`}>
               {step === 1 ? 'Enter Locations' : step === 2 ? 'Enter Mobile' : step === 3 ? 'Select Vehicle' : 'Trip Summary'}
             </h3>
@@ -2058,7 +2272,6 @@ const handleWhatsAppConfirm = () => {
               } animate-fade-in text-left`}>
                   {/* Date Column */}
                   <div className={`${isMapActive && isMobileScreen ? 'p-2 rounded-xl bg-slate-50 border border-slate-100' : 'flex-1 pr-3'} flex items-center gap-1.5 min-w-0`}>
-                    <Calendar size={13} className="text-[#FF6467] shrink-0" />
                     <div className="flex-1 min-w-0">
                       <span className="block text-[8px] font-black text-slate-400  uppercase tracking-widest mb-0.5 truncate">Date</span>
                       <input
@@ -2074,7 +2287,6 @@ const handleWhatsAppConfirm = () => {
 
                   {/* Time Column */}
                   <div className={`${isMapActive && isMobileScreen ? 'p-2 rounded-xl bg-slate-50 border border-slate-100' : 'flex-1 px-3'} flex items-center gap-1.5 min-w-0 ${formData.tripType === TripType.ROUND_TRIP ? 'pr-3' : ''}`}>
-                    <Clock size={13} className="text-[#FF6467] shrink-0" />
                     <div className="flex-1 min-w-0">
                       <span className="block text-[8px] font-black text-slate-400  uppercase tracking-widest mb-0.5 truncate">Time</span>
                       <input
@@ -2110,11 +2322,24 @@ const handleWhatsAppConfirm = () => {
                   )}
                 </div>
 
+                {serverTimeStatus === 'error' && (
+                  <div role="alert" className="flex items-center justify-between gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[10px] font-semibold text-rose-800">
+                    <span>{serverTimeError}</span>
+                    <button
+                      type="button"
+                      onClick={() => void syncAuthoritativeTime()}
+                      className="shrink-0 font-black uppercase tracking-wider text-[#FF6467]"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+
               <div className={`${isMapActive && isMobileScreen
                 ? 'w-full bg-white border border-slate-200 focus-within:border-[#FF6269] focus-within:ring-4 focus-within:ring-[#FF6269]/10 rounded-2xl p-3.5 flex items-center gap-3 transition-all shadow-none'
                 : 'w-full bg-[#FF6467]/5 border-2 border-[#FF6467] focus-within:ring-4 focus-within:ring-[#FF6467]/20 rounded-xl p-2.5 px-3.5 flex items-center gap-3 transition-all shadow-md shadow-[#FF6467]/5'
               } relative overflow-hidden text-left mt-2`}>
-                <span className={`text-xs font-black select-none border-r pr-2 ${isMapActive && isMobileScreen ? 'text-slate-700 border-slate-200' : 'text-[#FF6467] border-[#FF6467]/20'}`}>
+                <span className={`text-[13px] font-semibold leading-none select-none border-r pr-2 ${isMapActive && isMobileScreen ? 'text-slate-700 border-slate-200' : 'text-[#FF6467] border-[#FF6467]/20'}`}>
                   +91
                 </span>
                 <div className="flex-1 min-w-0">
@@ -2124,12 +2349,40 @@ const handleWhatsAppConfirm = () => {
                     placeholder="10-digit number"
                     value={formData.phone}
                     onFocus={(e) => {
-                      setIsKeyboardVisible(true);
-                      setTimeout(() => {
-                        e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      if (!isMobileScreen || !isMapActive) return;
+                      const input = e.currentTarget;
+
+                      if (phoneFocusScrollTimerRef.current !== null) {
+                        window.clearTimeout(phoneFocusScrollTimerRef.current);
+                      }
+
+                      const focusViewportHeight = window.visualViewport?.height ?? window.innerHeight;
+                      phoneFocusScrollTimerRef.current = window.setTimeout(() => {
+                        phoneFocusScrollTimerRef.current = null;
+                        const viewport = window.visualViewport;
+                        const keyboardIsOpen = viewport
+                          ? focusViewportHeight - viewport.height > 80
+                          : false;
+                        if (!keyboardIsOpen) return;
+
+                        const viewportBottom = viewport.offsetTop + viewport.height;
+                        const inputRect = input.getBoundingClientRect();
+                        const overlap = inputRect.bottom - (viewportBottom - 16);
+                        if (overlap <= 0) return;
+
+                        const scrollContainer = input.closest<HTMLElement>('.app-scroll');
+                        if (scrollContainer) {
+                          scrollContainer.scrollBy({ top: overlap + 12, behavior: 'auto' });
+                        } else {
+                          input.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+                        }
                       }, 250);
                     }}
                     onBlur={() => {
+                      if (phoneFocusScrollTimerRef.current !== null) {
+                        window.clearTimeout(phoneFocusScrollTimerRef.current);
+                        phoneFocusScrollTimerRef.current = null;
+                      }
                       setIsKeyboardVisible(false);
                     }}
                     onChange={(e) => {
@@ -2149,7 +2402,7 @@ const handleWhatsAppConfirm = () => {
             </div>
 
             {/* Sticky Footer */}
-            <div className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent' : ''}`}>
+            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent' : ''} ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
               <button
                 type="button"
                 onClick={() => {
@@ -2157,6 +2410,11 @@ const handleWhatsAppConfirm = () => {
                   const phoneRegex = /^[6-9]\d{9}$/;
                   if (!phoneRegex.test(phone)) {
                     alert("Please enter a valid 10-digit Indian mobile number.");
+                    return;
+                  }
+                  const dateTimeError = getDateTimeValidationError();
+                  if (dateTimeError) {
+                    alert(dateTimeError);
                     return;
                   }
                   setStep(3);
@@ -2382,7 +2640,7 @@ const handleWhatsAppConfirm = () => {
             </div>
 
             {/* Sticky Footer */}
-            <div className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent' : ''}`}>
+            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent' : ''} ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
               <button 
                 type="button" 
                 id="btn-next-step"
@@ -2434,15 +2692,28 @@ const handleWhatsAppConfirm = () => {
                       fareBreakdown: isTripValid ? { ...fareInfo.breakdown, total: fareInfo.total } : undefined
                     }));
                   }}
-                  style={isMapActive && isMobileScreen ? { minHeight: '112px', height: '112px', maxHeight: '112px' } : undefined}
+                  style={isMapActive && isMobileScreen && v.type !== VehicleType.CUSTOM ? { minHeight: '112px', height: '112px', maxHeight: '112px' } : undefined}
                   className={`
                     w-full flex items-center gap-3 rounded-2xl border-2 transition-all text-left overflow-hidden
-                    ${isMapActive && isMobileScreen ? 'min-h-[112px] h-[112px] max-h-[112px] p-3.5' : 'p-6'}
+                    ${isMapActive && isMobileScreen
+                      ? v.type === VehicleType.CUSTOM ? 'p-3.5' : 'min-h-[112px] h-[112px] max-h-[112px] p-3.5'
+                      : 'p-6'}
                     ${formData.vehicleType === v.type 
                       ? 'border-[#FF6467] bg-[#FF6467]/5 ' 
                       : 'border-slate-50  bg-white '}
                   `}
                 >
+                  {v.type === VehicleType.CUSTOM ? (
+                    <div className="flex-1 min-w-0 text-left overflow-hidden">
+                      <span className="text-xs font-bold text-slate-900  uppercase block truncate leading-tight">
+                        {v.label}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold leading-tight">
+                        {v.description}
+                      </span>
+                    </div>
+                  ) : (
+                    <>
                   {/* Vehicle Image */}
                   {v.image ? (
                     <div
@@ -2484,6 +2755,8 @@ const handleWhatsAppConfirm = () => {
                       </span>
                     </div>
                   </div>
+                    </>
+                  )}
                 </button>
               );
             })}
@@ -2491,7 +2764,7 @@ const handleWhatsAppConfirm = () => {
           </div>
 
           {/* Sticky Footer */}
-          <div className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent' : ''} flex gap-3`}>
+          <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent' : ''} flex gap-3 ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
             <button
               type="button"
               onClick={() => setStep(2)}
@@ -2636,7 +2909,7 @@ const handleWhatsAppConfirm = () => {
 
             </div>
             {/* Sticky Footer */}
-            <div className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent shrink-0' : ''} flex gap-3`}>
+            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-slate-100  bg-white/95  md:bg-transparent shrink-0' : ''} flex gap-3 ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
               <button
                 type="button"
                 onClick={() => {

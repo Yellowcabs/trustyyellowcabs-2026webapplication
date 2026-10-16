@@ -40,14 +40,19 @@ const App: React.FC = () => {
   const { pathname } = useLocation();
   const [homeBookingMapOpen, setHomeBookingMapOpen] = React.useState(false);
   const isBookingConfirmed = pathname === '/booking-confirmed';
+  const isBookATripPage = pathname === '/book-a-trip';
 
   return (
     <>
       <ScrollToTop />
       <SEO pathname={pathname} />
-      <div className="min-h-screen flex flex-col bg-white">
-        {!isBookingConfirmed && <Navbar />}
-        <main className="flex-grow">
+      <div className={`min-h-screen flex flex-col bg-white ${isBookATripPage ? 'book-a-trip-app-shell' : ''}`}>
+        {!isBookingConfirmed && (
+          <div className={isBookATripPage ? 'book-a-trip-desktop-chrome' : undefined}>
+            <Navbar />
+          </div>
+        )}
+        <main className={isBookATripPage ? 'flex-grow book-a-trip-main' : 'flex-grow'}>
           <React.Suspense fallback={null}>
             <Routes>
             <Route path="/" element={<Home onBookingMapChange={setHomeBookingMapOpen} />} />
@@ -69,8 +74,16 @@ const App: React.FC = () => {
             </Routes>
           </React.Suspense>
         </main>
-        {!isBookingConfirmed && <Footer />}
-        {!isBookingConfirmed && <FloatingCallButton />}
+        {!isBookingConfirmed && (
+          <div className={isBookATripPage ? 'book-a-trip-desktop-chrome' : undefined}>
+            <Footer />
+          </div>
+        )}
+        {!isBookingConfirmed && (
+          <div className={isBookATripPage ? 'book-a-trip-desktop-chrome' : undefined}>
+            <FloatingCallButton />
+          </div>
+        )}
         {!isBookingConfirmed && pathname !== '/book-a-trip' && !(pathname === '/' && homeBookingMapOpen) && <MobileTabBar />}
       </div>
     </>

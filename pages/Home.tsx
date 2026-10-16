@@ -198,7 +198,7 @@ export const Home: React.FC<{ onBookingMapChange?: (active: boolean) => void }> 
         <div className="container mx-auto max-w-7xl px-4 text-center sm:px-6">
           <div className="mx-auto mb-5 h-1 w-14 rounded-full bg-[#FF5F68]"></div>
 
-          <p className="mx-auto max-w-6xl text-2xl font-extrabold leading-[1.25] tracking-[-0.025em] text-[#0B1733] sm:text-3xl md:text-4xl lg:text-[42px] xl:text-5xl">
+          <p className="mx-auto max-w-6xl whitespace-nowrap text-[clamp(0.625rem,3.2vw,1.5rem)] font-extrabold leading-[1.25] tracking-[-0.025em] text-[#0B1733] sm:text-3xl md:text-4xl lg:text-[42px] xl:text-5xl">
             Local ride ah? Outstation ah? <span className="text-[#FF5F68]">Travel Anytime!</span>
           </p>
 

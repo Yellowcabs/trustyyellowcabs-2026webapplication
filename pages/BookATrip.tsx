@@ -7,7 +7,7 @@ export const BookATrip: React.FC = () => {
 
   return (
     <>
-      <div className="min-h-[100dvh] bg-white">
+      <div className="book-a-trip-page min-h-[100dvh] bg-white">
         <BookingForm forceMapActive onMapBack={() => navigate('/')} />
       </div>
     </>

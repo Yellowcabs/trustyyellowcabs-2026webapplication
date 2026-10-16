@@ -30,6 +30,66 @@
 }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bookingConfirmedBackground {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes bookingConfirmedCircle {
+  from { stroke-dashoffset: 63; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes bookingConfirmedCheck {
+  from { stroke-dashoffset: 16; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes bookingConfirmedPop {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(1.06); }
+  70% { transform: scale(0.99); }
+}
+
+.booking-confirmed-icon {
+  animation: bookingConfirmedBackground 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.booking-confirmed-mark {
+  animation: bookingConfirmedPop 220ms ease-out 900ms both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.booking-confirmed-mark circle {
+  stroke-dasharray: 63;
+  stroke-dashoffset: 63;
+  animation: bookingConfirmedCircle 400ms cubic-bezier(0.22, 1, 0.36, 1) 230ms both;
+}
+
+.booking-confirmed-mark path {
+  stroke-dasharray: 16;
+  stroke-dashoffset: 16;
+  animation: bookingConfirmedCheck 360ms cubic-bezier(0.22, 1, 0.36, 1) 580ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-confirmed-icon,
+  .booking-confirmed-mark,
+  .booking-confirmed-mark circle,
+  .booking-confirmed-mark path {
+    animation: none;
+  }
+
+  .booking-confirmed-icon,
+  .booking-confirmed-mark {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .booking-confirmed-mark circle,
+  .booking-confirmed-mark path {
+    stroke-dashoffset: 0;
+  }
+}
+
 @keyframes verticalScroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
 @keyframes verticalScrollReverse { from { transform: translateY(-50%); } to { transform: translateY(0); } }
 @keyframes magneticFloat {
@@ -111,4 +171,84 @@ textarea {
   html.map-is-active div[id*="chat-widget"] { display: none !important; }
 
   html.map-is-active main { padding-bottom: 0 !important; }
+}
+
+/* Desktop-only full-screen booking map and floating booking panel. */
+@media (min-width: 1024px) {
+  .book-a-trip-app-shell {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .book-a-trip-desktop-chrome {
+    display: none !important;
+  }
+
+  .book-a-trip-main {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .book-a-trip-page {
+    width: 100vw;
+    height: 100dvh;
+    min-height: 100dvh;
+    max-width: none;
+    overflow: hidden;
+  }
+
+  .book-a-trip-page .booking-form-root {
+    width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    gap: 0 !important;
+  }
+
+  .book-a-trip-page .booking-form-map {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .book-a-trip-page .booking-form-sheet {
+    position: absolute !important;
+    top: 80px !important;
+    right: auto !important;
+    bottom: 24px !important;
+    left: 24px !important;
+    width: min(420px, calc(100vw - 48px)) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 104px) !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    border: 1px solid rgba(226, 232, 240, 0.95) !important;
+    border-radius: 24px !important;
+    background: rgba(255, 255, 255, 0.97) !important;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18) !important;
+    backdrop-filter: blur(12px);
+    overflow: hidden !important;
+  }
+
+  .book-a-trip-page .booking-form-back {
+    display: flex !important;
+    position: fixed !important;
+    top: 20px !important;
+    left: 24px !important;
+  }
 }
