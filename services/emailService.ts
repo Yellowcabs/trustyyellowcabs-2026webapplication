@@ -238,7 +238,7 @@ Need assistance? Call us anytime.
     </div>
 
     <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8;">
-      Sent from FastPointCab Booking System
+      Sent from TrustyYellowCabs Booking System
     </div>
 
   </div>
