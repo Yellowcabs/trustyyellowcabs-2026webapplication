@@ -448,6 +448,19 @@ const VEHICLE_CONFIG = [
   },
 ];
 
+const preloadedVehicleImages = new Set<string>();
+
+const preloadVehicleImages = () => {
+  VEHICLE_CONFIG.forEach(({ image }) => {
+    if (!image || preloadedVehicleImages.has(image)) return;
+
+    preloadedVehicleImages.add(image);
+    const imageElement = new Image();
+    imageElement.decoding = 'async';
+    imageElement.src = image;
+  });
+};
+
 const InputWrapper = memo(({ children, icon: Icon, label }: { children: React.ReactNode; icon: any; label?: string }) => (
   <div className="relative group w-full">
     {label && <label className="block text-[9px] font-bold text-slate-400  uppercase tracking-widest mb-1.5 ml-1">{label}</label>}
@@ -767,6 +780,10 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
   const [step, setStep] = useState(1);
   const stepRef = useRef(1);
   useEffect(() => { stepRef.current = step; }, [step]);
+
+  useEffect(() => {
+    preloadVehicleImages();
+  }, []);
 
   const [isMobileScreen, setIsMobileScreen] = useState(false);
   const isAndroidBrowser = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
