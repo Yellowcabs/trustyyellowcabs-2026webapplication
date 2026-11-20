@@ -450,8 +450,8 @@ const VEHICLE_CONFIG = [
 
 const preloadedVehicleImages = new Set<string>();
 
-const preloadVehicleImages = () => {
-  VEHICLE_CONFIG.forEach(({ image }) => {
+const preloadVehicleImages = (count = VEHICLE_CONFIG.length) => {
+  VEHICLE_CONFIG.slice(0, count).forEach(({ image }) => {
     if (!image || preloadedVehicleImages.has(image)) return;
 
     preloadedVehicleImages.add(image);
@@ -782,8 +782,10 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
   useEffect(() => { stepRef.current = step; }, [step]);
 
   useEffect(() => {
-    preloadVehicleImages();
-  }, []);
+    if (step === 2) {
+      preloadVehicleImages(4);
+    }
+  }, [step]);
 
   const [isMobileScreen, setIsMobileScreen] = useState(false);
   const isAndroidBrowser = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
@@ -2813,7 +2815,7 @@ const handleWhatsAppConfirm = () => {
 
           <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 app-scroll pb-2 min-h-0' : 'relative group'}`}>
             <div className={`${isMapActive ? 'space-y-1.5' : 'space-y-1.5 max-h-[350px] overflow-y-auto pr-1 app-scroll'}`}>
-            {VEHICLE_CONFIG.map((v) => {
+            {VEHICLE_CONFIG.map((v, index) => {
               return (
                 <button
                   key={v.type}
@@ -2865,7 +2867,7 @@ const handleWhatsAppConfirm = () => {
                         alt={v.label}
                         width="160"
                         height="80"
-                        loading="lazy"
+                        loading={index < 4 ? 'eager' : 'lazy'}
                         decoding="async"
                         className="w-full h-auto object-contain rounded-lg"
                         style={isMapActive && isMobileScreen ? { width: '100%', height: 'auto', maxWidth: 'none', maxHeight: 'none' } : undefined}
