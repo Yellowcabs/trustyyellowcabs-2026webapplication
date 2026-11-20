@@ -34,7 +34,7 @@ export const BookingConfirmed: React.FC = () => {
   };
 
   return (
-    <main className="flex min-h-[100dvh] items-center justify-center bg-white px-6">
+    <main className="booking-confirmed-page flex min-h-[100dvh] items-center justify-center bg-white px-6">
       <div className="w-full max-w-sm text-center animate-fade-in">
         <div className="booking-confirmed-icon relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/10 text-green-500">
           <CheckCircle2 size={40} className="booking-confirmed-mark" />
