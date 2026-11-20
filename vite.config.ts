@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { PUBLISHED_SEO_PAGES } from "./data/seoPageCandidates";
@@ -128,9 +128,7 @@ const localCurrentTimePlugin = () => ({
   },
 });
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
-
+export default defineConfig(() => {
   return {
     server: {
       port: 3000,
@@ -145,11 +143,8 @@ export default defineConfig(({ mode }) => {
       },
     },
 
-    define: {
-      "process.env.VITE_GOOGLE_MAPS_API_KEY": JSON.stringify(
-        env.VITE_GOOGLE_MAPS_API_KEY
-      ),
-    },
+    // Only the browser-restricted Maps key is intentionally exposed to the
+    // client. Private integration credentials must never be defined here.
 
    build: {
   target: "es2019",

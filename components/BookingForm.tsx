@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, memo } from 'react';
 import { BookingDetails, VehicleType, TripType, FareBreakdown, PlaceData } from '../types';
 import { MapPin, User, Phone, Smartphone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Repeat, Navigation, Package, X, ChevronUp, ChevronDown, Locate } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { sendBookingEmail } from '../services/emailService';
-import { appendBookingToSheet } from '../services/googleSheets';
+import { appendBookingToSheet, checkBookingPersistence } from '../services/googleSheets';
 import { motion } from 'framer-motion';
 
 declare const google: any;
@@ -937,7 +937,7 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
   };
 
   const handleSheetPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isMobileScreen || !isMapActive || !e.isPrimary) return;
+    if (!isMobileScreen || !isMapActive || isKeyboardVisible || !e.isPrimary) return;
 
     const target = e.target as HTMLElement;
     const scrollContainer = target.closest<HTMLElement>('.app-scroll');
@@ -1175,9 +1175,16 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
 
   const [mobileSearchType, setMobileSearchType] = useState<null | 'pickup' | 'drop'>(null);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const phoneFocusScrollTimerRef = useRef<number | null>(null);
+  const [keyboardViewport, setKeyboardViewport] = useState({ height: 0, offsetTop: 0, bottomInset: 0 });
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const phoneScrollRef = useRef<HTMLDivElement>(null);
+  const phoneFooterRef = useRef<HTMLDivElement>(null);
+  const keyboardInputFocusedRef = useRef(false);
+  const layoutViewportHeightRef = useRef(typeof window !== 'undefined' ? window.innerHeight : 0);
+  const keyboardMeasureFrameRef = useRef<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [bookingFailureMessage, setBookingFailureMessage] = useState<string | null>(null);
   
   const [locatingPickup, setLocatingPickup] = useState(false);
   const [gpsErrorPickup, setGpsErrorPickup] = useState<string | null>(null);
@@ -1247,6 +1254,7 @@ export const BookingForm: React.FC<{ forceMapActive?: boolean; onMapBack?: () =>
 
   const sessionLeadId = useRef(`lead_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`);
   const isSubmittingRef = useRef(false);
+  const fallbackOpenedRef = useRef(false);
 
   useEffect(() => {
     setFormData(prev => ({ ...prev, leadId: sessionLeadId.current }));
@@ -1885,6 +1893,62 @@ style.innerHTML = `
     }
   }, []);
 
+  const resetBookingForm = () => {
+    const initialFormData: BookingDetails = {
+      phone: '',
+      pickup: '',
+      drop: '',
+      date: indiaToday,
+      time: '',
+      numberOfDays: '1',
+      waitingHours: '0',
+      vehicleType: VehicleType.MINI,
+      tripType: TripType.LOCAL,
+      localPackage: '',
+      isHillStation: false,
+      distance: '',
+      rawDistance: 0,
+      estimatedFare: '',
+    };
+
+    setFormData(initialFormData);
+    formDataRef.current = initialFormData;
+    setStep(1);
+    setSubmitted(false);
+    setLoading(false);
+    setLoadingFare(false);
+    setBookingFailureMessage(null);
+    setMobileSearchType(null);
+    setIsKeyboardVisible(false);
+    setLocatingPickup(false);
+    setGpsErrorPickup(null);
+    setMapError(null);
+    setMapReady(false);
+    setSheetPosition('half');
+    manualDateRef.current = false;
+    manualTimeRef.current = false;
+    authoritativeClockRef.current = null;
+    isSubmittingRef.current = false;
+    fallbackOpenedRef.current = false;
+    leadSentRef.current = false;
+    submittedRef.current = false;
+    sessionLeadId.current = `lead_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    keyboardInputFocusedRef.current = false;
+    if (keyboardMeasureFrameRef.current !== null) {
+      window.cancelAnimationFrame(keyboardMeasureFrameRef.current);
+      keyboardMeasureFrameRef.current = null;
+    }
+    if (pickupRef.current) pickupRef.current.value = '';
+    if (dropRef.current) dropRef.current.value = '';
+    if (directionsRenderer.current) directionsRenderer.current.setDirections({ routes: [] });
+    if (mapInstance.current) {
+      mapInstance.current.setCenter({ lat: 11.0168, lng: 76.9558 });
+      mapInstance.current.setZoom(12);
+    }
+    resetSheetPointer();
+  };
+
   useEffect(() => {
     const onVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
@@ -1905,53 +1969,88 @@ style.innerHTML = `
     };
   }, [handleAbandonment]);
 
+  const openBookingWhatsAppFallback = (booking: BookingDetails, isUnknown: boolean, manual = false) => {
+    if (fallbackOpenedRef.current && !manual) return;
+    fallbackOpenedRef.current = true;
+    const tripDetails = booking.tripType === TripTypeRental
+      ? '*Package:* ' + (LOCAL_PACKAGES.find(p => p.id === booking.localPackage)?.label || 'Not specified')
+      : '*Drop:* ' + (booking.drop || 'Not specified') + (booking.tripType === TripType.ROUND_TRIP ? '\n*Days:* ' + (booking.numberOfDays || '1') : '');
+    const dateTimeStr = (booking.date || booking.time)
+      ? '*Date/Time:* ' + (booking.date || 'Not specified') + ' at ' + (booking.time || 'Not specified')
+      : '*Date/Time:* Not specified';
+    const warning = isUnknown ? '\n*WARNING:* Booking status unconfirmed' : '';
+    const message =
+      '*NEW BOOKING REQUEST*' +
+      '\n*Customer:* Web Booking' +
+      '\n*Phone:* ' + booking.phone +
+      '\n*Pickup:* ' + booking.pickup +
+      '\n' + tripDetails +
+      '\n' + dateTimeStr +
+      '\n*Vehicle:* ' + booking.vehicleType +
+      '\n*Estimated Fare:* ' + (booking.estimatedFare || 'Not specified') +
+      warning;
+    const popup = window.open('https://wa.me/918870088020?text=' + encodeURIComponent(message), '_blank', 'noopener,noreferrer');
+    if (!popup) {
+      setBookingFailureMessage(isUnknown ? 'Booking status unconfirmed. Send via WhatsApp.' : 'Booking not saved. Send via WhatsApp.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading || isSubmittingRef.current) return;
+    fallbackOpenedRef.current = false;
+    isSubmittingRef.current = true;
+    setLoading(true);
+    setBookingFailureMessage(null);
     const phone = formData.phone.trim();
     const phoneRegex = /^[6-9]\d{9}$/;
 
     if (!phoneRegex.test(phone)) {
+      isSubmittingRef.current = false;
+      setLoading(false);
       alert("Please enter a valid 10-digit Indian phone number.");
       return;
     }
 
     const dateTimeError = getDateTimeRequiredValidationError();
     if (dateTimeError) {
+      isSubmittingRef.current = false;
+      setLoading(false);
       alert(dateTimeError);
       return;
     }
 
-    setLoading(true);
-    isSubmittingRef.current = true;
     leadSentRef.current = true; // Prevent abandonment lead during/after this process
 
     try {
-      // Send Email
-      const success = await sendBookingEmail(formData);
-      
-      // Save to Google Sheets
-      try {
-        await appendBookingToSheet(formData);
-      } catch (err) {
-        console.error('Sheet sync error:', err);
+      const booking = { ...formData, leadId: formData.leadId || sessionLeadId.current };
+      let persistence = await appendBookingToSheet(booking);
+
+      if (persistence.status === 'unknown') {
+        persistence = await checkBookingPersistence(booking.leadId);
       }
-      
-      if (success) {
+
+      if (persistence.status === 'sent') {
         submittedRef.current = true;
-        navigate('/booking-confirmed', { replace: true, state: { booking: formData } });
-      } else {
-        isSubmittingRef.current = false;
-        leadSentRef.current = false; // Allow retry or abandonment capture on failure
-        alert("Booking failed. Please try again.");
+        // Email notification must not delay the customer confirmation.
+        void sendBookingEmail(booking);
+        navigate('/booking-confirmed', { replace: true, state: { booking } });
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      isSubmittingRef.current = false;
-      leadSentRef.current = false;
-      alert("Error sending booking. Check console.");
+
+      const isUnknown = persistence.status === 'unknown';
+      const warning = isUnknown
+        ? 'Booking status unconfirmed. Send via WhatsApp.'
+        : 'Booking not saved. Send via WhatsApp.';
+      setBookingFailureMessage(warning);
+      openBookingWhatsAppFallback(booking, isUnknown);
+    } catch {
+      const booking = { ...formData, leadId: formData.leadId || sessionLeadId.current };
+      setBookingFailureMessage('Booking status unconfirmed. Send via WhatsApp.');
+      openBookingWhatsAppFallback(booking, true);
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 const handleWhatsAppConfirm = () => {
@@ -1986,6 +2085,73 @@ const handleWhatsAppConfirm = () => {
     )
   );
   const isMobileSummary = isMapActive && isMobileScreen;
+
+  const updateKeyboardViewport = useCallback(() => {
+    if (!isMapActive || !isMobileScreen) {
+      setIsKeyboardVisible(false);
+      setKeyboardViewport({ height: 0, offsetTop: 0, bottomInset: 0 });
+      return;
+    }
+
+    const visualViewport = window.visualViewport;
+    const activeElement = document.activeElement;
+    const activeInput = activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement;
+    const inputFocused = keyboardInputFocusedRef.current || activeInput;
+    const viewportHeight = visualViewport?.height ?? window.innerHeight;
+    const offsetTop = visualViewport?.offsetTop ?? 0;
+
+    if (!inputFocused) {
+      layoutViewportHeightRef.current = window.innerHeight;
+      setIsKeyboardVisible(false);
+      setKeyboardViewport({ height: 0, offsetTop: 0, bottomInset: 0 });
+      return;
+    }
+
+    const viewportBottom = offsetTop + viewportHeight;
+    const keyboardInset = Math.max(0, layoutViewportHeightRef.current - viewportBottom);
+    const fixedBottomInset = Math.max(0, window.innerHeight - viewportBottom);
+    const keyboardVisible = keyboardInset > 0;
+    setIsKeyboardVisible(keyboardVisible);
+    setKeyboardViewport(keyboardVisible
+      ? { height: viewportHeight, offsetTop, bottomInset: fixedBottomInset }
+      : { height: 0, offsetTop: 0, bottomInset: 0 });
+  }, [isMapActive, isMobileScreen]);
+
+  useEffect(() => {
+    const visualViewport = window.visualViewport;
+    const update = () => updateKeyboardViewport();
+    update();
+    window.addEventListener('resize', update);
+    visualViewport?.addEventListener('resize', update);
+    visualViewport?.addEventListener('scroll', update);
+
+    return () => {
+      window.removeEventListener('resize', update);
+      visualViewport?.removeEventListener('resize', update);
+      visualViewport?.removeEventListener('scroll', update);
+    };
+  }, [updateKeyboardViewport]);
+
+  useLayoutEffect(() => {
+    if (!isKeyboardVisible || step !== 2 || !isMapActive) return;
+
+    const input = phoneInputRef.current;
+    const scrollContainer = phoneScrollRef.current;
+    if (!input || !scrollContainer) return;
+
+    const viewportTop = keyboardViewport.offsetTop + 8;
+    const viewportBottom = keyboardViewport.offsetTop + keyboardViewport.height;
+    const footerTop = phoneFooterRef.current?.getBoundingClientRect().top ?? viewportBottom;
+    const visibleBottom = Math.min(viewportBottom - 12, footerTop - 8);
+    const inputRect = input.getBoundingClientRect();
+    const delta = inputRect.bottom > visibleBottom
+      ? inputRect.bottom - visibleBottom
+      : inputRect.top < viewportTop
+        ? inputRect.top - viewportTop
+        : 0;
+
+    if (delta !== 0) scrollContainer.scrollTop += delta;
+  }, [isKeyboardVisible, keyboardViewport, step, isMapActive]);
 
   useEffect(() => {
     if (isMapActive) {
@@ -2022,6 +2188,15 @@ const handleWhatsAppConfirm = () => {
   useEffect(() => {
     setSheetPosition('half');
   }, [step, isMapActive]);
+
+  const keyboardSheetStyle = isKeyboardVisible && keyboardViewport.height > 0
+    ? {
+        height: `${keyboardViewport.height}px`,
+        maxHeight: `${keyboardViewport.height}px`,
+        bottom: `${keyboardViewport.bottomInset}px`,
+        overflow: 'hidden',
+      }
+    : undefined;
 
   if (submitted) {
     return (
@@ -2115,24 +2290,19 @@ const handleWhatsAppConfirm = () => {
         <button
           type="button"
           onClick={() => {
+            if (loading || isSubmittingRef.current) return;
             // Capture lead immediately before we clear or reset anything!
             handleAbandonment();
             leadSentRef.current = false; // Reset tracker for future attempts
 
             if (onMapBack) {
+              resetBookingForm();
               onMapBack();
               return;
             }
             
-            // Fall back to home screen by resetting locations and step
-            setFormData(prev => ({ 
-              ...prev, 
-              pickup: '', 
-              drop: '', 
-              distance: '', 
-              estimatedFare: '' 
-            }));
-            setStep(1);
+            // Fall back to home screen with a fresh booking form.
+            resetBookingForm();
           }}
           className="booking-form-back md:hidden fixed top-[calc(env(safe-area-inset-top,16px)+16px)] left-4 z-50 bg-white/95  p-3 rounded-full shadow-xl border border-[#E5E7EB]  flex items-center justify-center active:scale-95 transition-all pointer-events-auto"
           title="Back"
@@ -2147,8 +2317,9 @@ const handleWhatsAppConfirm = () => {
         onPointerMove={handleSheetPointerMove}
         onPointerUp={handleSheetPointerUp}
         onPointerCancel={handleSheetPointerCancel}
+         style={keyboardSheetStyle}
         className={`booking-form-sheet
-          ${isSheetDragging ? 'transition-none touch-none' : !isSheetExpanded ? 'transition-all duration-300 ease-in-out touch-none' : 'transition-all duration-300 ease-in-out [touch-action:pan-y]'}
+           ${isKeyboardVisible ? 'transition-none overflow-hidden' : isSheetDragging ? 'transition-none touch-none' : !isSheetExpanded ? 'transition-all duration-300 ease-in-out touch-none' : 'transition-all duration-300 ease-in-out [touch-action:pan-y]'}
           ${isMapActive 
             ? `fixed bottom-0 left-0 right-0 z-30 box-border w-full max-w-none bg-white/95  backdrop-blur-md border-t border-[#E5E7EB]  flex flex-col gap-2.5 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent  md:backdrop-blur-none md:p-0 md:rounded-none md:shadow-none md:border-t-0 md:h-[460px] md:max-h-[460px] md:flex md:flex-col md:flex-1 md:pr-1 pointer-events-auto
                ${isSheetExpanded 
@@ -2240,7 +2411,7 @@ const handleWhatsAppConfirm = () => {
         {step === 2 && (
           <div className={`${isMapActive ? 'flex-1 flex flex-col min-h-0 justify-between' : 'space-y-4 py-3'} animate-fade-in flex flex-col items-stretch`}>
             {/* Scrollable Body */}
-            <div className={`${isMapActive ? 'flex-1 overflow-y-auto pr-1 space-y-4 app-scroll pb-2' : 'space-y-4'}`}>
+            <div ref={phoneScrollRef} className={`${isMapActive ? 'flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 space-y-4 app-scroll pb-2' : 'space-y-4'}`}>
               <button 
                 type="button"
                 onClick={() => {
@@ -2335,43 +2506,24 @@ const handleWhatsAppConfirm = () => {
                 <div className="flex-1 min-w-0">
                   <span className={`block text-[8px] font-black uppercase tracking-widest mb-0.5 ${isMapActive && isMobileScreen ? 'text-[#525252]' : 'text-[#FFC107]'}`}>Mobile Number</span>
                   <input
+                    ref={phoneInputRef}
                     type="tel"
                     placeholder="10-digit number"
                     value={formData.phone}
-                    onFocus={(e) => {
+                    onFocus={() => {
                       if (!isMobileScreen || !isMapActive) return;
-                      const input = e.currentTarget;
-
-                      if (phoneFocusScrollTimerRef.current !== null) {
-                        window.clearTimeout(phoneFocusScrollTimerRef.current);
-                      }
-
-                      const focusViewportHeight = window.visualViewport?.height ?? window.innerHeight;
-                      phoneFocusScrollTimerRef.current = window.setTimeout(() => {
-                        phoneFocusScrollTimerRef.current = null;
-                        const viewport = window.visualViewport;
-                        const keyboardIsOpen = viewport && focusViewportHeight - viewport.height > 80;
-                        if (!viewport || !keyboardIsOpen) return;
-
-                        const viewportBottom = viewport.offsetTop + viewport.height;
-                        const inputRect = input.getBoundingClientRect();
-                        const overlap = inputRect.bottom - (viewportBottom - 16);
-                        if (overlap <= 0) return;
-
-                        const scrollContainer = input.closest<HTMLElement>('.app-scroll');
-                        if (scrollContainer) {
-                          scrollContainer.scrollBy({ top: overlap + 12, behavior: 'auto' });
-                        } else {
-                          input.scrollIntoView({ behavior: 'auto', block: 'nearest' });
-                        }
-                      }, 250);
+                       keyboardInputFocusedRef.current = true;
+                       if (keyboardMeasureFrameRef.current !== null) {
+                         window.cancelAnimationFrame(keyboardMeasureFrameRef.current);
+                       }
+                       keyboardMeasureFrameRef.current = window.requestAnimationFrame(() => {
+                         keyboardMeasureFrameRef.current = null;
+                         updateKeyboardViewport();
+                       });
                     }}
                     onBlur={() => {
-                      if (phoneFocusScrollTimerRef.current !== null) {
-                        window.clearTimeout(phoneFocusScrollTimerRef.current);
-                        phoneFocusScrollTimerRef.current = null;
-                      }
-                      setIsKeyboardVisible(false);
+                      keyboardInputFocusedRef.current = false;
+                      updateKeyboardViewport();
                     }}
                     onChange={(e) => {
                       const cleaned = e.target.value.replace(/\D/g, "");
@@ -2390,7 +2542,7 @@ const handleWhatsAppConfirm = () => {
             </div>
 
             {/* Sticky Footer */}
-            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-[#E5E7EB]  bg-white/95  md:bg-transparent' : ''} ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
+            <div ref={phoneFooterRef} data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-[#E5E7EB]  bg-white/95  md:bg-transparent' : ''} shrink-0 ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
               <button
                 type="button"
                 onClick={() => {
@@ -2852,8 +3004,13 @@ const handleWhatsAppConfirm = () => {
         </div>
 
             </div>
+            {bookingFailureMessage && (
+              <div className="hidden">
+                <p className="text-[10px] font-bold uppercase leading-tight tracking-wide text-rose-700">{bookingFailureMessage}</p>
+              </div>
+            )}
             {/* Sticky Footer */}
-            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-[#E5E7EB]  bg-white/95  md:bg-transparent shrink-0' : ''} flex gap-3 ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
+            <div data-sheet-android-drag-surface="footer" className={`${isMapActive ? 'pt-3 border-t border-[#E5E7EB]  bg-white/95  md:bg-transparent shrink-0' : ''} grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-2 ${isMapActive && isAndroidBrowser ? 'touch-none' : ''}`}>
               <button
                 type="button"
                 onClick={() => {
@@ -2864,17 +3021,28 @@ const handleWhatsAppConfirm = () => {
               >
                 <ArrowLeft size={20} />
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 bg-[#FFB300] hover:bg-[#FFC107] text-[#171717] font-bold py-4 rounded-2xl shadow-lg shadow-[#FFB300]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
-              >
-                {loading ? 'Booking...' : (
-                  <>
-                    Confirm & Book Now <CheckCircle2 size={18} />
-                  </>
+              <div className="col-start-2 row-span-2 grid min-w-0 gap-y-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#FFB300] hover:bg-[#FFC107] text-[#171717] font-bold py-4 rounded-2xl shadow-lg shadow-[#FFB300]/20 uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  {loading ? 'Booking...' : (
+                    <>
+                      Confirm & Book Now <CheckCircle2 size={18} />
+                    </>
+                  )}
+                </button>
+                {bookingFailureMessage && (
+                  <button
+                    type="button"
+                    onClick={() => openBookingWhatsAppFallback({ ...formData, leadId: formData.leadId || sessionLeadId.current }, bookingFailureMessage.includes('unconfirmed'), true)}
+                    className="w-full rounded-2xl bg-[#25D366] py-4 text-xs font-bold uppercase tracking-widest text-white shadow-lg transition-all active:scale-95"
+                  >
+                    SEND BOOKING VIA WHATSAPP
+                  </button>
                 )}
-              </button>
+              </div>
             </div>
           </div>
         )}

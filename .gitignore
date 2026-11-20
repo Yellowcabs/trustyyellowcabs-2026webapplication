@@ -18,6 +18,8 @@ dist-ssr
 # Environment files (keep secrets safe)
 .env
 .env.local
+.env.*
+!.env.example
 .env.*.local
 
 # Editor directories and files
