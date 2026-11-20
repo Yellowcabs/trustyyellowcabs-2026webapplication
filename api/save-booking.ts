@@ -61,7 +61,28 @@ const writeToGoogleScript = async (scriptUrl: string, payload: BookingPayload, c
       signal: controller.signal,
     });
 
-    return response.ok;
+    if (!response.ok) return false;
+
+    // Preserve compatibility with existing deployments that return an empty
+    // or non-JSON 2xx response, while honoring explicit write failures.
+    const responseText = await response.text();
+    if (!responseText.trim()) return true;
+
+    try {
+      const result = JSON.parse(responseText);
+      if (
+        result?.ok === false ||
+        result?.success === false ||
+        result?.status === 'failed' ||
+        result?.status === 'error'
+      ) {
+        return false;
+      }
+    } catch {
+      // Existing Apps Script deployments may return plain text on success.
+    }
+
+    return true;
   } catch {
     return false;
   } finally {
