@@ -54,8 +54,15 @@ const App: React.FC = () => {
             <Navbar />
           </div>
         )}
-        <main className={isBookATripPage ? 'flex-grow book-a-trip-main' : 'flex-grow'}>
-          <React.Suspense fallback={null}>
+        <React.Suspense
+          fallback={
+            <main
+              className={isBookATripPage ? 'flex-grow book-a-trip-main' : 'flex-grow'}
+              aria-hidden="true"
+            />
+          }
+        >
+          <main className={isBookATripPage ? 'flex-grow book-a-trip-main' : 'flex-grow'}>
             <Routes>
             <Route path="/" element={<Home onBookingMapChange={setHomeBookingMapOpen} />} />
             <Route path="/fleet" element={<Fleet />} />
@@ -76,13 +83,13 @@ const App: React.FC = () => {
           
 
             </Routes>
-          </React.Suspense>
-        </main>
-        {!isBookingConfirmed && (
-          <div className={isBookATripPage ? 'book-a-trip-desktop-chrome' : undefined}>
-            <Footer />
-          </div>
-        )}
+          </main>
+          {!isBookingConfirmed && (
+            <div className={isBookATripPage ? 'book-a-trip-desktop-chrome' : undefined}>
+              <Footer />
+            </div>
+          )}
+        </React.Suspense>
         {!isBookingConfirmed && (
           <div className={isBookATripPage ? 'book-a-trip-desktop-chrome' : undefined}>
             <FloatingCallButton />

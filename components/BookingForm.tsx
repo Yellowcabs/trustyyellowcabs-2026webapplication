@@ -1980,7 +1980,6 @@ style.innerHTML = `
     const dateTimeStr = (booking.date || booking.time)
       ? '*Date/Time:* ' + (booking.date || 'Not specified') + ' at ' + (booking.time || 'Not specified')
       : '*Date/Time:* Not specified';
-    const warning = isUnknown ? '\n*WARNING:* Booking status unconfirmed' : '';
     const message =
       '*NEW BOOKING REQUEST*' +
       '\n*Customer:* Web Booking' +
@@ -1989,8 +1988,7 @@ style.innerHTML = `
       '\n' + tripDetails +
       '\n' + dateTimeStr +
       '\n*Vehicle:* ' + booking.vehicleType +
-      '\n*Estimated Fare:* ' + (booking.estimatedFare || 'Not specified') +
-      warning;
+      '\n*Estimated Fare:* ' + (booking.estimatedFare || 'Not specified');
     const popup = window.open('https://wa.me/918870088020?text=' + encodeURIComponent(message), '_blank', 'noopener,noreferrer');
     if (!popup) {
       setBookingFailureMessage(isUnknown ? 'Booking status unconfirmed. Send via WhatsApp.' : 'Booking not saved. Send via WhatsApp.');
