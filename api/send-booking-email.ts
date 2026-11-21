@@ -48,20 +48,8 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    let result: any;
-    try {
-      result = await response.json();
-    } catch {
-      console.error('booking_email_invalid_response');
-      res.status(502).json({ error: 'Booking email response was invalid' });
-      return;
-    }
-    if (!result || typeof result.messageId !== 'string' || !result.messageId) {
-      console.error('booking_email_invalid_response');
-      res.status(502).json({ error: 'Booking email response was invalid' });
-      return;
-    }
-
+    // Brevo's successful response body is not part of the booking contract;
+    // the HTTP success is sufficient for this notification-only endpoint.
     res.status(200).json({ ok: true });
   } catch (error: any) {
     console.error(error?.name === 'AbortError' ? 'booking_email_timeout' : 'booking_email_unavailable');

@@ -55,8 +55,8 @@ export const checkBookingPersistence = async (bookingId?: string) => {
   }
 };
 
-// A write response can be lost after Apps Script has appended the row. Polling
-// the existing status endpoint avoids a blind second write in that case.
+// A lost/aborted write response is checked by leadId without repeating the
+// write, avoiding duplicate rows in the existing sheet.
 export const confirmBookingPersistence = async (bookingId?: string) => {
   const delays = [0, 1000, 2000];
   for (const delay of delays) {

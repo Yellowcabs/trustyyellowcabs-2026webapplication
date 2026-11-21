@@ -67,11 +67,10 @@ const writeToGoogleScript = async (scriptUrl: string, payload: BookingPayload, c
       return 'failed';
     }
 
-    // Only an explicit success response is proof that Apps Script saved the
-    // row. Empty/plain 2xx responses remain unknown so the client checks the
-    // same leadId instead of confirming prematurely.
+    // Existing Apps Script deployments commonly return an empty/plain 2xx
+    // response after appending the row. Preserve that working contract.
     const responseText = await response.text();
-    if (!responseText.trim()) return 'unknown';
+    if (!responseText.trim()) return 'sent';
 
     try {
       const result = JSON.parse(responseText);
@@ -83,19 +82,10 @@ const writeToGoogleScript = async (scriptUrl: string, payload: BookingPayload, c
       ) {
         return 'failed';
       }
-      if (
-        result?.ok === true ||
-        result?.success === true ||
-        result?.saved === true ||
-        result?.status === 'sent' ||
-        result?.status === 'saved' ||
-        result?.status === 'success'
-      ) {
-        return 'sent';
-      }
-      return 'unknown';
+      return 'sent';
     } catch {
-      return 'unknown';
+      // Existing Apps Script deployments may return plain text on success.
+      return 'sent';
     }
   } catch (error: any) {
     const timedOut = error?.name === 'AbortError';
