@@ -45,7 +45,7 @@ export const checkBookingPersistence = async (bookingId?: string) => {
       signal: controller.signal,
     });
     const payload = await response.json() as { status?: string };
-    if (payload.status === 'sent') return { status: 'sent' } as const;
+    if (payload.status === 'sent' || payload.status === 'saved') return { status: 'sent' } as const;
     if (payload.status === 'failed') return { status: 'failed' } as const;
     return { status: 'unknown' } as const;
   } catch {
@@ -58,7 +58,7 @@ export const checkBookingPersistence = async (bookingId?: string) => {
 // A write response can be lost after Apps Script has appended the row. Polling
 // the existing status endpoint avoids a blind second write in that case.
 export const confirmBookingPersistence = async (bookingId?: string) => {
-  const delays = [0, 1000, 2000, 3000];
+  const delays = [0, 1000, 2000];
   for (const delay of delays) {
     if (delay) await new Promise(resolve => window.setTimeout(resolve, delay));
     const status = await checkBookingPersistence(bookingId);

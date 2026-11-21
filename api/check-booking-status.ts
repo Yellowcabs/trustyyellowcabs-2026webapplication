@@ -28,11 +28,25 @@ export default async function handler(req: any, res: any) {
     const text = await response.text();
     try {
       const result = JSON.parse(text);
-      if (result?.exists === true || result?.status === 'sent' || result?.status === 'saved') {
+      if (
+        result?.exists === true ||
+        result?.found === true ||
+        result?.ok === true ||
+        result?.success === true ||
+        result?.status === 'sent' ||
+        result?.status === 'saved' ||
+        result?.status === 'success'
+      ) {
         res.status(200).json({ status: 'sent' });
         return;
       }
-      if (result?.exists === false || result?.status === 'failed' || result?.status === 'not_found') {
+      if (
+        result?.exists === false ||
+        result?.found === false ||
+        result?.status === 'failed' ||
+        result?.status === 'not_found' ||
+        result?.status === 'not-found'
+      ) {
         res.status(200).json({ status: 'failed' });
         return;
       }

@@ -2025,9 +2025,13 @@ style.innerHTML = `
     try {
       const booking = { ...formData, leadId: formData.leadId || sessionLeadId.current };
       const writeResult = await appendBookingToSheet(booking);
-      // Always verify the row by its stable leadId. A successful HTTP write
-      // response alone is not proof that the row is visible in Sheets.
-      const persistence = await confirmBookingPersistence(booking.leadId);
+      // Explicit Apps Script success is sufficient proof. Only uncertain
+      // responses (timeout/lost/legacy response) need a status lookup.
+      const persistence = writeResult.status === 'sent'
+        ? writeResult
+        : writeResult.status === 'unknown'
+          ? await confirmBookingPersistence(booking.leadId)
+          : writeResult;
 
       if (persistence.status === 'sent') {
         submittedRef.current = true;

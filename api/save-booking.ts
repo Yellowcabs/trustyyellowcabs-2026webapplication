@@ -67,10 +67,11 @@ const writeToGoogleScript = async (scriptUrl: string, payload: BookingPayload, c
       return 'failed';
     }
 
-    // Preserve compatibility with existing deployments that return an empty
-    // or non-JSON 2xx response, while honoring explicit write failures.
+    // Only an explicit success response is proof that Apps Script saved the
+    // row. Empty/plain 2xx responses remain unknown so the client checks the
+    // same leadId instead of confirming prematurely.
     const responseText = await response.text();
-    if (!responseText.trim()) return 'sent';
+    if (!responseText.trim()) return 'unknown';
 
     try {
       const result = JSON.parse(responseText);
@@ -82,11 +83,20 @@ const writeToGoogleScript = async (scriptUrl: string, payload: BookingPayload, c
       ) {
         return 'failed';
       }
+      if (
+        result?.ok === true ||
+        result?.success === true ||
+        result?.saved === true ||
+        result?.status === 'sent' ||
+        result?.status === 'saved' ||
+        result?.status === 'success'
+      ) {
+        return 'sent';
+      }
+      return 'unknown';
     } catch {
-      // Existing Apps Script deployments may return plain text on success.
+      return 'unknown';
     }
-
-    return 'sent';
   } catch (error: any) {
     const timedOut = error?.name === 'AbortError';
     console.error(timedOut ? 'booking_sheet_write_unknown_timeout' : 'booking_sheet_write_unknown_network');
