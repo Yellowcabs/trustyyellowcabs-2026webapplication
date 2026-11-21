@@ -22,7 +22,9 @@ export const appendBookingToSheet = async (bookingDetails: any) => {
     } catch {
       payload = {};
     }
-    if (!response.ok) return { status: payload.status === 'unknown' ? 'unknown' : 'failed' } as const;
+    if (!response.ok) {
+      return { status: payload.status === 'unknown' ? 'unknown' : 'failed' } as const;
+    }
     return { status: payload.status === 'sent' ? 'sent' : 'unknown' } as const;
   } catch {
     return { status: 'unknown' } as const;
@@ -51,4 +53,16 @@ export const checkBookingPersistence = async (bookingId?: string) => {
   } finally {
     window.clearTimeout(timeoutId);
   }
+};
+
+// A write response can be lost after Apps Script has appended the row. Polling
+// the existing status endpoint avoids a blind second write in that case.
+export const confirmBookingPersistence = async (bookingId?: string) => {
+  const delays = [0, 1000, 2000, 3000];
+  for (const delay of delays) {
+    if (delay) await new Promise(resolve => window.setTimeout(resolve, delay));
+    const status = await checkBookingPersistence(bookingId);
+    if (status.status !== 'unknown') return status;
+  }
+  return { status: 'unknown' } as const;
 };

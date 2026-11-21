@@ -3,8 +3,9 @@ import { isIP } from 'node:net';
 const MAX_PAYLOAD_BYTES = 64 * 1024;
 const WRITE_TIMEOUT_MS = 10_000;
 const IDEMPOTENCY_WINDOW_MS = 10 * 60 * 1000;
+type WriteResult = 'sent' | 'failed' | 'unknown';
 
-const inFlightWrites = new Map<string, Promise<boolean>>();
+const inFlightWrites = new Map<string, Promise<WriteResult>>();
 const completedWrites = new Map<string, number>();
 
 type BookingPayload = Record<string, unknown>;
@@ -49,7 +50,7 @@ const parsePayload = (body: unknown): BookingPayload | null => {
   return payload as BookingPayload;
 };
 
-const writeToGoogleScript = async (scriptUrl: string, payload: BookingPayload, customerIp: string) => {
+const writeToGoogleScript = async (scriptUrl: string, payload: BookingPayload, customerIp: string): Promise<WriteResult> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), WRITE_TIMEOUT_MS);
 
@@ -61,12 +62,15 @@ const writeToGoogleScript = async (scriptUrl: string, payload: BookingPayload, c
       signal: controller.signal,
     });
 
-    if (!response.ok) return false;
+    if (!response.ok) {
+      console.error('booking_sheet_write_failed', { status: response.status });
+      return 'failed';
+    }
 
     // Preserve compatibility with existing deployments that return an empty
     // or non-JSON 2xx response, while honoring explicit write failures.
     const responseText = await response.text();
-    if (!responseText.trim()) return true;
+    if (!responseText.trim()) return 'sent';
 
     try {
       const result = JSON.parse(responseText);
@@ -76,15 +80,17 @@ const writeToGoogleScript = async (scriptUrl: string, payload: BookingPayload, c
         result?.status === 'failed' ||
         result?.status === 'error'
       ) {
-        return false;
+        return 'failed';
       }
     } catch {
       // Existing Apps Script deployments may return plain text on success.
     }
 
-    return true;
-  } catch {
-    return false;
+    return 'sent';
+  } catch (error: any) {
+    const timedOut = error?.name === 'AbortError';
+    console.error(timedOut ? 'booking_sheet_write_unknown_timeout' : 'booking_sheet_write_unknown_network');
+    return 'unknown';
   } finally {
     clearTimeout(timeout);
   }
@@ -130,9 +136,13 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const succeeded = await write;
-    if (!succeeded) {
-      res.status(502).json({ error: 'Google Sheets write failed' });
+    const result = await write;
+    if (result === 'unknown') {
+      res.status(504).json({ status: 'unknown', error: 'Booking data service status is unknown' });
+      return;
+    }
+    if (result === 'failed') {
+      res.status(502).json({ status: 'failed', error: 'Google Sheets write failed' });
       return;
     }
 

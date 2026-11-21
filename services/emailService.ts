@@ -245,38 +245,33 @@ Need assistance? Call us anytime.
 `
   };
 
-  // Execute request with retry mechanism (up to 2 retries) and keepalive: true
-  const maxAttempts = 3;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        keepalive: true, // CRITICAL: Guarantees fetch request completes during page unload/tab switch
-        headers: {
-          'accept': 'application/json',
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({ emailContent })
-      });
+  // Email is notification-only. Use one bounded server-side attempt so a
+  // Brevo timeout/quota error cannot delay or invalidate the saved booking.
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 9000);
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      keepalive: true,
+      signal: controller.signal,
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ emailContent })
+    });
 
-      if (response.ok) {
-        return true;
-      }
-
+    if (!response.ok) {
       console.error(`Booking email request failed with status ${response.status}`);
-
-      // If client error like 400 or 401, don't retry
-      if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-        break;
-      }
-    } catch (error) {
-      console.error(`Network error sending booking email (attempt ${attempt}/${maxAttempts})`);
+      return false;
     }
 
-    if (attempt < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 500 * attempt));
-    }
+    const payload = await response.json().catch(() => null);
+    return payload?.ok === true;
+  } catch (error: any) {
+    console.error(error?.name === 'AbortError' ? 'Booking email request timed out' : 'Booking email request unavailable');
+    return false;
+  } finally {
+    window.clearTimeout(timeoutId);
   }
-
-  return false;
 };

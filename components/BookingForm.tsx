@@ -3,7 +3,7 @@ import { BookingDetails, VehicleType, TripType, FareBreakdown, PlaceData } from 
 import { MapPin, User, Phone, Smartphone, Car, Calendar, Clock, ArrowRight, ArrowLeft, CheckCircle2, MessageCircle, Map as MapIcon, AlertTriangle, Repeat, Navigation, Package, X, ChevronUp, ChevronDown, Locate } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { sendBookingEmail } from '../services/emailService';
-import { appendBookingToSheet, checkBookingPersistence } from '../services/googleSheets';
+import { appendBookingToSheet, confirmBookingPersistence } from '../services/googleSheets';
 import { motion } from 'framer-motion';
 
 declare const google: any;
@@ -2024,11 +2024,10 @@ style.innerHTML = `
 
     try {
       const booking = { ...formData, leadId: formData.leadId || sessionLeadId.current };
-      let persistence = await appendBookingToSheet(booking);
-
-      if (persistence.status === 'unknown') {
-        persistence = await checkBookingPersistence(booking.leadId);
-      }
+      const writeResult = await appendBookingToSheet(booking);
+      // Always verify the row by its stable leadId. A successful HTTP write
+      // response alone is not proof that the row is visible in Sheets.
+      const persistence = await confirmBookingPersistence(booking.leadId);
 
       if (persistence.status === 'sent') {
         submittedRef.current = true;
@@ -2038,7 +2037,7 @@ style.innerHTML = `
         return;
       }
 
-      const isUnknown = persistence.status === 'unknown';
+      const isUnknown = writeResult.status === 'unknown' || persistence.status === 'unknown';
       const warning = isUnknown
         ? 'Booking status unconfirmed. Send via WhatsApp.'
         : 'Booking not saved. Send via WhatsApp.';
